@@ -565,7 +565,14 @@ class PostgresDB(CurrentDB):
 
     def _createHeaderFile(self, config, channel, filename, headerBlob):
         # This routine just creates the header file in the www tree
-        hdr_name = string.replace(filename, '.rpm', '.hdr')
+        # FIXME: I forward ported this from 1.4.2, but it had much easier
+        # access to the header information  
+        import rpm
+        hdr_name = "%s-%s-%s.%s.hdr" % (headerBlob[rpm.RPMTAG_NAME], 
+                                        headerBlob[rpm.RPMTAG_VERSION],
+                                        headerBlob[rpm.RPMTAG_RELEASE], 
+                                        headerBlob[rpm.RPMTAG_ARCH])
+ 
         pathname = os.path.join(config['current_dir'], 'www', channel, 'getPackageHeader', hdr_name)
         if (os.path.exists(pathname)):
             os.unlink(pathname)

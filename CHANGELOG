@@ -1,4 +1,8 @@
                         Current Project Changelog
+
+* Sat Jun 14 2003 Hunter Matthews <thm@duke.edu>
+- Forward ported changes from 1.4.2
+
 * Sat Jun 14 2003 Hunter Matthews <thm@duke.edu>
 - Forward ported rhn_api.txt file from 1.4.x - it was the most recent
 - Forward ported changes from 1.4.1 

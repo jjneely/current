@@ -142,7 +142,7 @@ class PostgresDB(CurrentDB):
 
         # Now create the directories and such and so.
         webdir = os.path.join(config['current_dir'], 'www')
-        chan_dir = os.path.join(webdir, channel['name'])
+        chan_dir = os.path.join(webdir, channel['label'])
         if ( not os.access(chan_dir, os.W_OK) ):
             os.mkdir(chan_dir)
             os.mkdir(os.path.join(chan_dir, 'getObsoletes'))
@@ -201,7 +201,7 @@ class PostgresDB(CurrentDB):
         result['setactive'] = self._setActiveElems(channel)
         log("Active elements (RPMS) set", DEBUG2)
         result['populatedirs'] = self._populateChannelDirs(config, channel)
-        log("Channel dirs populated), DEBUG2)
+        log("Channel dirs populated", DEBUG2)
         self.conn.commit()
         return result
 

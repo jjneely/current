@@ -100,8 +100,7 @@ create sequence channel_dir_id_seq;
 create table CHANNEL_DIR (
     channel_dir_id  int default nextval('channel_dir_id_seq') unique not null,
     channel_id      int not null,
-    dirpathname     varchar(256),
-    is_bin_dir      boolean not null
+    dirpathname     varchar(256)
     );
 create index CHANNEL_DIR_ID_IDX on CHANNEL_DIR(channel_dir_id);
 create index CHANNEL_DIR_CHAN_ID_IDX on CHANNEL_DIR(channel_id);

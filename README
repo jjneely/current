@@ -35,23 +35,21 @@ at.
 Status:
     
     server itself: 
-        Please note that Current is only tested and claimed to work on 
-        RHL 7.2, 7.3, 8.0 and 9. It is reported to work on the 2.1 
-        enterprise releases. Your server should run all original Red 
-        Hat packages (and should itself be fully up to date with errata).
+        Please note that Current 1.5.x/1.6.x is only tested and claimed to
+        work on RHL 8.0 and 9. Your server should run all original Red Hat
+        packages (and should itself be fully up to date with errata).
 
         The single exception is that on a RHL 8.0 server, you need a newer
         mod_python (3.0.1 at least) to deal with bugs in that package. A
         suitable mod_python package and src package are provided on the 
-        web site.
+        web site. (There's nothing 'special' about that package - its just
+        3.0.1)
     
     rhn_register:
         Current can handle rhn_register versions of 1.3.x through at least
         2.8.28.  For rhn_register this means generating a usable system id
         and not crashing the client.  (IE, all the API functions are at
-        least stubbed out)
-
-        Both the GUI and text interfaces are supported.
+        least stubbed out.) Both the GUI and text interfaces are supported.
 
         Note that rhn_register disappears in the limbo betas and 8.0,
         consumed by the up2date package itself.
@@ -59,23 +57,20 @@ Status:
     up2date: 
         Current can handle up2date versions from 2.7.x up to 3.1.x for all
         simple cases (it works here).  Versions prior to 2.7 will not be
-        supported.
-
-        Both the GUI and text interfaces are supported. (the gui has 
-        one extra call it can make, which is implemented in a limited way).
+        supported. Both the GUI and text interfaces are supported. 
 
         Due to bugs in up2date itself, I HIGHLY recommend 2.7.63 or higher
         if you are using clients in the 2.7 range. 2.7.83 has proved stable
         for just about everyone - if you're sticking with 2.7.x for the time
-        being, run 2.7.83. (There are two serious bugs in earlier versions,
-        and neither can be fixed by the server).
+        being, run 2.7.83. (There are two serious bugs in earlier versions
+        of the client and neither can be fixed by the server).
 
     rhn_check / rhnsd:
         Not working. (rhnsd just calls rhn_check). The calls are stubbed
         out in current v1.4.4, and should not produce an error.
 
     rhn-applet:
-        Fully support in v1.5.4 and later.
+        Fully supported in v1.5.4 and later.
 
 Maintainers:
 Hunter Matthews <thm@duke.edu> 

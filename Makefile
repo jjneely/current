@@ -44,22 +44,11 @@ all:: sedrules files
 
 files: $(ALLFILES)
 
-sedrules:: sedspec sedcadmin sedcinstall
+sedrules:: sedspec sedcinstall
 
 sedspec: support/current.spec
 	sed -e 's%Version:.*%Version: $(VERSION)%' < $< > $<.tmp
 	mv -f $<.tmp $<
-
-sedcadmin: cadmin
-	sed -e 's%^VERSION=.*%VERSION="$(VERSION)"%' \
-            -e 's%^MODULES_DIR=.*%MODULES_DIR="$(DATA_DIR)"%' \
-            -e 's%^CONFIG_DIR=.*%CONFIG_DIR="$(CONFIG_DIR)"%' \
-            -e 's%^LOG_DIR=.*%LOG_DIR="$(LOG_DIR)"%' \
-            -e 's%^PID_DIR=.*%PID_DIR="$(PID_DIR)"%' \
-            -e '1 s%#!.*%#! $(PYTHON_BIN)%' \
-        < $< > $<.tmp
-	mv -f $<.tmp $<
-	chmod u+x $<
 
 sedcinstall: cinstall
 	sed -e 's%^VERSION=.*%VERSION="$(VERSION)"%' \

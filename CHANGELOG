@@ -1,5 +1,22 @@
                         Current Project Changelog
 
+* Sat Aug 23 2003 Hunter Matthews <thm@duke.edu>
+- Lots of redesign (on paper) has occured - I've not been idle.
+- Took out all of the source/binary distinction code from cadmin and the api.
+    Still need to do this for the database.
+- All changes are to postgres.py:
+-   Rearrangement of imports, seperate python modules from current specific
+-   Spelling corrections
+-   Added whitespace to many places to make review of the code easier.
+-   Renamed _scanDirToChannel() to be _scanBinDir() to match the source
+      functions.
+-   Instead of passing the config dict all over hells half acre, just sucked
+      it into the main object. in the future, we'll just suck the bits we 
+      require selectively, but this was still cleaner than the old way.
+-   For some reason, the code got real hyper about requesting a new cursor
+      in lots of places. But not everywhere. Now the connect method creates
+      one and only one, and every other method just uses that cursor.
+
 * Thu Aug  7 2003 Hunter Matthews <thm@duke.edu>
 - Applied patches from Burt Holzman <burt@bar.chm.bnl.gov>
   Fixed one 0/1 error for bin/src rpms. (Going away, but its still wrong)

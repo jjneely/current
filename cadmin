@@ -15,10 +15,6 @@ Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
 # this gives us relatively easy network code
 # unfortunately, it ties us far more closely to up2date internals
 
-# Configured module dir
-# These are replaced by make, so beware
-MODULES_DIR="/usr/share/current"
-
 import pprint
 import sys
 import optik
@@ -26,6 +22,7 @@ sys.path.append(MODULES_DIR)
 sys.path.append('/usr/share/rhn')
 
 # Grab the network code from up2date itself.
+### FIXME: switch this to rhnlib
 from up2date_client import rpcServer
 
 # don't import current config - might not be running on a machine
@@ -83,16 +80,18 @@ def create_channel(args):
 def add_dir_to_channel(args):
     parser = optik.OptionParser()
     parser.add_option("-l", "--label", action="store", type="string", dest="chanlabel")
-    parser.add_option("-b", "--bin-dir", action="append", type="string", dest="bindirs")
-    parser.add_option("-s", "--src-dir", action="append", type="string", dest="srcdirs")
+    parser.add_option("-d", "--dir", action="append", type="string", dest="dirs")
+#    parser.add_option("-b", "--bin-dir", action="append", type="string", dest="bindirs")
+#    parser.add_option("-s", "--src-dir", action="append", type="string", dest="srcdirs")
     (opts, leftargs) = parser.parse_args(args)
     if ( len(leftargs) != 0 ):
         print "Invalid option line."
         sys.exit(2)
     chan = {}
     chan['label'] = opts.chanlabel
-    chan['bin'] = opts.bindirs or ['']
-    chan['src'] = opts.srcdirs or ['']
+    chan['dirs'] = opts.dirs
+#    chan['bin'] = opts.bindirs or ['']
+#    chan['src'] = opts.srcdirs or ['']
     server = getServer()
     result = rpcServer.doCall(server.cadmin.populateChannel, chan)
     pprint.pprint(result)

@@ -59,20 +59,24 @@ def populateChannel(channel):
     result = {}
     logfunc(locals())
 
-    # this bit has GOT to change...
-    if channel['bin'][0] == '':
-        channel['bin'] = []
-    if channel['src'][0] == '':
-        channel['src'] = []
+#    # this bit has GOT to change...
+#    if channel['bin'][0] == '':
+#         channel['bin'] = []
+#     if channel['src'][0] == '':
+#         channel['src'] = []
 
     # We'll definitely want to do some sanity checking here (eventually)
-    for dir in channel['bin']:
-        # This is where sanity checking (i.e. does this dir exist?) should go
-        result[dir] = db.db.addDir(channel['label'], dir, 1)
-    for dir in channel['src']:
-        # Likewise
-        result[dir] = db.db.addDir(channel['label'], dir, 0)
-    result['status'] = "ok"
+    for dir in channel['dirs']:
+        result[dir] = db.db.addDir(channel['label'], dir
+)
+#     for dir in channel['bin']:
+#         # This is where sanity checking (i.e. does this dir exist?) should go
+#         result[dir] = db.db.addDir(channel['label'], dir, 1)
+#     for dir in channel['src']:
+#         # Likewise
+#         result[dir] = db.db.addDir(channel['label'], dir, 0)
+
+     result['status'] = "ok"
     return result
 
 

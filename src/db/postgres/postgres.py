@@ -199,6 +199,32 @@ class PostgresDB(CurrentDB):
 
         return (added_set, deleted_set)
 
+
+    def _deleteRpms(self, channel, delete_set):
+        """ Given a set of full pathnames, delete them from the channel.
+
+        Note that the FILES are gone - we know what the full pathnames used
+        to be because they were recorded in the database.
+    
+        """
+
+        # the full pathname is in CHANNEL_RPM.
+        # grab the rpm_id from that row 
+        # delete that item
+        # if thats the last row in CHANNEL_RPM with that rpm_id,
+        # delete that rpm_id from RPM
+        #     if thats the last row in RPM with that package_id
+        #        delete that package_id from PACKAGE
+        # delete that rpm_id from all the other tables with rpm_id
+        # Then do the disk cleanup. See what _addRpms puts down...
+        pass
+
+
+    def _addRpms(self, channel, add_set):
+        """ Given a set of full pathnames, add them to a channel. """
+
+        pass
+
         
     def _addRpmPackage(self, path, channel):
         filename = os.path.basename(path)
@@ -277,8 +303,7 @@ class PostgresDB(CurrentDB):
         if not package_id:
             self.cursor.execute('''insert into PACKAGE
                         (pkgname, version, release, epoch)
-                        values
-                        (%s, %s, %s, %s)''',
+                        values (%s, %s, %s, %s)''',
                         (header[RPM.NAME], header[RPM.VERSION],
                          header[RPM.RELEASE], header[RPM.EPOCH]))
 
@@ -350,79 +375,78 @@ class PostgresDB(CurrentDB):
 
     def _setActiveChannelRpms(self, channel):
         # This is what sets which RPMS are active.  I'tll be fun to diagnose...
-        # Ok, zeroth, clear out the existing active RPMS
-        # I know this can be optimized.  Work with me.
+        # clear out the existing active RPMS
+        # FIXME: Can this be optimized any?
+        # Would version compare in PL/SQL do us any good?
+
+        # Clear out this channels entries from the CHANNEL_RPM_ACTIVE table
         self.cursor.execute('''select channel_id from CHANNEL
-                            where label = %s''', (channel,))
-        res = self.cursor.fetchall()
-        assert (len(res) == 1)
-        chan_id = int(res[0][0])
-        self.cursor.execute('''delete from CHAN_RPM_ACT 
-                            where chan_id = %d''', (chan_id,))
+                               where label = %s''', (channel,))
+        result = self.cursor.fetchone()
+        chan_id = result[0]
+        self.cursor.execute('''delete from CHANNEL_RPM_ACTIVE
+                               where chan_id = %d''', (chan_id,))
 
         # First, get a list of unique pkg names:
-
-        self.cursor.execute('''select distinct pkgname from PACKAGE
-                    inner join RPM on (PACKAGE.package_id = RPM.package_id)
-                    inner join CHAN_RPM_ORIG on (RPM.rpm_id = CHAN_RPM_ORIG.rpm_id)
-                    inner join CHANNEL on (CHANNEL.channel_id = CHAN_RPM_ORIG.chan_id)
-                    where CHANNEL.label = %s''', (channel,))
-        pkgs = []
+        self.cursor.execute('''select distinct name 
+                               from PACKAGE, RPM, CHANNEL_RPM
+                               where PACKAGE.package_id = RPM.package_id and
+                                     RPM.rpm_id = CHAN_RPM_ORIG.rpm_id and 
+                                     CHANNEL.channel_id = CHAN_RPM_ORIG.chan_id and 
+                                     CHANNEL.label = %s''', (channel,))
         newest_ids = []
         query = self.cursor.fetchall()
         for row in query:
-            pkgs.append(row[0])
-
-        for pkg in pkgs:
-            for id in self._findNewest(channel, pkg):
+            for id in self._findNewest(channel, row[0]):
                 newest_ids.append(id)
 
         for id in newest_ids:
             log('setting rpmid %s active' % id)
-            self.cursor.execute('''insert into CHAN_RPM_ACT
-                                (rpm_id, chan_id)
-                                values
-                                (%d, %d)''', (id, chan_id))
+            self.cursor.execute('''insert into CHANNEL_RPM_ACTIVE
+                                   (rpm_id, chan_id)
+                                   values (%d, %d)''', (id, chan_id))
 
         self.conn.commit()
         return "done"
 
 
     def _findNewest(self, channel, pkg):
-        self.cursor.execute('''select pkgname, version, release, epoch from PACKAGE
-                    inner join RPM on (PACKAGE.package_id = RPM.package_id)
-                    inner join CHAN_RPM_ORIG on (CHAN_RPM_ORIG.rpm_id = RPM.rpm_id)
-                    inner join CHANNEL on (CHAN_RPM_ORIG.chan_id = CHANNEL.channel_id)
-                    where PACKAGE.pkgname = %s and CHANNEL.label = %s''',
-                    (pkg, channel))
+        self.cursor.execute('''select PACKAGE.name, PACKAGE.version, PACKAGE.release, PACKAGE.epoch 
+                               from PACKAGE, RPM, CHANNEL_RPM, CHANNEL
+                               where PACKAGE.package_id = RPM.package_id and
+                                     RPM.rpm_id = CHANNEL_RPM.rpm_id and 
+                                     CHANNEL_RPM.chan_id = CHANNEL.channel_id and
+                                     PACKAGE.name = %s and 
+                                     CHANNEL.label = %s''', (pkg, channel))
         query = self.cursor.fetchall()
 
-        # Sort the list
+        # Sort the list according to RPM.versionCompare() results
         # We construct the lambda backwards so that it's actually sorted in 
         # reverse order...
-        # FIXME: why does this try block need to be here?
-        try:
-            query = list(query)
-        except:
-            pass
+        # BUG: The list() used to be in a try/except block - WHY?
+        query = list(query)
         query.sort(lambda x,y: RPM.versionCompare((y[3], y[1], y[2]), (x[3], x[1], x[2])))
 
-        # Now update the RPM table appropriately.
-        self.cursor.execute('''select RPM.rpm_id from RPM
-                    inner join PACKAGE on (PACKAGE.package_id = RPM.package_id)
-                    inner join CHAN_RPM_ORIG on (RPM.rpm_id = CHAN_RPM_ORIG.rpm_id)
-                    inner join CHANNEL on (CHAN_RPM_ORIG.chan_id = CHANNEL.channel_id)
-                    where PACKAGE.pkgname = %s
-                        and PACKAGE.version = %s
-                        and PACKAGE.release = %s
-                        and PACKAGE.epoch = %s 
-                        and CHANNEL.label = %s''',
+        # From the first of that reverse list, grab the RPM.rpm_id of the _NEWEST_ rpm available
+        self.cursor.execute('''select RPM.rpm_id 
+                               from RPM, PACKAGE, CHANNEL_RPM, CHANNEL
+                               where PACKAGE.package_id = RPM.package_id and 
+                                     RPM.rpm_id = CHANNEL_RPM.rpm_id and 
+                                     CHANNEL_RPM.chan_id = CHANNEL.channel_id and 
+                                     PACKAGE.pkgname = %s and 
+                                     PACKAGE.version = %s and 
+                                     PACKAGE.release = %s and 
+                                     PACKAGE.epoch = %s  and 
+                                     CHANNEL.label = %s''',
                     (query[0][0], query[0][1], query[0][2], query[0][3], channel))
-        queryret = self.cursor.fetchall()
-        retval = []
-        for row in queryret:
-            retval.append(row[0])
-        return retval
+
+        # We really are going to get a list here on occasion - 
+        # we'll get the i386, i486, etc varients of the kernel package of the newest version
+        query = self.cursor.fetchall()
+        tmp = []
+        for row in query:
+            tmp.append(row[0])
+        return tmp
 
 
     def _populateChannelDirs(self, channel):

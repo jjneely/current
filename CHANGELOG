@@ -1,5 +1,10 @@
                         Current Project Changelog
 
+* Thu Aug  7 2003 Hunter Matthews <thm@duke.edu>
+- Applied patches from Burt Holzman <burt@bar.chm.bnl.gov>
+  Fixed one 0/1 error for bin/src rpms. (Going away, but its still wrong)
+  Fixed the mysql schema file  not having closing quotes.
+
 * Fri Aug  1 2003 Hunter Matthews <thm@duke.edu>
 - Code cleanups: took excess whitespace out of ('s and )'s 
 - Code cleanups: changed all the sql from "blah '%s' blah blah" % value to

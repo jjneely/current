@@ -256,7 +256,7 @@ class PostgresDB(CurrentDB):
         self.cursor.execute('''select dirpathname from CHANNEL_DIR
             inner join CHANNEL on (CHANNEL.channel_id = CHANNEL_DIR.channel_id)
             where CHANNEL.label = %s 
-            and CHANNEL_DIR.is_bin_dir = %s''', (channel, '0'))
+            and CHANNEL_DIR.is_bin_dir = %s''', (channel, '1'))
         query = self.cursor.fetchall()
         incr_reslt = 1
         for row in query:

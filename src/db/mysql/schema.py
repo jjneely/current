@@ -82,3 +82,4 @@ CREATE TABLE SRPM (
 
   PRIMARY KEY  (srpm_id)
 ) TYPE=MyISAM;
+"""

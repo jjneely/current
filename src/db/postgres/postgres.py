@@ -296,6 +296,12 @@ class PostgresDB(CurrentDB):
         log("Adding RPM %s to channel %s" % (path, channel), TRIVIA)
         filename = os.path.basename(path)
         rpm_info = self.rpmWrapper.getRpmInfo(path)
+		# Make sure we read in a valid RPM
+		if ( rpm_info == None ):
+			# We can't return 0, because 0 indicates an error, but we don't
+			# do anything other than check for return value != 0, so we
+			# can safely return 1
+			return 1
         
         if (self.cursor == None):
             self.cursor = self.conn.cursor()

@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>Current: A server for Red Hat's up2date tools</title>
-<meta name="description" content="Current">
+<meta name="description" content="current">
 <meta name="keywords" content="Linux, Red Hat, up2date, rhn">
 </head>
 <body>
@@ -18,29 +18,28 @@ configurations, new kernels, packages dependencies and conflicts.
 </p>
 
 <p> Unfortunately, Red Hat has not released their server, which does not
-fully address the needs of some users/departments. Thus, 'Current' was born.
- (current == up2date - more bad puns may follow).
+fully address the needs of some users/departments. Thus, 'current' was born.
 </p>
 
 
-<p> Current is primarily intended for the
-small to medium organization that wants to control the RPMs installed on its
-machines. It's completely useless for the single computer at home that needs
-security patches (just use RHN - its free for the first computer).
-</p>
+<p> Current is primarily intended for the small to medium organization that
+wants to control the RPMs installed on its machines. It's completely useless
+for the single computer at home that needs security patches (just use RHN -
+its free for the first computer). Its also not going to scale to the level
+of RHN - but for a thousand hosts or less, its reasonable. </p>
 
-<p> Right now, Current is release quality.
-The API used by up2date v2.7 and v2.8 is working in the basic mode (grab
-packages, list available packages, find what packages this
-computer needs updated). It doesn't attempt any of the more advanced
-management features that RHN provides. The current (pun intended) plan
-(better laid out in the roadmap.txt file in the package) is to
-become a complete anonymous server solution for 1.X, and then tackle the
-more advanced features of RHN.
-</p>
+<p> Right now, current v1.4 is release quality. The API used by up2date v2.7
+and v2.8 is working for gui and text interfaces in the basic mode (grab
+packages, list available packages, find what packages this computer needs
+updated). It doesn't attempt any of the more advanced management features
+that RHN provides. The current (pun intended) plan (better laid out in the
+roadmap.txt file in the package) is to become a complete anonymous server
+solution for 1.X, and then tackle the more advanced features of RHN. </p>
 
 <p>Current is implemented using apache, mod_python, and mod_ssl. This is 
-an excellent fit, as that what RHN uses. :)
+an excellent fit, as that what RHN uses. :) Naturally, Red Hat has nothing to 
+do with this project, except to release excellent client packages. Please
+don't bother them with bug reports if you are using current.
 </p>
 
 <h3>Related resources</h3>

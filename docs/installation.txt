@@ -61,8 +61,12 @@ This sets up Apache for current.
 
 *) Run: cinstall create_certificate
 This creates an SSL certificate for your server and up2date clients.
-The cert file that the clients need will be in /etc/current.  This will
-erase any pre-existing SSL cert that Apache is using.
+All of the SSL certificates will be placed in the Current configuration 
+directory.  By default, this is /etc/current.  The CA public key which 
+all you clients will need is RHNS-CA-CERT and the two files containing 
+the Apache key and certificate are server.key and server.crt.  You must
+place the server.* files into the proper directories in your Apache
+configs.  Normally /etc/httpd/conf/ssl.key/ and /etc/httpd/conf/ssl.crt/.
 
 *) Run: cinstall initdb
 This sets up the database schema.  Restart Apache and current should be

@@ -1,5 +1,9 @@
                         Current Project Changelog
 
+* Mon Mar 21 2005 Jack Neely <jjneely@gmail.com>
+- Current 1.6.0
+- Some very minor documentation tweeks regarding generating SSL certs
+
 * Sun Feb 27 2005 Jack Neely <jjneely@gmail.com>
 - Current 1.5.91 AKA 1.6.0 Release Canidate 1
 - Make cadmin use optparse instead of optik

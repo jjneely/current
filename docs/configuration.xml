@@ -149,7 +149,7 @@ certificate file which will be used to encrypt communications between the
 clients and the Current server.  To do this, first issue a <command>cinstall
 create_certificate</command> command after installing Current.  This will
 create several files in <filename>/etc/current</filename>, among them
-<filename>server.pem</filename>, <filename>RHNS-CA-CERT</filename>,
+<filename>RHNS-CA-CERT</filename>,
 <filename>server.key</filename>, and <filename>server.crt</filename>.
 </para>
 <para>
@@ -160,7 +160,7 @@ If you name these files differently then
 the entries concerning these files in <filename>ssl.conf</filename> 
 must be edited.  The <filename>ssl.conf</filename> is part of the
 <filename>mod_ssl</filename> package and is normally located at
-<filename>/etc/httpd/conf.d/ssl.con</filename>.
+<filename>/etc/httpd/conf.d/ssl.conf</filename>.
 </para>
 <warning>
 <para>
@@ -175,13 +175,12 @@ Current.  Simply copy the <filename>server.crt</filename> file from the
 <filename>/etc/httpd/conf/ssl.crt</filename> directory to your current
 working directory and issue the following two commands:
 <screen>
-# openssl x509 -noout -text -in server.crt > CURRENT-CA-CERT
-# cat server.crt >> CURRENT-CA-CERT
+# openssl x509 -noout -text -in server.crt > RHNS-CA-CERT
+# cat server.crt >> RHNS-CA-CERT
 </screen>
 </para>
 <para>
-The <filename>CURRENT-CA-CERT</filename> or the <command>cinstall</command>
-generated <filename>RHNS-CA-CERT</filename>
+The <filename>RHNS-CA-CERT</filename>
 must be copied to your clients prior to
 using Current; this will be discussed in the client section of this guide.
 </para>

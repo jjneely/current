@@ -1,14 +1,30 @@
+##
+# To build for Red Hat 7.x, build with:
+# rpmbuild --rebuild --define "rhl8x 0" dulog-*src.rpm
+# 
+%{!?rhl8x:%define rhl8x 1}
+
+# I do all this junk at the top to get it out of the way, so the rest of 
+# the file looks _sort_of_ sane.
+%if %{rhl8x}
+%define release 1.8x
+%define additional_requires httpd librpm404 rpm404-python
+%else
+%define release 1.7x
+%define additional_requires apache python-xmlrpc 
+%endif
+
 Summary: A server for Red Hat's up2date tools.
 Name: current
 Version: 1.5.3
-Release: 1
+Release: %{release}
 License: GPL
 Group: System Environment/Daemons
 URL: http://www.biology.duke.edu/computer/unix/current
 Source0: ftp://ftp.biology.duke.edu/pub/admin/current/%{name}-%{version}.tar.gz
-Requires: python rpm404-python rpm-python httpd mod_ssl 
-Requires: mod_python >= 3.0.1
+Requires: python rpm-python mod_python mod_ssl 
 Requires: rpm >= 4.0.2-8
+Requires: %{additional_requires}
 BuildRequires: docbook-style-xsl docbook-style-dsssl docbook-dtds
 BuildRequires: docbook-utils docbook-utils-pdf
 BuildArchitectures: noarch
@@ -38,23 +54,28 @@ make install INSTALL_ROOT=$RPM_BUILD_ROOT
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 
-
 %files
 %defattr(-,root,root)
 %doc CHANGELOG LICENSE README RELEASE-NOTES TODO
 %doc docs/*.txt docs/FAQ
 %doc docs/client
 %doc docs/developer_docs
-%doc docs/current-guide.ps docs/current-guide
+#%doc docs/current-guide.ps docs/current-guide
 %config(noreplace) /etc/current/current.conf
 %dir /etc/current
 %dir /usr/share/current
-#/etc/rc.d/init.d/current
 /usr/sbin/*
 /usr/share/current/*
 
 
 %changelog
+* Mon Feb 17 2003 John Berninger <johnw@berningeronline.net> 1.5.3pre1
+- Merged changes from postgres-branch into trunk, merged selected changes from
+  1.4.x branch to trunk (7.x vs 8.x builds)
+
+* Sat Feb 15 2003 Hunter Matthews <thm@duke.edu> 1.4.3-1
+- Changes to dependancies to correct for Red Hat 8.0 
+
 * Thu Oct 17 2002 Hunter Matthews <thm@duke.edu>
 - Took out old code bits
 

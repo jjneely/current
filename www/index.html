@@ -1,96 +1,57 @@
 <html>
 <head>
+<title>Current: A server for Red Hat's up2date tools</title>
+<meta name="description" content="Current">
+<meta name="keywords" content="Linux, Red Hat, up2date, rhn">
 </head>
 <body>
 
-<p>This is the initial web content for your project.  Please customize
-this to fit your project.  You dont need to anwser all these questions
-or follow this exact format, but we do like to see this kind of
-information before we approve projects for public viewing.
+<h2>Current: A server for Red Hat's up2date tools</h2>
+
+<h3>An open source server for Red Hat's up2date tools.</h3>
+
+<p> Red Hat's up2date is a suite of tools (sometimes called the Red Hat
+Network) for keeping a Red Hat Linux system "up to date" with new
+security/bugfix RPM's.  It also allows you to add completely new rpm's to
+clients over the network. The tools do a thorough job of handling bootloader
+configurations, new kernels, packages dependancies and conflicts.
 </p>
 
-<p>Until your project is approved, only you can view it and work on
-it.
+<p> Unfortunately, Red Hat has not released their server, which does not
+fully address the needs of some users/departments. Thus, 'Current' was born.
+ (current == up2date - more bad puns may follow).
 </p>
 
-<ul>
-<li>This index.html will be used if and only if you have the "Use
-Project Home Page" option checked on the "Adminster Project" page
-(click the "Admin" tab).</li>
 
-<li>To edit this file, check out your project via CVS and edit www/index.html.
-
-<li>You can 'cvs add' and commit other files under the project's "www"
-directory and they will published to your project web site.</li>
-
-<li>Also, consider starting a thread in the "dev" mailing list to get
-thes discussion started.  A good one is an "introduction" thread where
-people post messages about themselves and their interest in the
-project.</li>
-
-<li>You can add a "Highlights:" line to the top of all web pages by adding a file www/project_highlights.html </li>
-</ul>
-
-
-<h3>Mission</h3>
-
-<p>What is the goal of this project?
+<p> Current is primarily intended for the
+small to medium organization that wants to control the RPMs installed on its
+machines. It's completely useless for the single computer at home that needs
+security patches (just use RHN - its free for the first computer).
 </p>
 
-<p>What is the scope of this project?
+<p> Right now, Current is release quality.
+The API used by up2date v2.7 and v2.8 is working in the basic mode (grab
+packages, list available packages, find what packages this
+computer needs updated). It doesn't attempt any of the more advanced
+management features that RHN provides. The current (pun intended) plan
+(better laid out in the roadmap.txt file in the package) is to
+become a complete anonymous server solution for 1.X, and then tackle the
+more advanced features of RHN.
 </p>
 
-<p>For example:</p>
-
-<ul>
-<li>Develop just enough functionality to scratch a particular itch</li>
-<li>Build a tool just like XYZ, but less broken</li>
-<li>Build the best XYZ-tool ever!</li>
-</ul>
-
-
-<p>What are high-level features you are sure to build?
+<p>Current is implemented using apache, mod_python, and mod_ssl. This is 
+an excellent fit, as that what RHN uses. :)
 </p>
-<ul>
-
-<li>What would you write on a billboard about your project? Users
-might only look for a few seconds.</li>
-
-<li>Use the issue tracker to track features and enhancement
-requests. It is not just for bugs, pre-populate it with feature
-descriptions so that potential contributors know what you would like them
-to work on.</li>
-</ul>
-
-<p>What are the high-level assumptions or ground rules for the project?
-</p>
-
-<p>For example:
-</p>
-
-<ul>
-<li> we will use programming language X on operating system Y for now.
-
-<li>We will, or will not, consider certain functional areas like
-internationalization, high security, concurrency, etc.  The list of
-functional areas will depend on what you are trying to do.
-
-<li>Try to keep this part short.
-</ul>
-
 
 <h3>Related resources</h3>
 
 <ul>
-<li>Link to other stuff that you know about.  It will help you
-research requirements and provide a useful resource to potential
-contributors.</li>
+<li><a href="http://rhn.redhat.com">Red Hat Network website</a></li>
+<li><a href="http://httpd.apache.org">The apache web server</a></li>
+<li><a href="http://www.modpython.org">The mod_python apache module</a></li>
+<li><a href="http://www.modssl.org">The mod_ssl apache module</a></li>
+<li><a href="http://www.python.org">The Python home page</a></li>
 
-<li>Why reinvent the wheel? What is better about this wheel?  Is there
-any existing project that you can partner with or reuse?</li>
-
-<li>Where would you go to try to find potential contibutors?</li>
-</ul>
 
 </body>
 </html>

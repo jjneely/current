@@ -135,7 +135,7 @@ def typehandler(req):
         init_backend()
 
     # setting headers creatively
-    if string.find(req.uri, 'listPackages') > 0:
+    if string.find(req.uri, 'listPackages') > 0 or string.find(req.uri, 'getObsoletes') > 0:
         # listPackages is both compressed, and has a different 
         # content_type than the others
         apacheLog('setting compressed headers')

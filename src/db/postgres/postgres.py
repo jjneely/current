@@ -15,6 +15,7 @@ import time
 import gzip
 import xmlrpclib
 import misc
+import pprint
 
 class PostgresDB(CurrentDB):
     def __init__(self):
@@ -594,21 +595,44 @@ class PostgresDB(CurrentDB):
         return chanList
 
     def solveDependancy(self, label, arch, unknown):
-        # Oops...  I almost forgot to add this routine...
-        # Things before here be broken.
-        self.cursor.execute("""select rpm_id from rpmprovide
-                    where name = '%s'""" % (unknown,) )
+        # We only solve for a single dependency at a time.
+        logfunc(locals())
+        # First, find the channel.
+        self.cursor.execute("""select channel_id from CHANNEL
+                where label = '%s'"""
+                % ( label, ) )
+        channels = self.cursor.fetchall()
+        if ( len(channels) != 1 ):
+            log ("crap...  no active channels found in solveDependencies...")
+            return None 
+        act_ch_id = channels[0][0]
+        # Find the RPM ID of the package in the active channel
+        self.cursor.execute("""select rpmprovide.rpm_id from rpmprovide
+                    inner join RPM on (rpmprovide.rpm_id = rpm.rpm_id)
+                    where rpm.active_channel_id = '%s'
+                    and name = '%s'
+                    """ % (act_ch_id, unknown) )
         rpms = self.cursor.fetchall()
         if ( len(rpms) == 0 ):
             return None
-        solvers = []
-        for id in rpms:
-            self.cursor.execute("""select p.name, p.version, p.release,
-                        p.epoch, r.arch, r.size 
-                        from PACKAGE as p inner join RPM as r
-                        where r.rpm_id = '%s'""" % (id[0],) )
-            solvers.append(self.cursor.fetchall()[0])
-        return solvers            
+        if ( len(rpms) > 1 ):
+            log ('More than one possible solution for dep %s - potential problem.' % (unknown,) )
+        # Just take the first one, in case there's more than one.
+        id = rpms[0][0]
+
+        # Grab the active package
+        self.cursor.execute("""select p.pkgname, p.version, p.release,
+                p.epoch, r.arch, r.size
+                from PACKAGE as p, RPM as r
+                where p.package_id = r.package_id
+                and r.rpm_id = '%s'"""
+                % (id,) )
+        result = self.cursor.fetchall()
+        if ( len(result) != 1 ):
+            log('Crap.  %d results returned.' % (len(results),) )
+            return None
+        logfunc(locals())
+        return result            
 
 
 

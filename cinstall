@@ -1,0 +1,173 @@
+#! /usr/bin/python
+
+""" cinstall is the program that will help you to first get current installed
+and working.
+
+cinstall exists so we don't clutter up the main admin program with non-online
+tasks. For now, that consists of creating the apache config, creating the 
+SSL certificate, and just barely creating a database.
+
+This software is distributed under the GPL v2, see file "LICENSE"
+Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
+
+"""
+
+## constants and defaults
+# These are replaced by make, so beware
+MODULES_DIR="/usr/share/current"
+
+import sys
+sys.path.append(MODULES_DIR)
+
+import configure
+import backend
+from logger import *
+
+
+APACHE_CONFIG = """
+#############################################################################
+# Configuration added for Current  (up2date)
+#
+# We take over the /XMLRPC URL and all its sub urls
+# (<Location>)
+#
+# We take over the (configurable) /local/linux/ directory and all sub dirs.
+# (<Directory>)
+#
+# Remember that Directory has precedence over Location
+#
+##
+## YOU MUST put "Include %(apache_config_file)s" in your httpd.conf file!
+##
+#############################################################################
+
+#LogLevel debug              Set this for debugging
+
+Alias /XMLRPC/$RHN %(web_dir)s
+
+<Directory %(web_dir)s>
+    # Make certain this is set - current won't work without it
+    Options FollowSymLinks
+</Directory>
+
+<Location ~ "/XMLRPC$">
+    PythonPath "sys.path + ['%(mod_dir)s']"
+    SetHandler python-program
+    PythonHandler current_apache
+</Location>
+
+<Location /XMLRPC/$RHN>
+    PythonPath "sys.path + ['%(mod_dir)s']"
+    PythonHandlerModule current_apache
+</Location>
+
+## END OF CURRENT ##
+"""
+
+def main():
+
+    # Process our command line and config file 
+    try:
+        configure.config = configure.Config(configure.defaults)
+        configure.config.load()
+        config = configure.config
+
+        args = config.args
+    except (configure.FormatError, configure.MissingError), ex:
+        print 'Error:', ex
+        sys.exit(1)
+
+    # Check that the user actually setup a proper config file.
+    if config.current_dir == 'YOUR_CURRENT_DIR_HERE':
+        sys.exit('ERROR: You must edit the config file to start')
+        
+    ## Logging system must be operational for the other modules to work.
+    logconfig(config.log_level, sys.stdout)
+
+    if len(args) == 0:
+        print 'ERROR: You must specify a command to run'
+        sys.exit(1)
+
+    if args[0] == 'create_apache_config':
+
+        # Make sure these strings are local, to make the % come out right.
+        apache_config_file = config.apache_config_file
+        mod_dir = MODULES_DIR
+        web_dir = os.path.join(config.current_dir, 'www')
+
+        apache_config = open(apache_config_file, 'w')
+
+        apache_config.write(APACHE_CONFIG % locals())
+        apache_config.close()
+
+    elif args[0] == 'create_certificate':
+        os.chdir('/etc/current')
+        os.system('openssl genrsa -out server.key 1024')
+        os.system('openssl req -new -x509 -days 365 -key server.key -out server.crt')
+        os.system('openssl x509 -noout -text -in server.crt > RHNS-CA-CERT')
+        os.system('cat server.crt >> RHNS-CA-CERT')
+
+    elif args[0] == 'initdb':
+        # idea from postgres initdb
+        # This has to be enough we can start apache 
+
+        # Create everything,
+        # first the log file
+        ## This part is universal
+        log_file = open(config.log_file, 'w')
+        log_file.write('Current v%s log file\n' % config.version)
+        log_file.close()
+
+        ## The web dir is universal
+        web_dir = os.path.join(config.current_dir, 'www')
+        os.system('mkdir -p %s' % web_dir)
+
+        # Now init the database
+        # we can just pass in the config object, since it looks like a 
+        # a dictionary.
+        backend.selectBackend(config['db_type'])
+        backend.db.initdb(config)
+
+        # Then change the perms
+        if config.access_type == 'user':
+            os.system('chown -R %s %s %s' % 
+                (config.access_arg, config.log_file, config.current_dir))
+            os.system('chmod -R u+rwX %s %s' %
+                (config.log_file, config.current_dir)) 
+        elif config.access_type == 'group':
+            os.system('chgrp -R %s %s %s' % 
+                (config.access_arg, config.log_file, config.current_dir))
+            os.system('chmod -R g+rwX %s %s' % 
+                (config.log_file, config.current_dir))
+        elif config.access_type == 'all':
+            os.system('chmod -R o+rwX %s %s' % 
+                (config.log_file, config.current_dir))
+        else:
+            # for access_type None, we do nothing
+            # (the sysadmin is going to do it themselves)
+            pass
+
+        print "Database initialized. You should be able to run current now"
+
+
+    elif args[0] == 'print_config':
+        # Dump the configuration file itself.
+        config.dump(sys.stdout)
+
+    else:
+        print """cinstall [options] COMMAND args
+Where COMMANDS are:
+create_apache_config -- create the apache config
+create_certificate -- create new ssl key and RHNS-CA-CERT
+initdb -- create a minimum database to get the server started.
+print_config -- no args
+help -- print this quick help
+"""
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+    
+## END OF LINE ##    

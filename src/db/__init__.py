@@ -7,11 +7,12 @@ Copyright (c) 2002 Hunter Matthews    Distributed under GPL.
 """
 
 
-#from logger import *
+from logger import *
 
 # This single global insures that all anyone else needs to know is 
-# db.conn
-conn = None
+# I hate doubled names like this, but I couldn't think of anything else
+# that was short.
+db = None
 
 
 def selectBackend(db_type):
@@ -21,16 +22,16 @@ def selectBackend(db_type):
     #   return globals()["%s_DB" % name]()
     # but for now, we keep it simple and stupid
 
-    global conn
+    global db
     if db_type == 'shelf':
         import shelf
-        conn = shelf.CurrentDB()
+        db = shelf.ShelfDB()
     elif db_type == 'postgres':
         import postgres
-        conn = postgres.PostgresDB()
-    elif db_type == 'sqlite':
-        import sqlite
-        conn = sqlite.SqliteDB()
+        db = postgres.PostgresDB()
+    elif db_type == 'pysqlite':
+        import pysqlite
+        db = pysqlite.PySqliteDB()
     else:
         raise Exception("unknown backend type")
 

@@ -2,20 +2,22 @@
 # Makefile for installing the python modules for current
 #
 
-MODULES			= arch auth backend configfile configure \
-                  ConstructParser current_apache currentdb current \
-                  errata logger misc queue registration shelf_channel \
-                  shelf up2date 
+MODULES			= arch auth configfile configure \
+                  ConstructParser current_apache \
+                  logger misc 
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 
 INSTALL_DIRS	= $(DATA_DIR)
 
+SUBDIRS = db
+
+
 # default python rules:
 %.pyc: %.py
 	python -c "import py_compile; py_compile.compile('$<')"
 
-all: sedrules $(OBJECTS)
+all:: sedrules $(OBJECTS)
 
 files: $(PYFILES)
 
@@ -29,13 +31,17 @@ sedrules: configure.py
         < $< > $<.tmp
 	mv -f $<.tmp $<  
 	
-install: $(OBJECTS)
+install:: $(OBJECTS)
 	$(INSTALL_DIR) $(INSTALL_ROOT)$(DATA_DIR)
 
 	$(INSTALL_DATA) $(PYFILES) $(OBJECTS) $(INSTALL_ROOT)$(DATA_DIR)
 
-clean: 
+clean:: 
 	@rm -fv *.pyc *.pyo *~
+
+# Now do the same in the subdirs
+all install clean:: $(SUBDIRS)
+	@for d in $(SUBDIRS) ; do $(MAKE) -C $$d $@ ; done
 
 
 

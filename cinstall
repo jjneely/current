@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python2
 
 """ cinstall is the program that will help you to first get current installed
 and working.
@@ -14,13 +14,13 @@ Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
 
 ## constants and defaults
 # These are replaced by make, so beware
-MODULES_DIR="/usr/share/current"
+MODULES_DIR="/local/home/thm/projects/current/current-1.5/src"
 
 import sys
 sys.path.append(MODULES_DIR)
 
 import configure
-import backend
+import db
 from logger import *
 
 
@@ -125,8 +125,8 @@ def main():
         # Now init the database
         # we can just pass in the config object, since it looks like a 
         # a dictionary.
-        backend.selectBackend(config['db_type'])
-        backend.db.initdb(config)
+        db.selectBackend(config['db_type'])
+        db.db.initdb(config)
 
         # Then change the perms
         if config['access_type'] == 'user':

@@ -1,5 +1,26 @@
                         Current Project Changelog
 
+* Thu Oct 31 2002 Hunter Matthews <thm@duke.edu>
+- Finished up the cinstall initdb (pysqlite) code path.
+  Finished here means "works for me" and has what I think will be needed.
+- Updated current.conf for the new initdb code
+- SCHEMA: Added a CONFIG table to the db for random config items. Most
+  anything I could come up with could live just fine in the config file,
+  EXCEPT valid_channels.
+- SCHEMA: moved arch back to PACKAGES table.
+- SCHEMA: added pathname indexes
+- SCHEMA: Took 'RPM' out of the provides and obsoletes table names
+- SCHEMA: Added a channel dir table.
+- SCHEMA: linked obsoletes and provides back to the packages table, and not
+          the rpm table. (Since arch moved)
+
+* Tue Oct 29 2002 Hunter Matthews <thm@duke.edu>
+- Updated cinstall with new database stuff. Still in flux.
+- Updated all the makesfile for the new tree layout.
+  Yes, I'd love a more sane way to do this.
+- Started turning reader.py into the pysqlite backend.
+- Still need to upgdate spec file, I think.
+
 * Mon Oct 28 2002 Hunter Matthews <thm@duke.edu>      v1.5.2
 - Updated database docs.
 - api modules turned into an api package, and current api name changed to 

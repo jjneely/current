@@ -8,7 +8,7 @@ import shelve
 import misc
 import channel
 from logger import *
-from db.current_db import CurrentDB
+from db.currentdb import CurrentDB
 
 
 class ShelfDB(CurrentDB):

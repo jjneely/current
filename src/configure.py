@@ -16,8 +16,8 @@ import re
 config = None
 
 ## These are replaced by make, so beware
-VERSION="1.5.0"
-MODULES_DIR="/usr/share/current"
+VERSION="1.5.2"
+MODULES_DIR="/local/home/thm/projects/current/current-1.5/src"
 CONFIG_DIR="/etc/current"
 LOG_DIR="/var/log/httpd"
 PID_DIR="/var/run"
@@ -108,6 +108,8 @@ class Config:
 	""" We support config[key] type access."""
         return self._data.get(item, "")
 
+    def __str__(self):
+        return str(self._data)
 
     def verify(self):
         pass
@@ -126,12 +128,12 @@ class Config:
         """
 
         ## FIXME: this should be outside the base class somewhere    
-        usage = """Usage: current [options]
+        usage = """Usage: %s [options]
   -c, --config    config file to use 
   -d, --dump      dump final configuration and exit
   -h, --help      print this help and exit
   -v, --verbose   increase level of logging (can use more than once)
-  -V, --version   print version and exit"""
+  -V, --version   print version and exit""" % os.path.basename(sys.argv[0])
         
         usage_requested = 0
         tmp = {}

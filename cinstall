@@ -8,7 +8,7 @@ tasks. For now, that consists of creating the apache config, creating the
 SSL certificate, and just barely creating a database.
 
 This software is distributed under the GPL v2, see file "LICENSE"
-Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
+Copyright 2003   Hunter Matthews  <thm@duke.edu>
 
 """
 
@@ -69,6 +69,16 @@ Alias /XMLRPC/$RHN %(web_dir)s
 ## END OF CURRENT ##
 """
 
+def print_help():
+    print """cinstall COMMAND
+Where COMMANDS are:
+create_apache_config -- create the apache config
+create_certificate -- create new ssl key and RHNS-CA-CERT
+initdb -- create a minimum database to get the server started.
+print_config -- no args
+help -- print this quick help
+"""
+
 def main():
 
     # Process our command line and config file 
@@ -92,8 +102,8 @@ def main():
     logconfig(config['log_level'], sys.stdout)
 
     if len(args) == 0:
-        print 'ERROR: You must specify a command to run'
-        sys.exit(1)
+        print_help()
+        sys.exit(0)
 
     if args[0] == 'create_apache_config':
         # Make sure these strings are local, to make the % come out right.
@@ -160,14 +170,7 @@ def main():
         config.dump(sys.stdout)
 
     else:
-        print """cinstall COMMAND
-Where COMMANDS are:
-create_apache_config -- create the apache config
-create_certificate -- create new ssl key and RHNS-CA-CERT
-initdb -- create a minimum database to get the server started.
-print_config -- no args
-help -- print this quick help
-"""
+        print_help()
 
 if __name__ == '__main__':
     try:

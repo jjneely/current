@@ -1,5 +1,82 @@
 These are the user visible changes in Current from release to release.
 
+v1.5.5
+
+v1.5.4
+
+v1.5.3
+
+v1.5.2
+
+v1.5.1
+
+v1.5.0 
+
+v1.4.4
+- Current is now compatible with the new rpm API introduced in rpm v4.1,
+  so current should work on any _server_ from RHL 7.2 to 9. 
+- Due to documentation building dependancies, it may only build on 7.3 or
+  later, but I know of no reason it won't work on 7.2 (or maybe 7.1...)
+- Current is now fully compatible with all client releases from 2.7 to 
+  3.1. Please report any trouble with this...
+- I _HIGHLY_ recommend you upgrade to the latest errata of up2date for
+  whatever release of Red Hat Linux you are running - several client bugs
+  can either cause system problems or cause current to behave in bizzare
+  fashions.
+- cadmin with no args now does something sane.
+- Improved some log messages. 1.5.x is where the major log cleanups are 
+  going to occur.
+- Scott Schmit submited a bug patch for our error reporting. YAY SCOTT.
+  This should make diagnosing server problems much easier.
+- There are no config file, apache or database changes in this release. 
+  Upgrades from 1.4.3 should be clean, and do NOT require a database 
+  rebuild.
+
+v1.4.3
+- Current is now proudly hosted at current.tigris.org. If you are 
+  subscribed to the dulug mailing list, please move to the 
+  users@current.tigris.org list instead. 
+- Turns out the 3.x clients are not _fully_ supported - we missed some new 
+  API calls. This will be corrected in 1.4.4.
+- Added full RHL 8.0 support for the server. (As mentioned, full client 
+  support for 8.0 will be in 1.4.4)
+- Fixed header file generation problem caused by weirdly named rpms.
+- Fixed minor mod_python bug by explicitly listing handlers we need.
+- Fixed symlink creation bug, where the file was missing but the symlink 
+  was already there. I hope someone tests this fix carefully...
+- Requires mod_python 3.0.1 to workaround mod_python bugs. Please note that
+  RHL 8.0 shipped with 3.0.0 (actually, it shipped with a CVS snapshot) 
+  and this is not new enough. Until there is an errata, we'll provide a 
+  src and i386 rpm for mod_python 3.0.1. This is Red Hat's phoebe beta
+  rpm, built on RHL 8.0.
+- Made sure the spec file would build for both 7.x based servers, and 
+  8.0 based servers. (The dependancies are basically the same, but some 
+  of them have changed names or been subsumed into other packages)
+- Some requested documentation fixes better describing how SSL works.
+
+v1.4.2
+- Added support for 2.8 and 3.0 series clients.
+- This does not mean we support running the _server_ on RHL 8.0 - just that
+  I believe this all thats needed for supporting 8.0 as a client.
+- Adding this support does mean you will need to recreate your database.
+- If you don't have 2.8 or 3.0 clients yet (most people don't) there is 
+  no reason to upgrade.
+- There were some complaints about problems with the snapshot: I can't 
+  reproduce them though. If you're having trouble, make sure you're active
+  on the mailing list, or it won't get fixed.
+
+v1.4.1
+- Bug fixes in the Fault handling code, and cleanups about error messages
+  involving the clients system id.
+- You do not need to re-create your database from 1.4.0.
+
+v1.4.0
+- No visible changes from 1.3.12, EXCEPT a little database bug fixing.
+- Naturally, there are huge changes from 1.0.x, now requiring apache,
+  mod_python, and mod_ssl. 
+- It goes without saying you will need to rebuild your database. There is
+  not a need to regenerate your ssl keys for mod_ssl.
+
 v1.3.12
 - I've updated the 'checkdb' function of cadmin for the new db.
 - New feature in cadmin 'checkperms' will try to make sure that apache

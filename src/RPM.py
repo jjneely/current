@@ -11,19 +11,21 @@ FIXME: Right now this is hopelessly python 2.2 code - should we back port?
 """
 
 import os
+import os.path
 import stat
 import types 
 import rpm
 
 # namespace silliness
 # python 1.5 = rd = {}; for k,v in d.items(): rd[v] = k
-# tags = dict(zip(rpm.tagnames.values(), rpm.tagnames.keys()))
 tags = {}
 for key in dir(rpm):
     if key.startswith('RPMTAG_'): 
         tags[key[7:]] = eval('rpm.' + key)
 
 # Now we add in current specific tags.
+assert 10000 not in tags.values()
+assert 10001 not in tags.values()
 tags['CT_FILESIZE'] = 10000
 tags['CT_PATHNAME'] = 10001
 
@@ -96,6 +98,26 @@ class Header:
         # Its normal, and we just return it.
         else:
             return self.hdr[key]
+
+
+    def unload(self, dirname):
+        """ Given a directory name, write just the header out as a file.
+
+        The filename itself is not specified, as the name, version,
+        release, and arch fields themselves determine it.
+
+        """
+
+        hdr_name = "%s-%s-%s.%s.hdr" % (self.hdr[rpm.RPMTAG_NAME],
+          self.hdr[rpm.RPMTAG_VERSION], self.hdr[rpm.RPMTAG_RELEASE],
+          self.hdr[rpm.RPMTAG_ARCH])
+
+        pathname = os.path.join(dirname, hdr_name)
+        if (os.path.exists(pathname)):
+            os.unlink(pathname)
+        h_file = open(pathname, 'wb')
+        h_file.write(self.hdr.unload())
+        h_file.close()
 
 
     def _getHeaderFromFilename(self, pathname):

@@ -12,65 +12,81 @@ read the CHANGELOG. The docs directory contains the longer documentation for
 new sites or reference. The TODO file and the roadmap.txt file will tell you
 where we are going.
 
+Basically, the functionality of 1.0 is enough to get a small network (20-30
+clients) updated with basic security patches. 1.4 is scalable enough to
+take this basic, anonymous only functionality to hundreds of hosts
+(500 or so seems to be a good point).
 
-Basically, the functionality of 1.0 is enough to get a small network (20-50
- clients) updated with basic security patches. 1.4 is scalable enough to
-take this basic, anonymous only functionality to several hundred hosts
-(we predict).
-
-There is a freshmeat entry (yay!) and a website at
-http://www.biology.duke.edu/computer/unix/current. There is a link to the
-mailing list from the web page.
+There is a freshmeat entry and a website, mailing lists, cvs repository, etc
+at http://current.tigris.org. If you will be using current in a production
+enviroment, we recommend you join at least the users mailing list, but 
+you should definately join the annouce list.
 
 Comments to the mailing list please. Bug reports should contain enough
-detail to help me see what the problem is. Patches always cheerfully looked
+detail to help us see what the problem is. Patches always cheerfully looked
 at.
 
   NOTE: !WARNING! ACHTUNG- This server should be carefully tested and
   monitored before being trusted with production clients (workstations OR
-  servers). Closed driver on professional course.  Do not attempt these
-  maneuvers. Always wear your seatbelt.
+  servers). The safety and security of your network and hosts is YOUR 
+  responsibility - we do our best to put out a high-quality server, but
+  its up to you to decide how your network will be managed.
   
-
 Status:
+    
+    server itself: 
+        Please note that Current is only tested and claimed to work on 
+        RHL 7.2, 7.3, 8.0 and 9. It is reported to work on the 2.1 
+        enterprise releases. Your server should run all original Red 
+        Hat packages (and should itself be fully up to date with errata).
+
+        The single exception is that on a RHL 8.0 server, you need a newer
+        mod_python (3.0.1 at least) to deal with bugs in that package. A
+        suitable mod_python package and src package are provided on the 
+        web site.
+    
     rhn_register:
-        Current  can handle rhn_register versions of 1.3.x through at least
-        2.7.21.  For rhn_register this means generating a usable system id
+        Current can handle rhn_register versions of 1.3.x through at least
+        2.8.28.  For rhn_register this means generating a usable system id
         and not crashing the client.  (IE, all the API functions are at
         least stubbed out)
 
         Both the GUI and text interfaces are supported.
 
-        Note that rhn_register disappears in the limbo betas, consumed 
-        by the up2date package itself.
+        Note that rhn_register disappears in the limbo betas and 8.0,
+        consumed by the up2date package itself.
         
-    up2date:
-        Working 2.7.x (tested 2.7.2, 2.7.11, 2.7.86) for all simple cases
-        (it works here). Versions prior to 2.7 will not be supported.
+    up2date: 
+        Current can handle up2date versions from 2.7.x up to 3.1.x for all
+        simple cases (it works here).  Versions prior to 2.7 will not be
+        supported.
 
         Both the GUI and text interfaces are supported. (the gui has 
         one extra call it can make, which is implemented in a limited way).
 
-        2.9.x (in limbo betas) does have 1 extra call that is not supported
-        yet. (It looks like we have that data in the database, we just 
-        need to code an extra API for it)
+        Due to bugs in up2date itself, I HIGHLY recommend 2.7.63 or higher
+        if you are using clients in the 2.7 range. 2.7.83 has proved stable
+        for just about everyone - if you're sticking with 2.7.x for the time
+        being, run 2.7.83. (There are two serious bugs in earlier versions,
+        and neither can be fixed by the server).
 
     rhn_check / rhnsd:
-        Not working. (rhnsd just calls rhn_check).
+        Not working. (rhnsd just calls rhn_check). The calls are stubbed
+        out in current v1.4.4, and should not produce an error.
 
     rhn-applet:
-        Not working. (new api, haven't looked at it yet)
-
-PS. Since one cretin has already asked, NO, I will not help you try and
-'hack' the RHN system. I'm pretty familiar with the authentication
-mechanisms by now, and they're good. If I do find a bug (and I have), I'll
-report it to RH long before you see it here. Go away.
-
-AL and CG are still smarter than you are anyway. :)
-
+        Not working yet.
 
 Maintainers:
-Hunter Matthews <thm@duke.edu>
+Hunter Matthews <thm@duke.edu> 
 John Berninger <jwbernin@berningeronline.net>
-Current Mailing List <current-server@lists.dulug.duke.edu>
+dev@current.tigris.org
+users@current.tigris.org
+
+Contributors:
+Ivan Martinez      Bug fixes
+Scott Schmit       Bug fixes
+Toby D. Reeves     SQL work
+Barry K. Nathan    Debugging help
+Sam Bingner        Debugging help
 

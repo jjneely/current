@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
-from rpm_wrapper import *
-import rpm_wrapper
+from RPM import *
+#import rpm_wrapper
 import os
 import sys
 import types

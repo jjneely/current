@@ -1,0 +1,142 @@
+<!-- Current Configuration Guide -->
+<glossary><title>Current Configuration Guide - Glossary</title>
+<glossdiv><title>Server Configuration</title>
+<glossentry id="log_file">
+<glossterm>log_file</glossterm>
+<glossdef><para><emphasis role=bold>OPTIONAL</emphasis>
+This specifies the log file Current should attempt to use
+if the apache_log_file file is not writable.  In versions prior to 1.3, was the
+only log file used by Current.</para>
+</glossdef>
+</glossentry>
+<glossentry id="log_level">
+<glossterm>log_level</glossterm>
+<glossdef><para>This tells the server what level of detail to log at; the
+default level is VERBOSE (1).  This entry in the config file should be an
+integer between zero (0) and ten (10) inclusive.</para>
+</glossdef>
+</glossentry>
+<glossentry id="server_secret">
+<glossterm>server_secret</glossterm>
+<glossdef><para>This entry contains a <quote>secret</quote> string which is
+used to generate system IDs for client machines.  If this string is changed,
+all clients will have to re-register with the Current server before they will
+be recognized as authorized clients.  This value must be changed, and should
+be kept confidential for your site.</para>
+</glossdef>
+</glossentry>
+<glossentry id="server_id">
+<glossterm>server_id</glossterm>
+<glossdef><para>This is a string that denotes the identity of the Current
+server; it is not necessarily related to the hostname of the machine or to
+anything else, but is simply a random string.  It is used in determining
+if a given client is authorized to access this server, along with the
+server_secret entry.</para>
+</glossdef>
+</glossentry>
+<glossentry id="privacy_statement">
+<glossterm>privacy_statement</glossterm>
+<glossdef><para>This is a message sent to the client when
+<command>rhn_register</command> is run on the client against the Current
+server.  It is free-text, and can be multiple lines long.  It should be
+enclosed in quotes to ensure proper parsing of the configuration file.
+</para>
+</glossdef>
+</glossentry>
+<glossentry id="welcome_message">
+<glossterm>welcome_message</glossterm>
+<glossdef><para>This is a free-form string which is a brief message sent to the
+clients when <command>rhn_register</command> is run on the client against the
+Current server.  It can be multiple lines long.
+</para>
+</glossdef>
+</glossentry>
+<glossentry id="valid_channels">
+<glossterm>valid_channels</glossterm>
+<glossdef><para><emphasis role="bold">DEPRECATED</emphasis>
+This is a list if channel labels for valid channels served by
+this instance of Current.  Please note:  this is not a list of channel section
+names; it is a list of the labels of each section, found within the channel
+section of the configuration file.  As of versions after 1.5.0, Current no
+longer tracks channel information in the configuration file.
+</para>
+</glossdef>
+</glossentry>
+<glossentry id="current_dir">
+<glossterm>current_dir</glossterm>
+<glossdef><para>This is the location where all the database files, RPM headers,
+and RPM symlinks will be kept.  This directory tree needs to be readable by
+the user under which Apache normally runs.
+</para></glossdef>
+</glossentry>
+<glossentry id="apache_config_file">
+<glossterm>apache_config_file</glossterm>
+<glossdef><para>This is the file to create with the Apache configuration bits
+that enable the Current server.  This file should be included in Apache's main
+configuration file with the line:
+<screen>
+Include &lt;filename&gt;
+</screen>
+</para></glossdef>
+</glossentry>
+<glossentry id="access_type">
+<glossterm>access_type</glossterm>
+<glossdef><para>This parameter determines if permissions should be checked on
+a user, group, or world basis.  Permission checking will be added to later
+versions; this parameter is not yet used.  Valid values are <quote>user</quote>
+<quote>group</quote>, and <quote>world</quote>.</para></glossdef>
+</glossentry>
+<glossentry id="access_arg">
+<glossterm>access_arg</glossterm>
+<glossdef><para>This parameter is used when access_type is either user or
+group; it specifies the name of the user / group to use for permission
+checking.</para></glossdef>
+</glossentry>
+<glossentry id="db_type">
+<glossterm>db_type</glossterm>
+<glossdef><para>
+This designates the specific database backend that the server should use.  As
+of recent 1.5.x releases and snapshots, the only valid value is "postgres".
+In future versions, we hope to allow a minimum of "postgres" and "sqlite" for
+PostgreSQL and SQLite backends respectively, and perhaps other contributed
+database backends.
+</para></glossdef>
+</glossentry>
+<glossentry id="db_user">
+<glossterm>db_user</glossterm>
+<glossdef><para>This is the name of the database user that the server should
+connect to the backend with.  This user must be created within the database,
+and does not necessarily have any relationship to system users.
+</para></glossdef>
+</glossentry>
+<glossentry id="db_pass">
+<glossterm>db_pass</glossterm>
+<glossdef><para>
+This is the password to use when initiating the database connection.  The
+password (or pass phrase) cannot contain any escaped characters or
+whitespace characters.  This is not due to restrictions by the databasse
+backends but to the way the options within the Current server are parsed.  Yes,
+having this password in cleartext in a configuration file can be dangerous;
+hopefully we'll be able to cone up with a way to make it less dangerous.
+Suggestions welcome.</para></glossdef>
+</glossentry>
+<glossentry id="db_name">
+<glossterm>db_name</glossterm>
+<glossdef><para>This is the database name to connect to.  In the Oracle world,
+this is referred to a SID.  This database must be created by the user; it will
+be populated with tables by the <command>cinstall initdb</command> command and
+with data by <command>cadmin</command> commands.
+</para></glossdef>
+</glossentry>
+<glossentry id="db_host">
+<glossterm>db_host</glossterm>
+<glossdef><para>This is the hostname on which the database backend is running.
+We highly recommend that the server and database be running on the same host
+and that the value "localhost" be used here; we have not yes tested running
+the server and database on separate hosts.
+</para></glossdef>
+</glossentry>
+</glossdiv>
+
+
+</glossary>

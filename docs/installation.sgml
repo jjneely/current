@@ -85,7 +85,8 @@ section entitled <quote>Configuring Current</quote>.
 </para>
 <para>
 To install using the tarball, download the tarball and unpack it.  This will
-(should) create a directory called <filename>current-1.5.3/</filename> in the
+(should) create a directory called <filename>current-${version}/</filename> (e.g. <filename>
+current-1.5.3/</filename>) in the
 directory you unrolled the tarball from.  Inside this directory are several
 <filename>.py</filename> files, an example configuration file, and the 
 control executables <filename>cadmin</filename> and <filename>cinstall</filename>.  

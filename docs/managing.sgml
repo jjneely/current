@@ -99,7 +99,8 @@ An example channel definition command would be:
 </screen>
 The command will output a message telling you if it succeeded or failed, and 
 if the latter, why (we hope).  If the command fails for unobvious reasons,
-please submit a bug report.
+please submit a bug report.  In the production (1.6.x) releases, this output will be supressed
+on success unless specifically asked for with a future --verbose (-v) flag.
 </para>
 </section>
 <section id="chanadddir"><title>add_dir</title>

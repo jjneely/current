@@ -289,7 +289,10 @@ class PostgresDB(CurrentDB):
         log("scanning directory %s" % (dir,) )
         for file in os.listdir(dir):
             pathname = os.path.join(dir, file)
-            result = result and ( 0 != self._addRpmPackage(config, pathname, channel) )
+            if ( os.isdir(pathname) ):
+                result = result and (0 != self._scanDirToChannel(config, channel, pathname) )
+            if ( is.isfile(pathname) ):
+                result = result and ( 0 != self._addRpmPackage(config, pathname, channel) )
         log ("returning result of %d for dir %s" % (result, dir) )
         return result
 
@@ -311,6 +314,10 @@ class PostgresDB(CurrentDB):
             log ("Package already in DB - not scanning.", TRIVIA)
             return 1
  
+         # Anorther sanity check
+         if ( rpm_info['issrc'] == 1 ):
+             return 1
+             
         log("Adding RPM %s to channel %s" % (path, channel), TRIVIA)
 
         # Get the channel ID:

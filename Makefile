@@ -7,7 +7,7 @@ export
 
 # Things that change from build to build
 PROJECT			= current
-VERSION		 	= 1.5.2
+VERSION		 	= 1.5.3
 PYTHON_BIN	 	= /usr/bin/python
 PREFIX		 	= /usr
 INSTALL_ROOT 	=
@@ -17,7 +17,7 @@ PROGRAMS		= cadmin cinstall
 CONFIG			= current.conf
 SRC				= src
 DOC             = docs CHANGELOG LICENSE README TODO RELEASE-NOTES
-MISC            = Makefile future support tar-excludes
+MISC            = Makefile support tar-excludes
 
 ALLFILES        = $(PROGRAMS) $(SRC) $(CONFIG) $(DOC) $(MISC)
 

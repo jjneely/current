@@ -36,9 +36,6 @@ APACHE_CONFIG = """
 #
 # Remember that Directory has precedence over Location
 #
-##
-## YOU MUST put "Include %(apache_config_file)s" in your httpd.conf file!
-##
 #############################################################################
 
 #LogLevel debug              Set this for debugging
@@ -76,16 +73,15 @@ def main():
     # Process our command line and config file 
     try:
         configure.config = configure.Config(configure.defaults)
-        # Make sure the config module knows we want to look at the cmd line args
-        configure.config.load(0)
+        configure.config.load()
         config = configure.config
-
         args = config['args']
     except (configure.FormatError, configure.MissingError), ex:
         print 'Error:', ex
         sys.exit(1)
 
 	db.selectBackend(config['db_type'])
+
     # Check that the user actually setup a proper config file.
     if config['current_dir'] == 'YOUR_CURRENT_DIR_HERE':
         sys.exit('ERROR: You must edit the config file to start')
@@ -98,7 +94,6 @@ def main():
         sys.exit(1)
 
     if args[0] == 'create_apache_config':
-
         # Make sure these strings are local, to make the % come out right.
         apache_config_file = config['apache_config_file']
         mod_dir = MODULES_DIR

@@ -1,5 +1,15 @@
                         Current Project Changelog
 
+* Thu Apr 10 2003 Hunter Matthews <thm@duke.edu>
+- Removed configfile.py
+  This was a back port of the python 2.2 ConfigParser.py, and is no longer
+  needed.
+- Fix comment about "Include" in httpd.conf - conf.d means no edit is 
+  needed.
+- Removed the command line parsing code from configure.py. 
+  current_apache can't use it, cadmin mustn't use it, and cinstall didn't 
+  want it.
+
 * Thu Apr  3 2003 Hunter Matthews <thm@duke.edu>
 - Somehow we've lost a TON of changelog entries. I'm not sure where they
   went.

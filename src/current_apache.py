@@ -60,9 +60,7 @@ def init_backend():
     # Config object
     apacheLog("Getting the server configuration", 'INFO')
     configure.config = configure.Config(configure.defaults)
-    configure.config.load(apache=1)
-    db.selectBackend(configure.config['db_type'])
-    db.db.connect(configure.config)
+    configure.config.load()
 
     # Logging
     # We need logging running before we can init the database.
@@ -74,15 +72,10 @@ def init_backend():
 
     log("Current v%s starting up" % configure.VERSION, MANDATORY)
 
-    # Database 
+    # Setup the database connection
     # In the future, the database may need to be up before auth
-#     packagedb.db = packagedb.PackageDB()
-#     for chan in configure.config['valid_channels']:
-#         chan_info = configure.config['channels'][chan]
-#         try:
-#             packagedb.db.addChannel(chan_info)
-#         except:
-#             log("Error trying to add channel from %s" % chan_info['db_dir'], MANDATORY)
+    db.selectBackend(configure.config['db_type'])
+    db.db.connect(configure.config)
 
     # Authentication
     auth.authorize = auth.Authorization()

@@ -70,25 +70,10 @@ class Config:
         self._defaults = defaults
 
 
-    def load(self, apache=1):
-        # Only look at cmd line args if we're not inside apache / mod_python
-        if not apache:  
-            self._data = self.readCommandLine(sys.argv)
+    def load(self):
+        self._data = self.readConfigFile(file)
 
-        # if we don't do this test, we won't ever pick up the cmdline   
-        # value for the config file.
-        if self._data.has_key('config_file'):
-            file = self._data['config_file']
-        else:
-            file = self._defaults['config_file']
-            
-        tmp = self.readConfigFile(file)
-        for (key, value) in tmp.items():
-            if not self._data.has_key(key):
-                self._data[key] = value
-            # else do nothing - don't override earlier value
-
-        # last step is to merge the defaults in
+        # merge the defaults in
         for (key, value) in self._defaults.items():   
             if not self._data.has_key(key):
                 self._data[key] = value
@@ -97,77 +82,9 @@ class Config:
         del self._defaults
 
         
-#     def __getattr__(self, item):
-# 	""" We support config.key type access. """
-#         return self._data.get(item, "")
-
-
     def __getitem__(self, item):
 	""" We support config[key] type access."""
         return self._data.get(item, "")
-
-    def __str__(self):
-        return str(self._data)
-
-    def verify(self):
-        pass
-
-    
-    def readEnviroment(self, environ):
-        # FIXME: we accept nothing
-        return {}
-
-    
-    def readCommandLine(self, argv):
-        """ Read the command line.
-        
-        Command line overrides any other source of config sources.
-        
-        """
-
-        ## FIXME: this should be outside the base class somewhere    
-        usage = """Usage: %s [options]
-  -c, --config    config file to use 
-  -d, --dump      dump final configuration and exit
-  -h, --help      print this help and exit
-  -v, --verbose   increase level of logging (can use more than once)
-  -V, --version   print version and exit""" % os.path.basename(sys.argv[0])
-        
-        usage_requested = 0
-        tmp = {}
-
-        try:
-            opts, args = getopt.getopt(argv[1:], "c:dhvV", 
-                         ("config=", "dump", "help", "verbose", "version"))
-        except getopt.error, msg:
-            sys.stdout = sys.stderr
-            print msg
-            print usage
-            sys.exit(2)
-   
-        # These are clearly  a kludge
-        tmp["args"] = args
-        
-        for o, a in opts:
-            if o in ("-c", "--config"):
-                tmp["config_file"] = a
-            if o in ("-d", "--dump"):
-                tmp["dump"] = 1
-            if o in ("-h", "--help"):
-                usage_requested = 1
-            if o in ("-v", "--verbose"): 
-                tmp["log_level"] = tmp.get('log_level', 0) + 1
-            if o in ("-V", "--version"):
-                print "current v%s (C) 2001,2002 Hunter Matthews" % \
-                    self._defaults["version"]
-                print "Released under the GPL"
-                sys.exit(0)
-        
-        if usage_requested:
-            print usage
-            sys.exit(0)
-
-        return tmp
 
 
     def readConfigFile(self, filename):

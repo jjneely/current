@@ -464,13 +464,22 @@ class PostgresDB(CurrentDB):
                             (rpm_id, prov[0], prov[1], prov[2]) )
         # We also "provide" all the "files"- should this be a separate table?
         # I'm answering "no" provisionally to avoid a schema update.
+        plst = ()
         for prov in rpm_info['dep_files']:
+            # OK, we're having issues here.  The DB-API seems to contradict
+            # itself on whether the client (that's us) or the module (pgdb)
+            # does quoting to escape single quotes and backslashes.
+            # Specifically:  "...the input value is directly used as a value 
+            # in the operation. The client should not be required to "escape" 
+            # the value so that it can be used -- the value should be equal 
+            # to the actual database value"
+            # So, we're going to escape here, because not doing so seems to
+            # break things.
             self.cursor.execute("""insert into rpmprovide
                             (rpm_id, name)
                             values
                             ( %d, '%s')""" %
-                            (rpm_id, prov) )
-
+                            (rpm_id, string.join(string.split(prov, "'"), "''") ) )
 
     def _scanForFiles(self, channel):
         result = 1

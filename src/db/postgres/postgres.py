@@ -237,8 +237,9 @@ class PostgresDB(CurrentDB):
         for file in os.listdir(dir):
             log("Scanning file %s" % (file,), TRACE)
             pathname = os.path.join(dir, file)
-            rpm_info = self.rpmWrapper.getRpmInfo(pathname)
-            if (rpm_info == None or not rpm_info['issrc']):
+            self.rpmWrapper.getRpmInfo(pathname)
+            rpm = self.rpmWrapper
+            if (rpm == None or not rpm['issrc']):
                 log("Not a src rpm.", TRACE)
                 continue
             srpm_id = self._getSrpmId(file)
@@ -299,23 +300,24 @@ class PostgresDB(CurrentDB):
     def _addRpmPackage(self, config, path, channel):
         self.cursor = self.conn.cursor()
         filename = os.path.basename(path)
-        rpm_info = self.rpmWrapper.getRpmInfo(path)
-
+        self.rpmWrapper.getRpmInfo(path)
+        rpm = self.rpmWrapper
+        
         if (self.cursor == None):
             self.cursor = self.conn.cursor()
         elif (self.cursor.description == None):
             self.cursor = self.conn.cursor()
 
         # sanity check:
-        if (None == rpm_info):
+        if (rpm.error == 1):
             return 1
         # Check to see if the package is already in the DB before we do something stupid.
-        if ( self._packageInDB(rpm_info) ):
+        if ( self._packageInDB(rpm) ):
             log ("Package already in DB - not scanning.", TRIVIA)
             return 1
  
         # Anorther sanity check
-        if ( rpm_info['issrc'] == 1 ):
+        if ( rpm['issrc'] == 1 ):
             return 1
              
         log("Adding RPM %s to channel %s" % (path, channel), TRIVIA)
@@ -330,20 +332,20 @@ class PostgresDB(CurrentDB):
         ch_id = chreslts[0][0]
 
         log("Inserting package information.", TRACE)
-        package_id = self._insertPackageTable(rpm_info)
+        package_id = self._insertPackageTable(rpm)
         if ( package_id == 0 ):
             # we have a problem.  return it.
             log("package_id problem")
             return 0
         # the next call returns 0 on failure, otherwise positive non-zero
         log("Inserting RPM information.", TRACE)
-        rpm_id = self._insertRpmTable(rpm_info, package_id, ch_id)
+        rpm_id = self._insertRpmTable(rpm, package_id, ch_id)
         if not rpm_id:
             log("RPM %s failed." % (path,) )
 
         # Put the header file into place
         log("Creating header file.", TRACE)
-        self._createHeaderFile(config, channel, filename, rpm_info['hdr'])
+        self._createHeaderFile(config, channel, filename, rpm['hdr'])
 
         # We return the success of the rpm table insert - pos non-0 is good
         self.conn.commit()
@@ -382,20 +384,20 @@ class PostgresDB(CurrentDB):
                 return 1
         return pid
         
-    def _insertPackageTable(self, rpm_info):
-        package_id = self._getPackageId(rpm_info['name'], rpm_info['version'],
-                                rpm_info['release'], rpm_info['epoch'])
+    def _insertPackageTable(self, rpm):
+        package_id = self._getPackageId(rpm['name'], rpm['version'],
+                                rpm['release'], rpm['epoch'])
 
         if not package_id:
             self.cursor.execute("""insert into package
                         (pkgname, version, release, epoch)
                         values
                         ('%s', '%s', '%s', '%s')""" %
-                        (rpm_info['name'], rpm_info['version'],
-                         rpm_info['release'], rpm_info['epoch']) )
+                        (rpm['name'], rpm['version'],
+                         rpm['release'], rpm['epoch']) )
 
-        package_id = self._getPackageId(rpm_info['name'], rpm_info['version'],
-                                rpm_info['release'], rpm_info['epoch'])
+        package_id = self._getPackageId(rpm['name'], rpm['version'],
+                                rpm['release'], rpm['epoch'])
 
         assert package_id
 
@@ -446,7 +448,7 @@ class PostgresDB(CurrentDB):
         return rpm_id
 
     def _insertObsoletes(self, rpm_id, rpm_info):
-        for obs in rpm_info['obsoletes']:
+        for obs in rpm_info['dep_obsoletes']:
             self.cursor.execute("""insert into rpmobsolete
                             (rpm_id, name, flags, vers)
                             values
@@ -460,6 +462,14 @@ class PostgresDB(CurrentDB):
                             values
                             ( %d, '%s', '%s', '%s')""" % 
                             (rpm_id, prov[0], prov[1], prov[2]) )
+        # We also "provide" all the "files"- should this be a separate table?
+        # I'm answering "no" provisionally to avoid a schema update.
+        for prov in rpm_info['dep_files']:
+            self.cursor.execute("""insert into rpmprovide
+                            (rpm_id, name)
+                            values
+                            ( %d, '%s')""" %
+                            (rpm_id, prov) )
 
 
     def _scanForFiles(self, channel):

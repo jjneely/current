@@ -155,7 +155,6 @@ def main():
 
         print "Database initialized. You should be able to run current now"
 
-
     elif args[0] == 'print_config':
         # Dump the configuration file itself.
         config.dump(sys.stdout)

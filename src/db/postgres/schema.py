@@ -76,7 +76,7 @@ create sequence rpmprovide_id_seq;
 create table RPMPROVIDE (
     rpmprovide_id   int default nextval('rpmprovide_id_seq') unique not null,
     rpm_id          int not null,
-    name            varchar(64),
+    name            varchar(4096),
     flags           varchar(64),
     vers            varchar(64)
     );

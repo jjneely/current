@@ -164,9 +164,10 @@ class SysHeaders:
     def loadHeaders(self, headers):
         """ Load up a HeadersId object from available 'GET' headers. """
 
+        # The client doesn't seem to send the X-RHN-Client-Version header
+        # anymore, so we no longer check for it.
         for attr in ['X-RHN-Auth', 'X-RHN-Auth-Expiration',
-                     'X-RHN-Auth-User-Id',
-                     'X-RHN-Client-Version', 'X-RHN-Server-Id']:
+                     'X-RHN-Auth-User-Id', 'X-RHN-Server-Id']:
 
             if not headers.has_key(attr):
                 raise Exception("Missing authentication header: %s" % attr)
@@ -208,7 +209,7 @@ class SysHeaders:
     def addAuthChannel(self, chanInfo):
         """ Append to our authorized channels list. """
 
-        new_chan = [chanInfo['label'], chanInfo['last_modified']]
+        new_chan = [chanInfo['label'], chanInfo['lastupdate']]
         self.data['X-RHN-Auth-Channels'].append(new_chan)        
 
 

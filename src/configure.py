@@ -16,8 +16,8 @@ import re
 config = None
 
 ## These are replaced by make, so beware
-VERSION="1.5.2"
-MODULES_DIR="/local/home/thm/projects/current/current-1.5/src"
+VERSION="1.5john"
+MODULES_DIR="/home/jwbernin/current-sql/src"
 CONFIG_DIR="/etc/current"
 LOG_DIR="/var/log/httpd"
 PID_DIR="/var/run"
@@ -72,7 +72,7 @@ class Config:
         self._defaults = defaults
 
 
-    def load(self, apache=0):
+    def load(self, apache=1):
         # Only look at cmd line args if we're not inside apache / mod_python
         if not apache:  
             self._data = self.readCommandLine(sys.argv)

@@ -17,10 +17,11 @@ Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
 
 # Configured module dir
 # These are replaced by make, so beware
-MODULES_DIR="/local/home/thm/projects/current/current-1.5/src"
+MODULES_DIR="/home/jwbernin/current/src"
 
 import pprint
 import sys
+import optik
 sys.path.append(MODULES_DIR)
 sys.path.append('/usr/share/rhn')
 
@@ -34,13 +35,97 @@ from up2date_client import rpcServer
 # Its the one for current anyway...
 rhns_ca_cert = '/usr/share/rhn/RHNS-CA-CERT'
 
-def main():
+def getServer():
     server = rpcServer.getServer()
-    server.use_CA_chain(rhns_ca_cert)
+    server.add_trusted_cert(rhns_ca_cert)
+    return server
 
-    result = rpcServer.doCall(server.current.status)
+def test():
+    server = rpcServer.getServer()
+    # the use_CA_chain() method is deprecated and raises an exception.
+    #server.use_CA_chain(rhns_ca_cert)
+    server.add_trusted_cert(rhns_ca_cert)
+
+    result = rpcServer.doCall(server.cadmin.status)
 
     pprint.pprint(result)
+
+def scan_channels(args):
+    parser = optik.OptionParser()
+    parser.add_option("-l", "--label", action="append", type="string", dest="channels")
+    (opts, leftargs) = parser.parse_args(args)
+    if ( len(leftargs) != 0 ):
+        print "Invalid option line."
+        sys.exit(3)
+    chan = {}
+    chan['channels'] = opts.channels
+    server = getServer()
+    result = rpcServer.doCall(server.cadmin.scanChannels, chan)
+    pprint.pprint(result)
+
+def create_channel(args):
+    parser = optik.OptionParser()
+    parser.add_option("-n", "--name", action="store", type="string", dest="channelname")
+    parser.add_option("-l", "--label", action="store", type="string", dest="channellabel")
+    parser.add_option("-a", "--arch", action="store", type="string", dest="channelarch")
+    parser.add_option("-r", "--release", action="store", type="string", dest="channelrelease")
+    parser.add_option("-p", "--parent", action="store", type="string", dest="channelparent")
+    parser.add_option("-d", "--description", action="store", type="string", dest="channeldesc", default="")
+    (opts, leftargs) = parser.parse_args(args)
+    if ( len(leftargs) != 0 ):
+        print "Invalid option line."
+        sys.exit(1)
+    chan = {}
+    chan['name'] = opts.channelname
+    chan['label'] = opts.channellabel
+    chan['desc'] = opts.channeldesc
+    if ( opts.channelparent ):
+        chan['parent'] = opts.channelparent
+    else:
+        chan['arch'] = opts.channelarch
+        chan['release'] = opts.channelrelease
+    server = getServer()
+    result = rpcServer.doCall(server.cadmin.createChannel, chan)
+    pprint.pprint(result)
+
+def add_dir_to_channel(args):
+    parser = optik.OptionParser()
+    parser.add_option("-l", "--label", action="store", type="string", dest="chanlabel")
+    parser.add_option("-b", "--bin-dir", action="append", type="string", dest="bindirs")
+    parser.add_option("-s", "--src-dir", action="append", type="string", dest="srcdirs")
+    (opts, leftargs) = parser.parse_args(args)
+    if ( len(leftargs) != 0 ):
+        print "Invalid option line."
+        sys.exit(2)
+    chan = {}
+    chan['label'] = opts.chanlabel
+    chan['bin'] = opts.bindirs or ['']
+    chan['src'] = opts.srcdirs or ['']
+    server = getServer()
+    result = rpcServer.doCall(server.cadmin.populateChannel, chan)
+    pprint.pprint(result)
+
+def main():
+    # I'm going to start by defining the cadmin command format as:
+    # cadmin CMD OPTS
+    # this should be entertaining...
+
+    if (len(sys.argv) == 1):
+        test()
+
+    elif (sys.argv[1] == 'initdb'):
+        print "This is a cinstall function and should only be called from"
+        print "cinstall.  This message serves as a test."
+        sys.exit()
+    elif (sys.argv[1] == 'create_channel'):
+        create_channel(sys.argv[2:])
+    elif (sys.argv[1] == 'add_dir') :
+        add_dir_to_channel(sys.argv[2:])
+    elif (sys.argv[1] == 'scan_channel'):
+        scan_channels(sys.argv[2:])
+    else:
+        print "Generic help message here."   
+
 
 if __name__ == '__main__':
     try:

@@ -31,15 +31,12 @@ import configure
 import misc
 #import packagedb
 import auth
+import db
 
 # Here are the recognized RHN api modules
-__modules__ = ['errata', 'queue', 'registration', 'up2date', 'current']
-import current
-import errata
-import queue
-import registration
-import up2date
+__modules__ = ['errata', 'queue', 'registration', 'up2date', 'cadmin']
 
+from api import *
 
 def apacheLog(message, level='NOTICE'):
     """ log a message to the apache error log. pretties up an ugly api """
@@ -49,7 +46,7 @@ def apacheLog(message, level='NOTICE'):
         level = getattr(apache, aplevel)
     else:
         level = apache.APLOG_NOTICE
-    apache.log_error(message, apache.APLOG_NOERRNO | level)
+    apache.log_error(message, apache.APLOG_DEBUG)
 
 
 def init_backend():
@@ -64,6 +61,8 @@ def init_backend():
     apacheLog("Getting the server configuration", 'INFO')
     configure.config = configure.Config(configure.defaults)
     configure.config.load(apache=1)
+    db.selectBackend(configure.config['db_type'])
+    db.db.connect(configure.config)
 
     # Logging
     # We need logging running before we can init the database.
@@ -127,6 +126,7 @@ def typehandler(req):
     May be replaced in the future with a more advanced apache config.
     (See TODO)
     """
+    apache.log_error("Inside typehandler", apache.APLOG_DEBUG)
 
     apacheLog("Inside the typehandler", 'NOTICE')
 
@@ -159,6 +159,9 @@ def handler(req):
     # we assume that if the config object is there, all the init got done.
     if not configure.config:
         init_backend()
+
+    if req.method == 'GET':
+        return apache.DECLINED
 
     if not req.method == 'POST':
         # This would be considered a Bad Thing...

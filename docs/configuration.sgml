@@ -92,10 +92,12 @@ Current server.  It can be multiple lines long.
 </glossentry>
 <glossentry id="valid_channels">
 <glossterm>valid_channels</glossterm>
-<glossdef><para>This is a list if channel labels for valid channels served by
+<glossdef><para><emphasis role="bold">DEPRECATED</emphasis>
+This is a list if channel labels for valid channels served by
 this instance of Current.  Please note:  this is not a list of channel section
 names; it is a list of the labels of each section, found within the channel
-section of the configuration file.
+section of the configuration file.  As of versions after 1.5.0, Current no
+longer tracks channel information in the configuration file.
 </para>
 </glossdef>
 </glossentry>
@@ -117,113 +119,14 @@ Include &lt;filename&gt;
 </para></glossdef>
 </glossentry>
 </glosslist>
-<para>
-The most important thing to note above is the definition of the 
-<quote>valid_channels</quote> entry - if you do not understand the above
-definition, go back and re-read it until you do understand it.  Having
-incorrect entries in this list may cause anything from tracebacks to simple
-unresponsiveness in your Current server.
-</para>
 </section>
 <section id="channel_config"><title>Channel Configuration</title>
 <para>
-The second major portion of the config file is the channel configuration
-section(s).  There is no upper limit set within Current itself as to how many
-channels you can have, but as of the most recent versions, you can only have
-one channel per OS revision and architecture combination.
+As of versions after 1.5.2, Current no longer keeps channel configuration
+information in the configuration file.  Channel configuration is kept in the 
+database backend, and is manipulated through the <command>cadmin</command>
+command; this will be covered in a later section of this manual.
 </para>
-<para>
-There are ten (10) items which must appear in each channel definition; all ten
-are required, but some can be blank.  Below is a list of each item and what 
-it's definition is.
-</para>
-<glosslist>
-<glossentry id="label">
-<glossterm>label</glossterm>
-<glossdef><para>The label is what the channel is known as internally, as well
-as what appears in the valid_channels definition of the global configuration
-section.  It is not necessarily meant to be human-understandable.  The only
-allowed characters for this entry are alphanumeric, underscore, dash, and
-decimal point (period).  The length limit for the label is 64 characters.
-</para></glossdef>
-</glossentry>
-<glossentry id="name">
-<glossterm>name</glossterm>
-<glossdef><para>The name is the human-readable designation of the channel.
-Whitespace is allowed in the name, but the entire name should be less than
-80 characters long and cannot span multiple lines.
-</para></glossdef>
-</glossentry>
-<glossentry id="parent_channel">
-<glossterm>parent_channel</glossterm>
-<glossdef><para>This entry is the name of the <quote>parent</quote> channel; 
-as of version 1.3.1, Current does not yet support the concept of parent / child
-channels, but this is a planned feature for later releases.  This field will
-contain the label of the channel thought of as the parent of this channel;
-the field restrictions that apply to <quote>label</quote> also apply here.
-</para>
-</glossdef>
-</glossentry>
-<glossentry id="arch">
-<glossterm>arch</glossterm>
-<glossdef><para>This is the architecture designation for this channel.  The 
-value for this variable must be an established Red Hat architecture designation
-such as i386, i586, s390, sparc, etc.
-</para></glossdef>
-</glossentry>
-<glossentry id="os_release">
-<glossterm>os_release</glossterm>
-<glossdef><para>This field designates the OS release level of the tree.
-</para></glossdef>
-</glossentry>
-<glossentry id="description">
-<glossterm>description</glossterm>
-<glossdef><para>The description is a free-form text entry which is shown to the
-user during an interactive up2date run on clients.  It is a short description
-of the tree served by this channel.  The length of this field should not exceed
-128 characters.
-</para></glossdef>
-</glossentry>
-<glossentry id="rpm_dirs">
-<glossterm>rpm_dirs</glossterm>
-<glossdef><para>This is a whitespace-separated list of directories which
-contain the binary RPMs you wish to be served through this channel.  Care
-should be taken to ensure that these directories are readable by the Apache
-server.  Please see the <quote>Using Current</quote> section for information
-on how to create / maintain these directories.
-</para>
-</glossdef>
-</glossentry>
-<glossentry id="src_dirs">
-<glossterm>src_dirs</glossterm>
-<glossdef><para>This is a whitespace-separated list of directories which
-contains SRPMS (Source RPMS) for the binary RPMs in the rpm_dirs directories.
-</para>
-</glossdef>
-</glossentry>
-<glossentry id="db_dir">
-<glossterm>db_dir</glossterm>
-<glossdef><para><emphasis role=bold>DEPRECATED</emphasis>
-This is the directory where Current stores the channel
-information and the file-based database of the RPMS and SRPMS in rpm_dirs and
-src_dirs, respectively.  Cached RPM headers are also stored here when the
-channel is created / updated with <command>cadmin</command>.</para>
-</glossdef>
-</glossentry>
-<glossentry id="srpm_check">
-<glossterm>srpm_check</glossterm>
-<glossdef><para>This is a new entry as of version 1.3.2, which allows the
-user of Current to determine how important the presence of SRPMS for each RPM
-is in this channel.  Valid values for this field are 0, 1, and 2; this check is
-performed only when the channel database is created or updated using the
-<command>cadmin</command> utility.  A setting of 0 implies no check; a setting 
-of 1 implies that any RPMS without a corresponding SRPM will cause a warning
-but that the process will continue, a setting of 2 implies that any RPM without
-a corresponding SRPM will cause a fatal error and the database will be marked
-invalid.
-</para></glossdef>
-</glossentry>
-</glosslist>
 </section>
 <section id="apacheconfig"><title>Apache Configuration</title>
 <para>
@@ -243,24 +146,28 @@ must have SSL support enabled and functioning for your Apache server.
 <para>
 You should take note of where Apache expects to find the SSL server certificate
 and key files; in Red Hat Linux 7.3, those locations are
-<filename>/etc/httpd.conf/ssl.crt/server.crt</filename> for the server
+<filename>/etc/httpd/conf/ssl.crt/server.crt</filename> for the server
 certificate and <filename>/etc/httpd/conf/ssl.key/server.key</filename>
 for the server key.  You will need to know these directories when you go to
 generate the server certificate and key using <command>cadmin</command>.
 </para>
 <para>
 This configuration step has been greatly simplified with the
-<quote>create_apache_config</quote> command to <command>cadmin</command>, so
+<quote>create_apache_config</quote> command to <command>cinstall</command>, so
 it no longer needs to be discussed in great detail.  You will need to ensure
 that the directory hierarchy where the Current databases are kept, however, is
-readable by the Apache process.
+readable by the Apache process.  Please also note that you must edit the 
+<filename>httpd.conf</filename> to include the file generated by the
+above command, which defaults to <filename>current.httpd.conf</filename>.
 </para>
 <para>
 Once you've completed all the above configuration steps, you should be able to
-create your channel databases and start the Apache server normally.  Once the
-clients are properly configured, everything should Just Work(TM).  If it
+start the Apache server normally.  Once the channels are configured, the
+database populated, and the clients properly configured, everything should 
+Just Work(TM).  If it
 doesn't work, or if anything in this documentation is unclear, please submit a
-bug report / question to the mailing list.  Client configuration will be
+bug report / question to the mailing list.  Database creation, channel
+configuration, database population, and client configuration will be
 covered later.
 </para>
 </section>
@@ -280,10 +187,6 @@ create several files in <filename>/etc/current</filename>, among them
 <filename>current.key</filename>, and <filename>current.crt</filename>.
 </para>
 <para>
-The <filename>CURRENT-CA-CERT</filename> must be copied to clients prior to
-using Current; this will be discussed in the client section of this guide.
-</para>
-<para>
 The <filename>current.key</filename> and <filename>current.crt</filename>
 must be copied to the <filename>/etc/httpd/conf/ssl.key</filename> and
 <filename>/etc/httpd/conf/ssl.crt</filename> directories, respectively.  They
@@ -292,7 +195,26 @@ changes to the proper names in the <filename>httpd.conf</filename> file,
 Apache's main configuration file.
 </para>
 <para>
-Also critical to operating a Current server is to issue a <command>cadmin
+IMPORTANT: This procedure will affect the SSL setup for your entire Apache
+server, not just for Current.  
+</para>
+<para>
+If you already have an existing SSL configuration working with your Apache
+server, you can use that configuration to generate a CA-CERT file for use with
+Current.  Simply copy the <filename>server.crt</filename> file from the
+<filename>/etc/httpd/conf/ssl.crt</filename> directory to your current
+working directory and issue the following two commands:
+<screen>
+# openssl x509 -noout -text -in server.crt > CURRENT-CA-CERT
+# cat server.crt >> CURRENT-CA-CERT
+</screen>
+</para>
+<para>
+The <filename>CURRENT-CA-CERT</filename> must be copied to clients prior to
+using Current; this will be discussed in the client section of this guide.
+</para>
+<para>
+Also critical to operating a Current server is to issue a <command>cinstall
 create_apache_config</command> command in order to create the Apache 
 configuration snippet mentioned above; without this configuration snippet,
 the Apache server will not know to invoke Current.

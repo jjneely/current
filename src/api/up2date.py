@@ -19,7 +19,8 @@ import string
 import sys
 
 import misc
-#import packagedb
+import db
+import configure
 import auth
 from logger import *
 
@@ -47,9 +48,10 @@ def login(sysid_string):
     
     # Need a list of channels this client is authorized for 
     # FIXME: we assume only one channel right now is returned...
-    channels = packagedb.db.getCompatibleChannels(si.getattr('architecture'), 
+    channels = db.db.getCompatibleChannels(si.getattr('architecture'), 
                                                   si.getattr('os_release'))    
     if len(channels) == 0:
+        log("Fault! - no channels")
         return xmlrpclib.Fault(1000, 
             "No compatible channels found for client")
 
@@ -58,6 +60,7 @@ def login(sysid_string):
     #   this client was authorized to to touch.
     channels = auth.authorize.getAuthorizedChannels(si, channels)
     if len(channels) == 0:
+        log ("Fault! - not authorized for channels")
         return xmlrpclib.Fault(1000, 
             "Client is not authorized for any channels")
 
@@ -82,7 +85,7 @@ def listChannels(sysid_string):
 
     # Need a list of channels this client is authorized for 
     # FIXME: we assume only one channel right now is returned...
-    channels = packagedb.db.getCompatibleChannels(si.getattr('architecture'),
+    channels = db.db.getCompatibleChannels(si.getattr('architecture'),
                                                   si.getattr('os_release'))
     if len(channels) == 0:
         return xmlrpclib.Fault(1000, 
@@ -121,8 +124,8 @@ def solveDependencies(sysid_string, unknowns):
     if not valid:
         return xmlrpclib.Fault(1000, reason)
 
-    channels = packagedb.db.getCompatibleChannels(si.getattr('architecture'),
-                                                  si.getattr('os_release'))
+    channels = db.db.getCompatibleChannels(si.getattr('architecture'),
+                                           si.getattr('os_release'))
     if len(channels) == 0:
         return xmlrpclib.Fault(1000, 
             "No compatible channels found for client")
@@ -131,9 +134,9 @@ def solveDependencies(sysid_string, unknowns):
     for unk in unknowns:
         # according to up2date 2.7.11, pkg could be _plural_, and right now
         # it sucks off the first one returned.
-        pkgs = packagedb.db.solveDependancy(channels[0]['label'], 
-                                           si.getattr('architecture'),
-                                           unk)
+        pkgs = db.db.solveDependancy(channels[0]['label'], 
+                                     si.getattr('architecture'),
+                                     unk)
 
         # packagedb.solveDep will return None if our db can't solve that
         # in which case, we return an empty list for that unk, which is what

@@ -1,14 +1,14 @@
 # 
-# Makefile for installing the database package for current
+# Makefile for installing the api package for current
 #
 
-MODULES			= currentdb __init__
+MODULES		= cadmin errata queue registration up2date __init__
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 
-INSTALL_DIRS	= $(DATA_DIR)/db
+INSTALL_DIRS	= $(DATA_DIR)/api
 
-SUBDIRS 		= pysqlite shelf postgres
+SUBDIRS 	= 
 
 
 # default python rules:
@@ -20,9 +20,9 @@ all:: $(OBJECTS)
 files: $(PYFILES)
 
 install:: $(OBJECTS)
-	$(INSTALL_DIR) $(INSTALL_ROOT)$(DATA_DIR)/db
+	$(INSTALL_DIR) $(INSTALL_ROOT)$(DATA_DIR)/api
 
-	$(INSTALL_DATA) $(PYFILES) $(OBJECTS) $(INSTALL_ROOT)$(DATA_DIR)/db
+	$(INSTALL_DATA) $(PYFILES) $(OBJECTS) $(INSTALL_ROOT)$(DATA_DIR)/api
 
 clean::
 	@rm -fv *.pyc *.pyo *~
@@ -30,4 +30,5 @@ clean::
 # Now do the same in the subdirs
 all install clean:: $(SUBDIRS)
 	@for d in $(SUBDIRS) ; do $(MAKE) -C $$d $@ ; done
+
 

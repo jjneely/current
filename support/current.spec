@@ -1,12 +1,13 @@
 Summary: A server for Red Hat's up2date tools.
 Name: current
-Version: 1.5.2
+Version: 1.5.3
 Release: 1
 License: GPL
 Group: System Environment/Daemons
 URL: http://www.biology.duke.edu/computer/unix/current
 Source0: ftp://ftp.biology.duke.edu/pub/admin/current/%{name}-%{version}.tar.gz
-Requires: python python-xmlrpc rpm-python apache mod_python mod_ssl 
+Requires: python rpm404-python rpm-python httpd mod_ssl 
+Requires: mod_python >= 3.0.1
 Requires: rpm >= 4.0.2-8
 BuildRequires: docbook-style-xsl docbook-style-dsssl docbook-dtds
 BuildRequires: docbook-utils docbook-utils-pdf

@@ -4,13 +4,13 @@
 
 MODULES			= arch auth configfile configure \
                   ConstructParser current_apache \
-                  logger misc 
+                  logger misc rpm_wrapper
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 
 INSTALL_DIRS	= $(DATA_DIR)
 
-SUBDIRS = db
+SUBDIRS = db api
 
 
 # default python rules:

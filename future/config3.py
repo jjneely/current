@@ -13,7 +13,7 @@ import os
 
 # I include this here because I hope to make this module project portable. 
 # This is PRCS magic
-# $Format: "__REVISION = '$Revision: 1.2 $'"$
+# $Format: "__REVISION = '$Revision: 1.3 $'"$
 __REVISION = '1.2'
 
 class Types:

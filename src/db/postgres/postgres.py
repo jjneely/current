@@ -28,17 +28,7 @@ class PostgresDB(CurrentDB):
         
 
     def __del__(self):
-        self.cursor.close()
-        self.cursor = None
-        self.conn.close()
-        self.conn = None
-
-
-    def initdb(self):
-        self.connect()
-        self.cursor.execute(schema.INITDB)
-        self.conn.commit()
-        log("Database table create commited.  Initdb done.", TRACE)
+        self.disconnect()
 
 
     def connect(self):
@@ -68,6 +58,15 @@ class PostgresDB(CurrentDB):
         if self.conn:
             self.conn.close()
             self.conn = None
+
+
+    ## API FUNCTIONS BELOW THIS POINT ##
+
+    def initdb(self):
+        self.connect()
+        self.cursor.execute(schema.INITDB)
+        self.conn.commit()
+        log("Database table create commited.  Initdb done.", TRACE)
 
 
     def makeChannel(self, channel):
@@ -113,184 +112,101 @@ class PostgresDB(CurrentDB):
             for dir in ['getObsoletes', 'getPackage', 'getPackageHeader',
                         'getPackageSource', 'listPackages']:
                 os.mkdir(os.path.join(chan_dir, dir))
+        # FIXME: need an else here for error handling
 
         log("New channel and dirs created.", DEBUG2)
 
         return "ok"
 
 
-    def addDir(self, label, dirname, binary=1):
+    def addDir(self, label, dirname):
         logfunc(locals(), TRACE)
 
         self.cursor.execute('''select channel_id 
                                from CHANNEL 
                                where label = %s''',
                             (label,))
-        channel_id  = self.cursor.fetchone()
+        channel_id  = self.cursor.fetchone()[0]
 
         # FIXME: doesn't check for duplicates.
         self.cursor.execute('''insert into CHANNEL_DIR 
-                               (channel_id, dirpathname, is_bin_dir) 
-                               values (%d, %s, %s)''', 
-                            (channel_id, dirname, str(binary)))
+                               (channel_id, dirpathname) 
+                               values (%d, %s)''', 
+                            (channel_id, dirname))
         self.conn.commit()
         log("Directory added to channel", DEBUG2)
         return "ok"
 
 
-    def scanChannel(self, channel):
+    def updateChannel(self, channel):
         # This would be a good place to drop the indexes...  then recreate them
         # when we're all done.  We don't do that yet.
-        result = {}
+        # FIXME: and we can't, if we're going to stay online while we update
         logfunc(locals(), TRACE)
-
-        # FIXME: update nothing, if the filesystem hasn't changed
-        # Update the channel modification time FIRST.
-        self.cursor.execute('''update CHANNEL set lastupdate=%s
-                    where CHANNEL.label = %s''', 
-                      (time.strftime("%Y%m%d%H%M%S", time.gmtime()), channel))
-
-        # Need to always scan SRPMS (if any) first.  Otherwise, we have to do
-        # a two-pass import, which we don't want to do.
-        result['src'] = self._scanChannelSrc(channel)
-        log("Src dirs scanned", DEBUG2)
-
-        result['bin'] = self._scanChannelBin(channel)
-        log("Bin dirs scanned", DEBUG2)
-        result['chkdeletedfiles'] = self._scanForFiles(channel)
-
-        log("Files scanned", DEBUG2)
-        self.conn.commit()
-
-        result['setactive'] = self._setActiveElems(channel)
-        log("Active elements (RPMS) set", DEBUG2)
-        result['populatedirs'] = self._populateChannelDirs(channel)
-        log("Channel dirs populated", DEBUG2)
-        return result
-
-
-    def _scanChannelSrc(self, channel):
-        # We assume that all directories have been sanity checked (i.e. they
-        # exist and are readble, etc) when they were added to the tables, so
-        # we don't waste time doing that again here.  We just add a metric ton
-        # of information to the database...
-        # QUESTION: Is this /all/ a single transaction, or is /each/ RPM/SRPM
-        #   a single transaction?
-        # IMHO:  *shrug*  I dunno...
         result = {}
 
-        # first, select the source dirs
-        self.cursor.execute('''select dirpathname from CHANNEL_DIR
-            inner join CHANNEL on (CHANNEL.channel_id = CHANNEL_DIR.channel_id)
-            where CHANNEL.label = %s 
-            and CHANNEL_DIR.is_bin_dir = %s ''', (channel, '0'))
+        # scan the filesystem, see if anything changed
+        (added_rpms, deleted_rpms) = self._scanFilesystem(channel)
+        
+        # Delete or add first?
+        result['deleterpms'] = self._deleteRpms(channel, deleted_rpms)
+        result['addrpms'] = self._addRpms(channel, added_rpms)
+
+        if we_did_something:
+            result['setactive'] = self._setActiveElems(channel)
+
+            result['populatedirs'] = self._populateChannelDirs(channel)
+
+            self._updateChannelTimeStamp(channel)
+
+        return result
+
+
+    def _scanFilesystem(self, channel):
+
+        # Helper function for actually scanning the files on disk
+        def filesystemWalker(fs_set, dirname, filenames):
+            for filename in filenames:
+                fs_set.add(os.path.join(dirname, filename))
+
+        # Get the set of all rpms/files in the filesystem
+        self.cursor.execute('''select dirpathname
+                               from CHANNEL, DIR, CHANNEL_DIR
+                               where CHANNEL.channel_id = CHANNEL_DIR.channel_id and
+                                     CHANNEL_DIR.dir_id = DIR.dir_id and 
+                                     CHANNEL.label = %s''',
+                            (channel,))
         query = self.cursor.fetchall()
-        incr_reslt = 1
 
+        fs_set = sets.Set()
         for row in query:
-            log("Going to scan SRC dir %s for channel %s" % (row[0], channel), TRIVIA)
-            incr_reslt = incr_reslt and (0 != self._scanSrcDir(channel, row[0]))
+            os.path.walk(row[0], filesystemWalker, fs)
 
-        if (incr_reslt != 1):
-            result['status'] = 'failed'
-        else:
-            result['status'] = 'ok'
-        return result
-
-
-    def _scanSrcDir(self, channel, dir):
-        result = 1
-
-        for file in os.listdir(dir):
-            log("Scanning file %s" % (file,), TRACE)
-            pathname = os.path.join(dir, file)
-
-            header = RPM.Header(pathname)
-            if (header == None or not header[RPM.SOURCEPACKAGE]):
-                log("Not a src rpm.", TRACE)
-                continue
-
-            srpm_id = self._getSrpmId(file)
-            if not srpm_id:
-                self.cursor.execute('''insert into SRPM (filename, pathname)
-                                values
-                                (%s, %s) ''', (file, pathname))
-            srpm_id = self._getSrpmId(file)
-            result = result and (0 != srpm_id)
-
-            log("File scan result: %s" % (result,), TRACE)
-        self.conn.commit()
-        return result
-
-
-    def _scanChannelBin(self, channel):
-        # We assume that all directories have been sanity checked (i.e. they
-        # exist and are readble, etc) when they were added to the tables, so
-        # we don't waste time doing that again here.  We just add a metric ton
-        # of information to the database...
-        # QUESTION: Is this /all/ a single transaction, or is /each/ RPM/SRPM
-        #   a single transaction?
-        # IMHO:  *shrug*  I dunno...
-        logfunc(locals(), TRIVIA)
-        result = {}
-
-        self.cursor.execute('''select channel_id from CHANNEL
-                        where CHANNEL.label = %s''', (channel,))
-        qry = self.cursor.fetchall()
-        assert (len(qry) == 1)
-        chan_id = int(qry[0][0])
-
-        # reset the orig_chan table for this channel
-        self.cursor.execute('''delete from chan_rpm_orig
-                        where chan_id = %d''', (chan_id,))
-        self.conn.commit()
-
-        # first, select the binary dirs
-        self.cursor.execute('''select dirpathname from CHANNEL_DIR
-            inner join CHANNEL on (CHANNEL.channel_id = CHANNEL_DIR.channel_id)
-            where CHANNEL.label = %s 
-            and CHANNEL_DIR.is_bin_dir = %s''', (channel, '1'))
-        query = self.cursor.fetchall()
-        incr_reslt = 1
-
+        # Get the set of all the rpm pathnames in the database
+        self.cursor.execute('''select pathname
+                               from CHANNEL, CHANNEL_RPM
+                               where CHANNEL.channel_id = CHANNEL_RPM.channel_id and
+                               CHANNEL.label = %s''',
+                            (channel,))
+        query = self.cursor.fetchall() # FIXME: 256 at a time??
+        db_set = sets.Set()
         for row in query:
-            log("Scanning bin dir %s of channel %s" % (row[0], channel), TRIVIA)
-            incr_reslt = incr_reslt and (0 != self._scanBinDir(channel, row[0]))
+            db_set.add(row[0])
 
-        if (incr_reslt != 1):
-            result['status'] = 'failed'
-        else:
-            result['status'] = 'ok'
-        return result
+        # Now see what was added or deleted, if anything 
+        added_set = fs_set.difference(db_set)
+        deleted_set = db_set.difference(fs_set)
 
+        return (added_set, deleted_set)
 
-    def _scanBinDir(self, channel, dir):
-        result = 1
-        log("scanning directory %s" % (dir,))
-        for file in os.listdir(dir):
-            pathname = os.path.join(dir, file)
-            if (os.path.isdir(pathname)):
-                result = result and (0 != self._scanBinDir(channel, pathname))
-            if (os.path.isfile(pathname)):
-                result = result and (0 != self._addRpmPackage(pathname, channel))
-        log("returning result of %d for dir %s" % (result, dir))
-        return result
-
-
+        
     def _addRpmPackage(self, path, channel):
         filename = os.path.basename(path)
-        if (not filename.endswith(".rpm")):
-            # not a real RPM
-            return 1
         header = RPM.Header(path)
         
         if (header.hdr == None):
             return 1
  
-        # Anorther sanity check
-        if (header[RPM.SOURCEPACKAGE] == 1):
-            return 1
-             
         log("Adding RPM %s to channel %s" % (path, channel), TRIVIA)
 
         # Get the channel ID:
@@ -354,22 +270,6 @@ class PostgresDB(CurrentDB):
             return int(row[0][0])
 
 
-    def _packageInDB(self, header):
-        pid = self._getPackageId(header[RPM.NAME], header[RPM.VERSION],
-                                 header[RPM.RELEASE], header[RPM.EPOCH])
-        if (pid != None and pid != 0):
-            self.cursor.execute('''select rpm_id from RPM where package_id = %d
-                      and arch = %s''', (pid, header[RPM.ARCH]))
-            results=  self.cursor.fetchall()
-            if (len(results) > 1):
-                raise Exception, "EEEEP! db.db._packageInDB()"
-            if (len(results) == 0):
-                return 0
-            else:
-                return 1
-        return pid
-
-        
     def _insertPackageTable(self, header):
         package_id = self._getPackageId(header[RPM.NAME], header[RPM.VERSION],
                                         header[RPM.RELEASE], header[RPM.EPOCH])
@@ -394,16 +294,6 @@ class PostgresDB(CurrentDB):
         result = self.cursor.fetchall()
         assert (len(result) <= 1)
         if (len(result) == 0):
-            return None
-        else:
-            return int(result[0][0])
-
-
-    def _getSrpmId(self, filename):
-        self.cursor.execute('''select srpm_id from SRPM
-                            where filename = %s''', (filename,))
-        result = self.cursor.fetchall()
-        if (len(result) == 0) :
             return None
         else:
             return int(result[0][0])
@@ -458,21 +348,7 @@ class PostgresDB(CurrentDB):
                             (%d, %s)''', (rpm_id, prov))
 
 
-    # dependancy files
-    def _scanForFiles(self, channel):
-        result = 1
-        self.cursor.execute('''select pathname from RPM
-                inner join CHAN_RPM_ORIG on (RPM.rpm_id = CHAN_RPM_ORIG.rpm_id)
-                inner join CHANNEL on (CHANNEL.channel_id = CHAN_RPM_ORIG.chan_id)
-                where (CHANNEL.label = %s)''', (channel,))
-        query = self.cursor.fetchall()
-        for row in query:
-            filename = row[0]
-            result = result and os.access(filename, os.R_OK)
-        return result
-
-
-    def _setActiveElems(self, channel):
+    def _setActiveChannelRpms(self, channel):
         # This is what sets which RPMS are active.  I'tll be fun to diagnose...
         # Ok, zeroth, clear out the existing active RPMS
         # I know this can be optimized.  Work with me.

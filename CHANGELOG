@@ -1,5 +1,21 @@
                         Current Project Changelog
 
+* Sun Aug 31 2003 Hunter Matthews <thm@duke.edu>
+- Removed the srpms table from the schema - folding into rpms table.
+- Updated, changed and tweaked other parts of the schema.
+  Note that this is NOT the coming provides schema change - thats later.
+- Added the sets.py module from python 2.3 into src. This is used to 
+  calculate the list of filenames that really need to be updated, as opposed
+  to hitting every file on every update.
+- Changed the whole way we look for rpms to update the database with.
+  I've decided that the initial population will always be slow and sucky, 
+  but we can cut way down on actual updates after the initial population.
+- renamed scanChannel to updateChannel.
+- removed now obsolete methods
+- put newer methods back in
+- Note that this code DOES NOT WORK yet - work in progress, just a partial 
+  commit of what I've done so far.
+
 * Mon Aug 25 2003 Hunter Matthews <thm@duke.edu>
 - Removed all the duplicate indexes from the postgres schema.
   Postgres at least creates an implicit index on any field marked unique.

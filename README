@@ -75,7 +75,7 @@ Status:
         out in current v1.4.4, and should not produce an error.
 
     rhn-applet:
-        Not working yet.
+        Fully support in v1.5.4 and later.
 
 Maintainers:
 Hunter Matthews <thm@duke.edu> 

@@ -291,7 +291,7 @@ class PostgresDB(CurrentDB):
             pathname = os.path.join(dir, file)
             if ( os.isdir(pathname) ):
                 result = result and (0 != self._scanDirToChannel(config, channel, pathname) )
-            if ( is.isfile(pathname) ):
+            if ( os.isfile(pathname) ):
                 result = result and ( 0 != self._addRpmPackage(config, pathname, channel) )
         log ("returning result of %d for dir %s" % (result, dir) )
         return result

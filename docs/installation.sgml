@@ -1,5 +1,6 @@
+
 <!-- Current Installation Guide -->
-<section status="draft"><title>Installation Guide</title>
+<chapter status="draft"><title>Installation Guide</title>
 <section id="intro"><title>Introduction</title>
 <para>
 This document will guide you through the steps required to install a
@@ -101,4 +102,4 @@ At this point, Current is installed in your system, but is not configured or
 otherwise usable.  On to configuration!
 </para>
 </section>
-</section>
+</chapter>

@@ -1,16 +1,17 @@
-<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
 <!ENTITY installing SYSTEM "installation.sgml">
 <!ENTITY configuring SYSTEM "configuration.sgml">
 <!ENTITY managing SYSTEM "managing.sgml">
 <!ENTITY client SYSTEM "client.sgml">
 <!ENTITY maintenance SYSTEM "maintaining.sgml">
+<!ENTITY glossary SYSTEM "gloss.sgml">
 ]>
 
 <!--  Current Admin and User Guide -->
 
-<article status="draft"><title>Current: An Open Source Server for Red Hat's up2date Updater</title>
+<book status="draft"><title>Current: An Open Source Server for Red Hat's up2date Updater</title>
 
-<articleinfo>
+<bookinfo>
   <title>Current: An Open Source Server for Red Hat's up2date Updater</title>
   <author><firstname>John</firstname><surname>Berninger</surname>
     <affiliation>
@@ -21,11 +22,12 @@
       </address>
     </affiliation>
   </author>
-</articleinfo>
+</bookinfo>
 
 &installing;
 &configuring;
 &managing;
 &client;
 &maintenance;
-</article>
+&glossary;
+</book>

@@ -1,5 +1,5 @@
 <!--  Client configuration for use with a Current server -->
-<section id="clients"><title>Client Configuration</title>
+<chapter id="clients"><title>Client Configuration</title>
 <section id="clientintro"><title>Introduction to the Client</title>
 <para>
 When you install a stock Red Hat Linux system, it comes pre-configured to talk
@@ -128,4 +128,4 @@ on the system obtained by registering with Red Hat's RHN will not work with
 Current.
 </para>
 </section>
-</section>
+</chapter>

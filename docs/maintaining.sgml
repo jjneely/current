@@ -1,5 +1,5 @@
 <!-- Maintaining your Current server trees -->
-<section id="maintain"><title>Maintaining Your Server Trees</title>
+<chapter id="maintain"><title>Maintaining Your Server Trees</title>
 <section id="maintintro"><title>Introduction</title>
 <para>
 The larger part of server tree maintenance has been obsoleted by the new
@@ -10,4 +10,4 @@ Apache server.  We have not yet tested performing database updates while
 clients are actively connected; please test this functionality with care.
 </para>
 </section>
-</section>
+</chapter>

@@ -1,5 +1,5 @@
 <!-- Mainaging your Current server -->
-<section id="manage"<title>Managing your Current Server</title>
+<chapter id="manage"<title>Managing your Current Server</title>
 <section id="manageintro"><title>Introduction</title>
 <para>
 Management and maintenance of Current has changed dramatically from the 1.4.x
@@ -9,87 +9,6 @@ production server) up and running and serving packages.  Please read this
 section carefully, as there is very little that has not changed since 1.4.x.
 </para>
 </section>
-<section id="database"><title>Setting up your database</title>
-<para>
-The database backend is now a critical part of a functioning Current server.
-Without this backend, you won't be able to server any packages, or even
-register your clients.  Setting up the database is not difficult, but care
-must be taken to not only ensure it's done correctly, but that it's done in a
-way which won't compromise security.
-</para>
-<section id="postgres"><title>The PostgreSQL Backend</title>
-<para>
-There are two parts to setting up the PostgreSQL backend; first you have to
-set up the PostgreSQL server itself to accept connections properly, then
-you have to set up the actual database instance your Current server will use.
-We'll address them in that order.
-</para>
-<para>
-In order to set up the daemon, you have to first have an established 
-<filename>/var/lib/pgsql/data</filename> directory.  This is done by simply
-starting the PostgreSQL daemon and immediately stopping it.  Then, you
-have to configure the daemon to accept network (TCP/IP) connections.  This is
-done by editing two files in the <filename>/var/lib/pgsql/data</filename>
-directory, <filename>pg_hba.conf</filename> and 
-<filename>postmaster.opts.default</filename>.
-</para>
-<para>
-The <filename>pg_hba.conf</filename> file configures the method(s) used
-to authenticate connections to the PostgreSQL service; for Current to work,
-we must allow host-based authentication, which is what is used for TCP/IP
-connections.  The simplest way of doing this is to add a line to the
-end of this file that reads:
-<screen>
-host    all     127.0.0.1   255.255.255.255     password
-</screen>
-This allowes host-based connections over TCP/IP from the local host only 
-(the loopback adapter, specifically) to all databases with a valid password
-supplied.  For more details on what the fields in this line mean, please see
-the PostgreSQL documentation.
-</para>
-<para>
-The next file, <filename>postmaster.opts.default</filename>, simply tells the 
-startup script what options to pass to the postmaster daemon when the 
-PostgreSQL service is started.  Please be very careful to modify the
-<filename>postmaster.opts.default</filename> file, even if there isn't one in
-existence already - the <filename>postmaster.opts</filename> file simply
-records what options the daemon was started with the last time it was started,
-it does not control the options.
-</para>
-<para>
-If you have any preexisting options in this file, you should keep them.  You
-will have to add a <quote>-i</quote> to this file if it's not already there to
-allow TCP/IP connections to the server.
-</para>
-<para>
-Once you've modified those files, you can re-start the PosrgreSQL service and
-create the user that the Current server will use to connect to the database.
-This user and password must be the same username and password that appear in
-your <filename>current.conf</filename> file.  The easiest way to create this
-user account is to run the <command>createuser</command> script with the
-<quote>-P</quote> option.  Please note that you must use a capital "P" - 
-the lowercase "p" is a different option and will cause unexpected behavior.
-For more information on creating PostgreSQL users, please see the PostgreSQL
-documentation.
-</para>
-<para>Now that we've allowed TCP/IP connections and created our user, we need
-to create the database and tables that Current will use.  First, you need to
-create and empty database with the <quote>createdb</quote> command provided
-by the PostgreSQL package.  Once the empty database has been created, you will 
-create the actual tables that Current will use.  This step has been
-simplified for you; all you need to do is run the <command>cinstall initdb</command>
-command and the tables will be created automatically.  IF you receive any error
-messages, they should be somewhat explicit about what went wrong.  If you're
-unable to correct the error, please ask on the mailing list.
-</para>
-</section>
-<section id="pysqlite"><title>The PySQLite Backend</title>
-<para>
-This section will be fleshed out after Hunter has finished the development of
-this backend.
-</para>
-</section>
-</section> <!-- end of database section -->
 <section id="channelcreate"><title>Channel Creation and Population</title>
 <para>
 The way you manage and control your channels has also changed significantly -
@@ -118,11 +37,8 @@ the channel definition.  There are six options available for this command:
 <glossentry id="name"><glossterm>--name (-n)</glossterm>
 <glossdef>
 <para>This option specifies the "name" of the channel; the name is used
-only for human consumption and is not critical for server operations.  The
-name provided must be a valid directory name for the server; i.e. it can
-only contain characters that would be valid in a filename, and cannot
-contain any escaped characters such as a space.  Each channel is required to 
-have a name attribute associated with it.
+only for human consumption and is not critical for server operations.  
+Each channel is required to have a name attribute associated with it.
 </para>
 </glossdef>
 </glossentry>
@@ -130,8 +46,11 @@ have a name attribute associated with it.
 <glossdef>
 <para>The label is the internal name of the channel used by the server and the
 clients that communicate with it.  You will need to remember the channel label
-as it is required for other management commands.  Each channel is required to
-have a label attribute associated with it.
+as it is required for other management commands.  The label of a channel
+must be a valid directory name for the server operating system, and as such,
+cannot contain any characters except alphanumerics, <quote>-</quote>, and
+<quote>.</quote>.  Each channel is required to have a label attribute 
+associated with it.
 </para>
 </glossdef>
 </glossentry>
@@ -246,4 +165,4 @@ binary RPMs.
 </para>
 </section>
 </section>
-</section> <!-- closes section id="manage" -->
+</chapter>

@@ -45,6 +45,8 @@ locals().update(tagnames)
 __all__ = tagnames.keys()
 __all__.append('Header')
 
+class RPMException(Exception):
+    pass
 
 class Header(object):
     def __init__(self, pathname):
@@ -69,8 +71,13 @@ class Header(object):
 
 
     def _get_SOURCEPACKAGE(self):
+        # XXX: Why>
         # This is insane for 4.1, but required for 4.0 and earlier    
-        return not not self.is_source
+        #return not not self.is_source
+
+        # To keep all DBs in check we just want to get an int here, force it
+        # to avoild Python 2.3's bool type which I'd rather use
+        return int(self.is_source)
 
 
     def _get_CT_FILESIZE(self):
@@ -212,11 +219,17 @@ class Header(object):
             header = ts.hdrFromFdno(fd)
             isSource = header[rpm.RPMTAG_SOURCEPACKAGE]
             os.close(fd)
-        except:
-#            logException()
+        except Exception, e:
             print "Warning: Could not open package %s" % pathname
             return (None, None)
-                                                                                    
+                             
+        if type(isSource) == list:
+            # Yes, this makes my brain hurt
+            if isSource == []:
+                isSource = 0 # false
+            else:
+                raise RPMException("Unexpected RPMTAG_SOURCEPACKAGE value")
+
         if header == None:
             print "Warning: Could not read package %s" % pathname
             return (None, None)

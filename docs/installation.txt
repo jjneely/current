@@ -1,20 +1,15 @@
-****************************************************************
-*
-* This documentation has been superceded by the SGML docs
-*
-***************************************************************
-
 
                  CURRENT SERVER INSTALLATION INSTRUCTIONS
+                        AKA THE QUICK START GUIDE
 
 Please note that Current (and up2date itself) are moderately advanced 
 system administration topics. If you aren't comfortable with tar, rpm,
-general system adminstration, and similar topics, you probably shouldn't 
+general system administration, and similar topics, you probably shouldn't 
 be using this software. I hate to discourage people, but as a professional
 system administrator, I'm morally opposed to helping people destroy their
 machines.
 
-Current 1.3.x is in very active development right now. You should be willing
+Current 1.5.x is in very active development right now. You should be willing
 (and able) to help debug and test what may turn out to be very wonky
 software (especially in the snapshots). If you need to report a problem,
 please send it to the mailing list (even if only I can answer the question,
@@ -26,7 +21,7 @@ details on what packages/config files you were using. If you can't describe
 what broke, I will have a tough time helping you.
 
 Between releases the RELEASE-NOTES will include any changes/minor
-incompatibilities. You should DEFINATELY review the example current.conf
+incompatibilities. You should DEFINITELY review the example current.conf
 between snapshots for changes (I ship my test config), and you will almost
 certainly need to recreate your databases. [Current now versions its
 databases, and will not run with an out of date database]
@@ -40,17 +35,66 @@ Hardware/Software you need:
   quad xeon box will buy you zip. (Don't let it go to waste - send it to me)
   
 * Some clients. Any Red Hat Linux version with up2date v2.7 and 
-  it's proper dependancies (python, python-xmlrpc, rpm naturally, etc)
+  it's proper dependencies (python, python-xmlrpc, rpm naturally, etc)
 
 
 Installation on the server [by rpm]
-This has been obsoleted by the installation instructions in the SGML 
-documentation suite.  Please read the provided [HTML,PS] documentation.
+===================================
+
+The following is a rough outline for setting up a Current server after
+installing the Current RPM.  The DocBook documentation should be more
+complete and user friendly, but this should be easy to keep updated
+and therefore more current.  The full documentation for Current can
+always be found in /usr/share/doc/current-<version>.  All actions
+below must be done as root.
+
+*) Edit the /etc/current/current.conf file to your liking.  The Apache
+web server must be able to write the the log_file given.  At this
+point we support two databases where db_type can be 'postgres' or
+'pysqlite'.  A PostgreSQL database backend requires you to specify
+the user, host, database, password configs.  The SQLite backend
+does not require any extra configuration.  Current will put the 
+SQLite database in current_dir/db/current.sqlite
+
+*) Run: cinstall create_apache_config
+This sets up Apache for current.
+
+*) Run: cinstall create_certificate
+This creates an SSL certificate for your server and up2date clients.
+The cert file that the clients need will be in /etc/current.  This will
+erase any pre-existing SSL cert that Apache is using.
+
+*) Run: cinstall initdb
+This sets up the database schema.  Restart Apache and current should be
+operational.
+
+*) Run: cadmin create_channel -r <release> -a <arch> -l <label> -n <name>
+This will create a channel for you.  The release must match the version
+of the redhat-release or fedora-release package on your clients.  The
+arch is 'i386' for normal Intel machines.  The label is a short unique
+string used to identify your channel.  The name is a string.  You
+may also add -d <description> to give your channel a description.
+
+*) Run: cadmin add_dir -l <label> -d <dir>
+Adds a directory to the channel specified by label.  Any RPMs in that
+directory tree will be included in the channel.  You may add as many
+directories as needed.
+
+*) Run: cadmin scan_channel -l <label>
+This scans the directories and updates the database and the on disk
+data that Apache serves out to the up2date clients.  You may want to
+put this in a cron job.
+
+There you have it.  You should now have a working Current server.
+
+Note that both SQLite and PostgreSQL require you to periodically 
+"VACUUM" the databases.  You'll need to do that to keep the databases
+small, fast, and sane.  A rawhide channel can take up to 40 to 100
+MB of hard drive space for the database.
+
 
 Installation on the clients:
-Note: Although this information is accurate, this file is no longer
-maintained.  Any future changes will be amde only to the SGML stack and
-reflected only in the [HTML,PS] documentation provided.
+============================
 
 * Make sure that the /usr/share/rhn/RHNS-CA-CERT file is the one that you
   created on your server. Things are absolutely guaranteed NOT to work if 
@@ -139,8 +183,7 @@ the mailing list, issues@current.tigris.org
 
 Note 1: Right now, only one channel per arch/os_release combination is
 supported. You can "add" packages easily to the base redhat simply by
-including multiple dirs per channel - the example config file shows how
-this is done (its how I use it).
+including multiple dirs per channel.
   
 Note 2: The example config file implies that I've used a full CD image/ nfs
 install tree as my package set. That IS how I do it - I hope for my
@@ -152,10 +195,12 @@ database.
 As a bare minimum, just the published Red Hat errata in a single dir would
 make a very valuable Current server for simple/small sites....
     
-Note: During channel creation, if your tree is like mine, there might be
+Note 3: During channel creation, if your tree is like mine, there might be
 some warnings about duplicate packages (exactly the same package seen twice,
 through symlinks). Since thats not a problem for the database to resolve, it
 prints a warning and moves on. Nothing _has_ to be done about these
 warnings.
 
+Note 4: rhn_register has been incorporated directly into up2date as of
+Red Hat Linux 8.0.
 

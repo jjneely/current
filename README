@@ -15,7 +15,8 @@ where we are going.
 Basically, the functionality of 1.0 is enough to get a small network (20-30
 clients) updated with basic security patches. 1.4 is scalable enough to
 take this basic, anonymous only functionality to hundreds of hosts
-(500 or so seems to be a good point).
+(500 or so seems to be a good point).  1.6 should scale about the same as 
+1.4 if not more, its main difference is its SQL based backend.
 
 There is a freshmeat entry and a website, mailing lists, cvs repository, etc
 at http://current.tigris.org. If you will be using current in a production
@@ -36,7 +37,7 @@ Status:
     
     server itself: 
         Please note that Current 1.5.x/1.6.x is only tested and claimed to
-        work on RHL 8.0 and 9. Your server should run all original Red Hat
+        work on RHL 9 to FC2. Your server should run all original Red Hat
         packages (and should itself be fully up to date with errata).
 
         The single exception is that on a RHL 8.0 server, you need a newer
@@ -55,7 +56,7 @@ Status:
         consumed by the up2date package itself.
         
     up2date: 
-        Current can handle up2date versions from 2.7.x up to 3.1.x for all
+        Current can handle up2date versions from 2.7.x up to 4.3.x for all
         simple cases (it works here).  Versions prior to 2.7 will not be
         supported. Both the GUI and text interfaces are supported. 
 
@@ -73,6 +74,7 @@ Status:
         Fully supported in v1.5.4 and later.
 
 Maintainers:
+Jack Neely <jjneely@gmail.com>
 Hunter Matthews <thm@duke.edu> 
 John Berninger <jwbernin@berningeronline.net>
 dev@current.tigris.org

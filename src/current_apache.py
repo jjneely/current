@@ -102,7 +102,6 @@ def accesshandler(req):
     Performs the authentication/authorization using HTTP headers for 
     GET requests 
     """
-    apacheLog("Inside the accesshandler", 'NOTICE')
 
     # we assume that if the config object is there, all the init got done.
     if not configure.config:
@@ -112,6 +111,7 @@ def accesshandler(req):
             return apache.HTTP_INTERNAL_SERVER_ERROR
 
     # debugging code - leave this here
+    log("Inside Current accesshandler", DEBUG)
     log(req.uri, DEBUG2)
     for key in req.headers_in.keys():
         log("headers_in[%s] == %s" %(key, req.headers_in[key]), DEBUG2)
@@ -120,66 +120,24 @@ def accesshandler(req):
     hi = auth.SysHeaders(req.headers_in)
     (valid, reason) = hi.isValid()
     if not valid:
-        apacheLog("Request %s could not be authorized" % req.uri, 'NOTICE')
-        apacheLog("Reason for failure was %s" % reason, 'NOTICE')
+        log("Request %s could not be authorized" % req.uri, VERBOSE)
+        log("Reason for failure was %s" % reason, VERBOSE)
         return apache.HTTP_UNAUTHORIZED
     else:
         return apache.OK
 
 
-def typehandler(req):
-    # Replaced by Apache configs.  This code is legacy and not used.
-    
-    """ Type Handler for mod_python.
-
-    The packageList and the rpm headers are compressed. This
-    handler sets the correct HTTP response headers if those are the
-    requests we're handling.
-
-    May be replaced in the future with a more advanced apache config.
-    (See TODO)
-    """
-    apache.log_error("Inside typehandler", apache.APLOG_DEBUG)
-
-    apacheLog("Inside the typehandler", 'NOTICE')
-
-    # we assume that if the config object is there, all the init got done.
-    if not configure.config:
-        ret = init_backend()
-        if ret:
-            # Backend failed to start up
-            return apache.HTTP_INTERNAL_SERVER_ERROR
-
-    log("Inside the typehandler", DEBUG2)
-
-    # setting headers creatively
-    if string.find(req.uri, 'listPackages') > 0 or string.find(req.uri, 'getObsoletes') > 0:
-        # listPackages is both compressed, and has a different 
-        # content_type than the others
-        log('typehandler setting compressed headers', DEBUG2)
-
-        req.headers_out['Content-Encoding'] = 'x-gzip'
-        req.headers_out['Content-Transfer-Encoding'] = 'binary'
-        req.content_type = 'application/binary'
-    else:
-        # everything else is uncompressed, and is octet-stream
-        log('typehandler setting normal headers', DEBUG2)
-        req.content_type = 'application/octet-stream'
-
-    return apache.OK
-
-
 def handler(req):
     """ The main handler function is used for all the POST requests """
 
-    apacheLog("Inside the PythonHandler", 'NOTICE')
-
     # we assume that if the config object is there, all the init got done.
     if not configure.config:
         ret = init_backend()
         if ret:
             # Backend failed to start up
             return apache.HTTP_INTERNAL_SERVER_ERROR
+
+    log("Inside Current main hander", DEBUG)
 
     if req.method == 'GET':
         return apache.DECLINED
@@ -187,7 +145,6 @@ def handler(req):
     if not req.method == 'POST':
         # This would be considered a Bad Thing...
         # FIXME: we need to log more stuff here, to debug the problem
-        apacheLog("Unkown request type found!")
         log("Don't know how to handle this request type: %s" % req.method, DEBUG)
         return apache.HTTP_BAD_REQUEST
     else:
@@ -198,8 +155,8 @@ def handler(req):
             params = list(params)
         except:
             # had a problem with the xmlrpc call...
+            log ("Couldn't decode XMLRPC call.", VERBOSE)
             logException()
-            log ("Couldn't decode XMLRPC call.", DEBUG)
             return apache.HTTP_BAD_REQUEST
     
         # gen result
@@ -208,7 +165,7 @@ def handler(req):
         # Fixme: need to pass req object here?
         result = callAPIMethod(method, params)
 
-        apacheLog('Result = %s' % pprint.pformat(result), 'NOTICE')
+        log('API Result = %s' % pprint.pformat(result), DEBUG2)
     
         return sendClientResult(req, result)
 
@@ -244,12 +201,12 @@ def sendClientResult(req, result):
     data = ''                           # start off with nothing
 
     if isinstance(result, xmlrpclib.Fault):
-        log('Result is a Fault', DEBUG)
+        log("Fault: %s" % str(result), VERBOSE)
         req.headers_out.add('X-RHN-Fault-Code', str(result.faultCode))
         req.headers_out.add('X-RHN-Fault-String', string.strip(base64.encodestring(result.faultString)))
         data = xmlrpclib.dumps(result, methodresponse=1)
     else:
-        log('Result is normal data: turn it into an XML chunk', DEBUG2)
+        log('Result is normal data: turn it into an XML chunk', DEBUG)
 
         # Force data to be encapsulated in a tuple.
         # NOTE: thats NOT at all what the tuple() builtin does.
@@ -283,19 +240,19 @@ def callAPIMethod(method, params):
 
     global __modules__
     if not string.count(method, '.'):
-        log('ERROR: Could not split method into module/function pair'
-            % method, MANDATORY)
-        log('  params were: %s' % pprint.pformat(params), MANDATORY)
+        log('Could not split method into module/function pair'
+            % method, DEBUG)
+        log('  params were: %s' % pprint.pformat(params), DEBUG2)
         return xmlrpclib.Fault(1000, 'Method call not in expected format')
 
-    log('method = %s' % method)
+    log('method = %s' % method, DEBUG)
     (module, function) = string.split(method, '.', 1)
     # Is this a new or a known call?
     if not module in __modules__:
         # it's a whole new freaking module
         log('ERROR: New module called: %s with function %s'
             % (module, function), MANDATORY)
-        log('  params were: %s' % pprint.pformat(params), MANDATORY)
+        log('  params were: %s' % pprint.pformat(params), DEBUG2)
         return xmlrpclib.Fault(1000, 'Module %s not recognized' % module)
 
     # This could blow up. but if it does, it's a server problem/bug
@@ -305,7 +262,7 @@ def callAPIMethod(method, params):
         # known module, new function
         log('ERROR: New function called: module %s, function %s'
             % (module, function), MANDATORY)
-        log('  params were: %s' % pprint.pformat(params), MANDATORY)
+        log('  params were: %s' % pprint.pformat(params), DEBUG2)
 
         return xmlrpclib.Fault(1000, 'Function %s not recognized'
                                % function)
@@ -322,10 +279,10 @@ def callAPIMethod(method, params):
         return result
     except TypeError, e:
         # We recognized the module and function, but mussed the arg count
-        log('ERROR: Recognized function %s called with wrong arg count'
-            % method, MANDATORY)
+        log('ERROR: Recognized function %s called with wrong arg count '
+            'or other TypeError exception occured' % method, MANDATORY)
         logException()
-        log('  params were: %s' % pprint.pformat(params), MANDATORY)
+        log('  params were: %s' % pprint.pformat(params), DEBUG2)
         return xmlrpclib.Fault(1000, 'Function %s called with wrong arg count'
                                % function)
         
@@ -334,15 +291,14 @@ def callAPIMethod(method, params):
         log("ERROR: A CurrentException was raised -- alert user.", 
             MANDATORY)
         logException()
-        log('  params were: %s' % pprint.pformat(params), MANDATORY)
-        return xmlrpcFault(1000, str(e))
+        log('  params were: %s' % pprint.pformat(params), DEBUG2)
+        return xmlrpclib.Fault(1000, str(e))
     
     except Exception, e:
         # something totally bad happened.  :((
         log('ERROR: Recognized function %s blew up with undefined error'
             % method, MANDATORY)
         logException()
-        log('  exception said: %s' % e, MANDATORY)
-        log('  params were: %s' % pprint.pformat(params), MANDATORY)
+        log('  params were: %s' % pprint.pformat(params), DEBUG2)
         return xmlrpclib.Fault(1000, 'Function %s call blew up.  Bad week.'
                                % function)

@@ -17,6 +17,9 @@ Copyright 2003   Hunter Matthews  <thm@duke.edu>
 MODULES_DIR="/usr/share/current"
 
 import sys
+import os
+import os.path
+
 sys.path.append(MODULES_DIR)
 
 import configure
@@ -146,7 +149,8 @@ def main():
 
         ## The web dir is universal
         web_dir = os.path.join(config['current_dir'], 'www')
-        os.system('mkdir -p %s' % web_dir)
+        if not os.path.exists(web_dir):
+            os.makedirs(web_dir)
 
         # Now init the database
         # we can just pass in the config object, since it looks like a 

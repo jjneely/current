@@ -81,7 +81,9 @@ class resultSet(dict):
         else:
             # Load data from new row into dict
             for desc, element in zip(self._desc, self._row):
-                dict.__setitem__(self, desc[0], element)
+                # Make sure desc is NOT of form 'table.field'
+                field = desc[0].split(".")[-1]
+                dict.__setitem__(self, field, element)
 
 
     def next(self):

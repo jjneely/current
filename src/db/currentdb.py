@@ -10,14 +10,12 @@ Distributed under GPL.
 
 """
 
-import gzip
 import os
 import os.path
 import pprint
 import string 
 import sys
 import time
-import xmlrpclib
 
 from db.resultSet import resultSet
 from logger import *
@@ -25,7 +23,7 @@ import exception
 import archtab
 import RPM
 import sets
-
+import xmlrpc
 
 
 class specificDB(object):
@@ -38,7 +36,8 @@ class specificDB(object):
         pass
 
     def getConnection(self):
-        return None
+        raise exception.CurrentDB(
+                "You cannot use the specificDB abstract class")
 
     def getCursor(self):
         return None
@@ -191,7 +190,11 @@ class CurrentDB(object):
         def filesystemWalker(fs_set, dirname, filenames):
             for filename in filenames:
                 if filename[-4:] == '.rpm':
-                    fs_set.add(os.path.join(dirname, filename))
+                    path = os.path.join(dirname, filename)
+                    if os.access(path, os.R_OK):
+                        fs_set.add(path)
+                    else:
+                        raise exception.CurrentDB("Cannot read %s" % filename)
 
         # Get the set of all rpms/files in the filesystem
         self.cursor.execute('''select dirpathname
@@ -384,7 +387,7 @@ class CurrentDB(object):
                         values (%s, %s, %s, %s, %s)''',
                         (header[RPM.NAME], header[RPM.VERSION],
                          header[RPM.RELEASE], header[RPM.EPOCH],
-                         str(header[RPM.SOURCEPACKAGE])))
+                         header[RPM.SOURCEPACKAGE]))
 
         package_id = self._getPackageId(header[RPM.NAME], header[RPM.VERSION],
                                 header[RPM.RELEASE], header[RPM.EPOCH],
@@ -463,13 +466,13 @@ class CurrentDB(object):
                                where channel_id = %d''', (chan_id,))
 
         # First, get a list of unique pkg names:
-        self.cursor.execute('''select distinct name 
-                               from PACKAGE, RPM, CHANNEL_RPM
+        self.cursor.execute('''select distinct PACKAGE.name 
+                               from PACKAGE, RPM, CHANNEL_RPM, CHANNEL
                                where PACKAGE.package_id = RPM.package_id and
-                                     RPM.rpm_id = CHANNEL_RPM.rpm_id and 
-                                     CHANNEL.channel_id = CHANNEL_RPM.channel_id
+                                     RPM.rpm_id = CHANNEL_RPM.rpm_id and
+                                     CHANNEL_RPM.channel_id = CHANNEL.channel_id
                                      and CHANNEL.label = %s
-                                     and PACKAGE.issource = false''', (channel,))
+                                     and PACKAGE.issource = 0''', (channel,))
         newest_ids = []
         query = self.cursor.fetchall()
         for row in query:
@@ -493,7 +496,7 @@ class CurrentDB(object):
                                where PACKAGE.package_id = RPM.package_id and
                                RPM.rpm_id = CHANNEL_RPM.rpm_id and 
                                CHANNEL_RPM.channel_id = CHANNEL.channel_id and
-                               PACKAGE.issource = false and
+                               PACKAGE.issource = 0 and
                                PACKAGE.name = %s and 
                                CHANNEL.label = %s''', (pkg, channel))
         query = self.cursor.fetchall()
@@ -515,7 +518,7 @@ class CurrentDB(object):
                                      PACKAGE.version = %s and 
                                      PACKAGE.release = %s and 
                                      PACKAGE.epoch = %s  and
-                                     PACKAGE.issource = false and
+                                     PACKAGE.issource = 0 and
                                      CHANNEL.label = %s''',
                     (query[0][0], query[0][1], query[0][2], query[0][3], channel))
 
@@ -528,7 +531,7 @@ class CurrentDB(object):
         return tmp
 
 
-    def _getListPackagesList(self, channel):
+    def _doListPackages(self, channel, filename):
         """Return a list suitable for creating an XML data chuck for
            up2date of all active packages in this channel."""
 
@@ -540,15 +543,13 @@ class CurrentDB(object):
                 inner join CHANNEL on (CHANNEL_RPM_ACTIVE.channel_id = CHANNEL.channel_id)
                 where CHANNEL.label = %s
                 and PACKAGE.package_id = RPM.package_id
-                and PACKAGE.issource = false
+                and PACKAGE.issource = 0
                 order by PACKAGE.name''', (channel,))
-        query = self.cursor.fetchall()
-        query = (list(query),)
-        
-        return query
+       
+        xmlrpc.fileDump(self.cursor, filename, gz=1)
 
 
-    def _getObsoletesList(self, channel):
+    def _doObsoletesList(self, channel, filename):
         """Return a list suitable for xmlrpclib of obsoletes for 
            this channel."""
            
@@ -561,12 +562,10 @@ class CurrentDB(object):
                 where CHANNEL.label = %s
                 and PACKAGE.package_id = RPM.package_id
                 and RPM.rpm_id = RPMOBSOLETE.rpm_id 
-                and PACKAGE.issource = false
+                and PACKAGE.issource = 0
                 order by PACKAGE.name''', (channel,))
-        query = self.cursor.fetchall()
-        query = (list(query),)
         
-        return query
+        xmlrpc.fileDump(self.cursor, filename, gz=1)
 
 
     def _getPackageSourceList(self, channel):
@@ -574,7 +573,7 @@ class CurrentDB(object):
 
         self.cursor.execute('''select RPM.filename from 
                 RPM, PACKAGE, CHANNEL, CHANNEL_RPM
-                where PACKAGE.issource = true
+                where PACKAGE.issource = 1
                 and CHANNEL.channel_id = CHANNEL_RPM.channel_id
                 and CHANNEL_RPM.rpm_id = RPM.rpm_id
                 and RPM.package_id = PACKAGE.package_id
@@ -592,7 +591,7 @@ class CurrentDB(object):
                     inner join CHANNEL on (CHANNEL_RPM_ACTIVE.channel_id = CHANNEL.channel_id)
                     inner join PACKAGE on (RPM.package_id = PACKAGE.package_id)
                     where CHANNEL.label = %s
-                    and PACKAGE.issource = false''', (channel,))
+                    and PACKAGE.issource = 0''', (channel,))
         query = self.cursor.fetchall()
         
         return query
@@ -609,33 +608,23 @@ class CurrentDB(object):
         assert updatefilename
 
         # First, populate the listPackages directory.
-        log("Grabbing listPackages information", TRIVIA)
-        query = self._getListPackagesList(channel)
-        
-        log("Creating listPackages file", DEBUG2)
-        pathname = os.path.join(self.config['current_dir'], 'www', channel, 'listPackages', updatefilename)
+        log("Creating listPackages information", DEBUG)
+        pathname = os.path.join(self.config['current_dir'], 'www', 
+                                channel, 'listPackages', updatefilename)
         if (os.path.exists(pathname)):
             os.unlink(pathname)
-        pl_file = gzip.GzipFile(pathname, 'wb', 9)
-        str = xmlrpclib.dumps(query, methodresponse=1)
-        pl_file.write(str)
-        pl_file.close()        
-        log("listPackages file created successfully", DEBUG)
+        self._doListPackages(channel, pathname)
+        log("listPackages file created successfully", TRIVIA)
         results['listPackages'] = "ok"
         
         # Now populate the getObsoletes directory.
-        log("Grabbing getObsoletes information", TRIVIA)
-        query = self._getObsoletesList(channel)
-        
-        log("Creating getObsoletes file", DEBUG2)
-        pathname = os.path.join(self.config['current_dir'], 'www', channel, 'getObsoletes', updatefilename)
+        log("Creating getObsoletes file", DEBUG)
+        pathname = os.path.join(self.config['current_dir'], 'www', 
+                                channel, 'getObsoletes', updatefilename)
         if (os.path.exists(pathname)):
             os.unlink(pathname)
-        pl_file = gzip.GzipFile(pathname, 'wb', 9)
-        str = xmlrpclib.dumps(query, methodresponse=1)
-        pl_file.write(str)
-        pl_file.close()
-        log("getObsoletes file created succefully", DEBUG)
+        self._doObsoletesList(channel, pathname)
+        log("getObsoletes file created succefully", TRIVIA)
         results['getObsoletes'] = "ok"
 
         # Now populate getPackageSource

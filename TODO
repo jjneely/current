@@ -1,16 +1,10 @@
                        Current Server TODO List
 
-* rollback() when DB code tracebacks
-* Permissions on RPMS must be sane
-* CurrentError class ??
+* Exception handling throught code
+
 * How should SRPMS be handed.  Just the latest versions on disk or all of them
 
-* Write slick apache configs to replace the typehandler.  The apache 
-  configs will override the typehandler making things whiny.
-
-* redo the logging so that current.log is empty for log_level 0 and
-  perhaps 1 - access_log and error_log are all we need there.
-  Keep error_log very small at 0, and still quiet at 1.
+* redo the logging to match what is outlined in the developer docs
  
 * we ignore channel versions during create/delete/listpackage. Fix that.
   Old channel versions might need to live for up to an hour, to give

@@ -1,5 +1,23 @@
                         Current Project Changelog
 
+* Mon Oct 18 2004 Jack Neely <jjneely@gmail.com>
+- Current 1.5.7
+- SQLite support via the pysqlite python module
+- Lots of small things to get the SQL code and other backend parts
+  to play nicely with different databases
+- More error checking, notably Current will throw and exception
+  if it does not have read access to the RPMs it was told to serve
+- Documentation added to the development.txt file to explain
+  the method behind logging
+- Some parts of the code were converted to this new logging schema
+- RPM.py fixes for broken 4.3
+- Schema change -- booleans are handled as integers now
+- xmlrpc.py added with a helper function to dump database
+  results to XMLRPC files.  Should be much more memory efficiant.
+- Added a quick start installation guide to the installation.txt file.
+  While we want the DocBook stuff to be professional and user friendly,
+  there needs to be something for us sysadmins too.
+
 * Fir Oct 01 2004 Jack Neely <jjneely@gmail.com>
 - Took over code from Hunter.
 - Make the DB schema consistant and working

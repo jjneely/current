@@ -8,7 +8,7 @@ create table PACKAGE (
     version         varchar(64) not null,
     release         varchar(64) not null,
     epoch           varchar(8) not null,
-    issource        boolean not null
+    issource        smallint not null
     );
 create index PACKAGE_NAME_IDX on PACKAGE(name);
 create index PACKAGE_VERSION_IDX on PACKAGE(version);

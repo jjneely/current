@@ -9,3 +9,6 @@ class CurrentException(Exception):
 class CurrentDB(CurrentException):
     pass
 
+class CurrentSQLite(CurrentDB):
+    pass
+

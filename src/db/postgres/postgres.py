@@ -238,7 +238,7 @@ class PostgresDB(CurrentDB):
             log("Scanning file %s" % (file,), TRACE)
             pathname = os.path.join(dir, file)
             rpm_info = self.rpmWrapper.getRpmInfo(pathname)
-            if not rpm_info['issrc']:
+            if (rpm_info == None or not rpm_info['issrc']):
                 log("Not a src rpm.", TRACE)
                 continue
             srpm_id = self._getSrpmId(file)

@@ -1,0 +1,347 @@
+<html>
+<head>
+</head>
+<body>
+
+<h1>Current Frequently Asked Questions</h1>
+
+<p>
+These are some common questions or problems I get with new admins using
+Current. If you feel something should go in here, please email me.
+</p>
+
+<ul>
+    <li><a href="#general">General questions</a></li>
+    <ol>
+    <li><a href="#g1">What versions of the up2date client API are
+        supported?</a></li>
+    <li><a href="#g2">Does the server name need to be the real name of the
+        server (so reverse name lookup works) or can it be a CNAME?</a></li>
+    <li><a href="#g3">Why can't you run cadmin when apache is running?</a></li>
+    <li><a href="#g4">What ports does the server need to have open? I have
+        a firewall</a></li>
+    <li><a href="#g5">I want to have a Current server that supports all
+        versions of Red Hat Linux.  How can I populate my servers with all
+        the necessary RPMs?</a></li>
+    </ol>
+    <li><a href="#trouble">Troubleshooting</a></li>
+    <ol>
+    <li><a href="#t1">I can't get the clients to talk to the server - it
+        never does anything, just gives me some ugly looking traceback on the
+        client</a></li>
+    <li><a href="#t2">I'm trying to test current, and it seems to work the
+        first time, but after that the clients aren't using the correct data
+        from the server anymore</a></li>
+    <li><a href="#t3">Some of my clients work, but some don't. I get the
+        traceback...</a></li>
+    <li><a href="#t4">When I add packages to an existing channel, or add a
+        new channel, Current doesn't seem to see them right away.</a></li>
+    <li><a href="#t5">When I run cadmin/up2date, I get a traceback ending
+        with "xml.parsers.expat.ExpatError: no element found: line 1,
+        column 0"   </a></li>
+    <li><a href="#t6">When I run cadmin, I get a traceback ending with
+        "xmlrpclib.Fault: &lt;Fault -1: "While running 'cadmin.createChannel':
+        caught\nserver.apacheRequest.UnknownXML : Invalid request received
+        (class xmlrpc.cadmin is not defined (function =
+        createChannel)).\n"&gt;"</a></li>
+    <li><a href="#t7">I'm running Red Hat Linux 8.0 and I recently
+        updated/installed apache and [now] Current won't work</a></li>
+    </ol>
+</ul>
+
+<hr noshade/>
+
+<a name="general"/>
+<h2>General Questions</h2>
+
+<a name="g1"/>
+<h3>What versions of the up2date client API are supported?</h3>
+
+The 2.7 version of the API is fully supported with the exception of
+server-pushed actions.  The 2.5 version is no longer <!-- (and never will
+ be again) --> supported. <!-- In fact, it never existed.  2.5 was all a
+big government conspiracy deliberately aimed at Open Source.  These are not
+the API calls you are looking for; go on about your business. --> 
+2.9 APIs will be supported at some point in the near future.
+
+<a name="g2"/>
+<h3>Does the server name need to be the real name of the server (so reverse
+ name lookup works) or can it be a CNAME?</h3>
+
+<p>
+SSL requires that the hostname in the SSL cert matches the A record.
+So, yes, your server name needs to match the A record, at least as far as
+config files and SSL certificates go. Your hostname can be whatever.
+</p>
+
+<a name="g3"/>
+<h3>Why can't you run cadmin when apache is running?</h3>
+
+<p>
+<b>Version:</b> 1.3 - 1.4.x
+<blockquote>
+
+<p>
+Because shelve (the python datastore used in 1.4) doesn't have any locking
+or other advanced "hey, look! the data's changed/changing!" features.
+Therefore, if you use cadmin while apache/current is running, you run the
+risk of data corruption, screwed up clients, <a href="#t4">current not
+noticing your changes</a>, etc.
+</p>
+
+</blockquote>
+</p>
+
+<p>
+<b>Version:</b> 1.5+
+<blockquote>
+
+<p>
+This is no longer an issue, as we now use a postgres backend, which has
+all that database yumminess.
+</p>
+
+</blockquote>
+</p>
+
+<a name="g4"/>
+<h3>What ports does the server need to have open? I have a firewall</h3>
+
+<p>
+You need to have port 443 (https) and probably 80 (http) open. Or whatever
+you tell your clients, but as you're going to have to open 2 ports anyway,
+you may as well just use the standard ones.
+</p>
+
+<a name="g5"/>
+<h3>I want to have a Current server that supports all versions of Red Hat
+Linux.  How can I populate my servers with all the necessary RPMs?</h3>
+
+<p>
+There are many <a href="http://www.redhat.com/download/mirror.html">public
+mirrors</a> of the Red Hat RPMs you can use. Once you have a server, you
+can mirror using:
+<ul>
+    <li>wget</li>
+    <li>rsync</li>
+    <li>others</li>
+</ul>
+</p>
+
+
+<a name="trouble"/>
+<h2>Troubleshooting</h2>
+
+<a name="t1"/>
+<h3>I can't get the clients to talk to the server - it never does anything, 
+just gives me some ugly looking traceback on the client</h3>
+
+<p>
+<b>Version:</b> All
+<blockquote>
+
+<p>
+If you get SSL errors, <em>very</em> carefully check that your RHNS-CA-CERT
+file is correct. Current is now over a year old (yay!) and my test cert
+just quit working - look to make sure your CA cert or server cert hasn't
+expired.
+</p>
+
+</blockquote>
+</p>
+
+<p>
+<b>Version:</b> 1.0.x (critical), 1.3+ (almost unneeded)
+<blockquote>
+
+<p>
+Note the port numbers in your client and server configuration files. Two
+numbers are needed (one for encrypted traffic, one for unencrypted traffic),
+and while you can use any numbers you like, you have to use the same numbers
+on the clients and the server, and you have to make sure you get the
+ssl/non-ssl bit sorted out correctly.
+</p>
+
+<p>
+The error messages for goofing this up are not very clear, and not 
+something I can easily fix. If things don't work for you, make sure
+<ol>
+<li>your /usr/share/rhn/RHNS-CA-CERT file is correct</li>
+<li>your client port numbers match your server port numbers</li>
+<li>you have ssl-&gt;ssl and nonssl-&gt;nonssl correct. (8080 is non-ssl, 8081
+   is ssl, by default)</li>
+</ol>
+</p>
+ 
+<p>
+The above 3 things account for about 70% of the complaints I get about
+current not working for people.
+</p>
+
+</blockquote>
+</p>
+
+<p>
+<b>Version:</b> 1.0.x only (1.3+ doesn't use stunnel)
+<blockquote>
+<p>
+One admin has noticed that recent versions of stunnel are built with
+libwrap/tcpwrappers support. Make certain that either you have
+configured tcpwrappers AND portblocking / firewalling rules correctly
+to allow your client machines to connect.
+</p>
+
+<p>
+The best way to test this is to also have your server configured to be
+able to run up2date/rhn_register itself. If you can run rhn_register
+from your server, and it seems to work, but no other machine
+can, its a firewall/security/networking issue.
+</p>
+
+</blockquote>
+</p>
+
+<a name="t2"/>
+<h3>I'm trying to test current, and it seems to work the first time, but
+after that the clients aren't using the correct data from the server anymore
+</h3>
+
+<p>
+Watch out for client side caching - I lost a full days development time
+trying to figure out why the client never seemed to do more than one GET to
+the server, yet still knew the "wrong" answer.  It caches darn near
+everything - which is a good, desirable feature, as long as you know its
+there!. Delete everything in /var/spool/up2date to get fresh hits against
+the database.
+</p>
+  
+<p>
+This also explained why they bothered having database "versions" or 
+last_modified values - the client will know to pull down fresh data if 
+the database changes. Yes, I felt bloody stupid.
+</p>
+
+
+<a name="t3"/>
+<h3>Some of my clients work, but some don't. I get the traceback...</h3>
+
+<p>
+This is typically caused by the clocks of the client and server being
+skewed. (The root cause is a client bug). To prevent this, use rdate
+or ntp to sync the clocks together. The clocks don't have to be super
+accurate - &plusmn;5 minutes is fine.
+</p>
+
+<p>
+This is also fixed in versions of up2date after 2.7.11 (I'm not exactly
+sure of when that fix went in) - using 2.7.63 or later is what I 
+recommend.
+</p>
+
+<a name="t4"/>
+<h3>When I add packages to an existing channel, or add a new channel, 
+Current doesn't seem to see them right away.</h3>
+
+<p>
+<b>Version:</b> &lt; 1.0.1
+<blockquote>
+
+<p>
+Please, PLEASE, never run cadmin at the same time Current is running.
+The correct way to deal with server updates is to shutdown Current, make your
+changes with cadmin, and then restart Current. 'service current stop|start'
+should work well for this. This was fixed in 1.0.1.
+</p>
+
+</blockquote>
+</p>
+
+<p>
+<b>Version:</b> 1.3 - 1.4.x
+<blockquote>
+
+<p>
+This is still a concern in 1.3+ - you must stop apache, use cadmin,
+and then start apache - there are no exceptions.
+</p>
+
+</blockquote>
+</p>
+
+<p>
+<b>Version:</b> 1.5+
+<blockquote>
+<p>
+This <em>should</em> no longer be a problem with the database backend.
+If you find any bugs, let us know!
+</p>
+
+</blockquote>
+</p>
+
+<a name="t5"/>
+<h3>When I run cadmin/up2date, I get a traceback ending with
+"xml.parsers.expat.ExpatError: no element found: line 1, column 0"</h3>
+
+<p>
+<b>Version:</b> &lt; 1.4.4 and 1.5 - 1.5.5
+<blockquote>
+
+<p>
+This is <a href="http://current.tigris.org/issues/show_bug.cgi?id=20">bug
+#20</a>. If you're using the 1.4.x branch, upgrade to at least 1.4.4.
+If you're using 1.5.x, upgrade to at least 1.5.5.
+</p>
+
+<p>
+Even with the latest version, you're not going to see the problem on the
+client side--what's happening is that the server thread crashed (an
+exception was raised) and is sending a Fault (XML-RPC exception) to the
+client.
+</p>
+
+<p>
+You need to look at the server-side logs and see what actually happened.
+<strong>That</strong> traceback is the one we need to figure out what went
+wrong. You may have to increase the log level to get useful output.
+</p>
+
+</blockquote>
+</p>
+
+<a name="t6"/>
+<h3>When I run cadmin, I get a traceback ending with
+"xmlrpclib.Fault: &lt;Fault -1: "While running 'cadmin.createChannel':
+caught\nserver.apacheRequest.UnknownXML : Invalid request received (class
+xmlrpc.cadmin is not defined (function = createChannel)).\n"&gt;"</h3>
+
+<p>
+<b>Version:</b> 1.5+
+<blockquote>
+
+<p>
+This looks as if your server (the machine you're running cadmin create on)
+is pointed at RHN's servers in the /etc/sysconfig/rhn/* config files.
+For cadmin to work, the machine you run it on must be pointed at the Current
+server because it now uses those config files to determine where to send its
+requests.
+</p>
+
+</blockquote>
+</p>
+
+<a name="t7"/>
+<h3>I'm running Red Hat Linux 8.0 and I recently updated/installed apache
+and [now] Current won't work</h3>
+
+<p>
+Are your logs in /var/log/httpd? If so, the permissions probably got changed
+back to the default for apache packages in Red Hat Linux 8.0 and up. Because
+apache drops root permissions before Current starts running and only root
+can read the directory, Current can't get to its log file. Either change the
+permissions back or move the log file to somewhere the apache user can reach
+it. (Like /var/log)
+</p>
+
+</body>
+</html>

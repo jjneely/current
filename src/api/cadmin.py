@@ -20,6 +20,7 @@ from logger import *
 import auth
 import configure
 import db
+from sessions import Session
 
 # Special array of exported functionality. 
 # Idea stolen from up2date/getMethod.py
@@ -28,7 +29,20 @@ __current_api__ = [
     'createChannel',
     'populateChannel',
     'scanChannels',
+    'login',
     ]
+
+def login(username, password):
+    # This is over SSL, right?  RIGHT?
+
+    # la-la-la lookin' user up in DB la-la-la
+
+    sess = Session()
+    sess['userid'] = username
+    sess.save()
+
+    return sess.sid
+
 
 def scanChannels(chanlist):
     result = {}

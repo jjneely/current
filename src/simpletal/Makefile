@@ -2,13 +2,14 @@
 # Makefile for installing the database package for current
 #
 
-MODULES			= currentdb __init__ resultSet sessions
+MODULES			= DummyLogger __init__ sgmlentitynames simpleElementTree \
+				  simpleTALES simpleTAL simpleTALUtils
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 
-INSTALL_DIRS	= $(DATA_DIR)/db
+INSTALL_DIRS	= $(DATA_DIR)/simpletal
 
-SUBDIRS 		=  postgres pysqlite mysql
+SUBDIRS 		=  
 
 
 # default python rules:
@@ -20,9 +21,9 @@ all:: $(OBJECTS)
 files: $(PYFILES)
 
 install:: $(OBJECTS)
-	$(INSTALL_DIR) $(INSTALL_ROOT)$(DATA_DIR)/db
+	$(INSTALL_DIR) $(INSTALL_ROOT)$(DATA_DIR)/simpletal
 
-	$(INSTALL_DATA) $(PYFILES) $(OBJECTS) $(INSTALL_ROOT)$(DATA_DIR)/db
+	$(INSTALL_DATA) $(PYFILES) $(OBJECTS) $(INSTALL_ROOT)$(DATA_DIR)/simpletal
 
 clean::
 	@rm -fv *.pyc *.pyo *~

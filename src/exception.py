@@ -12,3 +12,6 @@ class CurrentDB(CurrentException):
 class CurrentSQLite(CurrentDB):
     pass
 
+class CurrentSession(CurrentException):
+    pass
+

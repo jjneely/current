@@ -1,5 +1,46 @@
                        Current Server TODO List
 
+* Gah...so the real RHN uses the following encodings with the compressed
+  XMLRPC data like the listPackages.  The content-encoding is x-zlib 
+  compared to x-gzip that we use.  The content-transfer-encoding
+  is base64 compared to our binary.
+
+From RHN Proxy:
+
+Date: Tue, 22 Mar 2005 20:25:00 GMT
+Server: Apache/1.3.27 (Unix)  (Red-Hat/Linux) mod_python/2.7.8 Python/1.5.2 mod_ssl/2.8.12 OpenSSL/0.9.6b DAV/1.0.3 PHP/4.1.2 mod_perl/1.26
+content-type: text/base64
+last-modified: Mon, 21 Mar 2005 18:31:15 GMT
+x-rhn-client-version: 1
+x-transport-info: Extended Capabilities Transport (C) Red Hat, Inc (version 1.40)
+x-rhn-proxy-version: 3.2.0
+age: 31776
+content-transfer-encoding: base64
+content-encoding: x-zlib
+x-cache: MISS from xmlrpc.rhn.redhat.com
+x-cache: HIT from linux06ws.unity.ncsu.edu
+proxy-connection: close
+via: 1.1 xmlrpc.rhn.redhat.com
+content-length: 11194
+Connection: close
+
+From RHN itself:
+
+Date: Tue, 22 Mar 2005 20:27:37 GMT
+Server: Apache
+X-RHN-Client-Version: 0
+X-RHN-Proxy-Version: 0
+Last-Modified: Mon, 21 Mar 2005 18:31:15 GMT
+X-Transport-Info: Extended Capabilities Transport (C) Red Hat, Inc (version 1.40)
+Content-Transfer-Encoding: base64
+Content-Encoding: x-zlib
+Content-Length: 11194
+Content-Type: text/base64
+Via: 1.1 xmlrpc.rhn.redhat.com
+X-Cache: MISS from xmlrpc.rhn.redhat.com
+Connection: close
+
+
 * Convert to use python's logging module
 
 * Support the capabilities in capabilities.py in the up2date code base.
@@ -35,25 +76,10 @@
   HTML templating: http://www.owlfish.com/software/simpleTAL/index.html
                    http://www.entrian.com/PyMeld/
 
-* SQL Database support.  Possible use of a third party module to make
-  our lives easier to support multiple databases?
-
-  http://pdo.neurokode.com/
-
-1.6.0 ship checklist
-
-More Code cleanups in general
-Move all the db portable code from postgres.py to currentdb.py
-Remove the src/bin distinction 
-Make the scanning recursive.
-Redo the deps handling in the database
-Check on the use of transactions (where, how many, etc)
-
-and poof, we're done. <sigh>
-
 
 1.8.0 ship checklist
 
+Check on the use of transactions (where, how many, etc)
 Re-work cadmin into a text based, modular configuration system
 Add input checking into cadmin
 Clean up the cmd line parsing in cadmin

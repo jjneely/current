@@ -4,13 +4,14 @@
 
 MODULES			= archtab auth configure \
                   headerParse current_apache \
-                  logger RPM exception sets xmlrpc
+                  logger RPM exception sets xmlrpc sessions \
+				  current_web
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 
 INSTALL_DIRS	= $(DATA_DIR)
 
-SUBDIRS = db api
+SUBDIRS = db api simpletal admin
 
 
 # default python rules:
@@ -32,6 +33,7 @@ sedrules: configure.py
 	mv -f $<.tmp $<  
 	
 install:: $(OBJECTS)
+	$(INSTALL_BIN) cadmin.py $(INSTALL_ROOT)$(SBIN_DIR)/cadmin
 	$(INSTALL_DIR) $(INSTALL_ROOT)$(DATA_DIR)
 
 	$(INSTALL_DATA) $(PYFILES) $(OBJECTS) $(INSTALL_ROOT)$(DATA_DIR)

@@ -68,4 +68,13 @@ create table CHANNEL_DIR (
     );
 create index CHANNEL_DIR_CHAN_ID_IDX on CHANNEL_DIR(channel_id);
 
+create table SESSIONS (
+   session_id     INTEGER PRIMARY KEY,
+   sid            varchar(32) unique not null,
+   createtime     float not null,
+   timeout        float not null,
+   data           text
+);
+create index SESSION_IDX on SESSIONS(sid);
+
 """

@@ -2,13 +2,13 @@
 # Makefile for installing the database package for current
 #
 
-MODULES			= currentdb __init__ resultSet sessions
+MODULES			= __init__ add_dir create_channel scan test
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 
-INSTALL_DIRS	= $(DATA_DIR)/db
+INSTALL_DIRS	= $(DATA_DIR)/admin
 
-SUBDIRS 		=  postgres pysqlite mysql
+SUBDIRS 		=  
 
 
 # default python rules:
@@ -20,9 +20,9 @@ all:: $(OBJECTS)
 files: $(PYFILES)
 
 install:: $(OBJECTS)
-	$(INSTALL_DIR) $(INSTALL_ROOT)$(DATA_DIR)/db
+	$(INSTALL_DIR) $(INSTALL_ROOT)$(DATA_DIR)/admin
 
-	$(INSTALL_DATA) $(PYFILES) $(OBJECTS) $(INSTALL_ROOT)$(DATA_DIR)/db
+	$(INSTALL_DATA) $(PYFILES) $(OBJECTS) $(INSTALL_ROOT)$(DATA_DIR)/admin
 
 clean::
 	@rm -fv *.pyc *.pyo *~

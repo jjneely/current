@@ -7,13 +7,13 @@ export
 
 # Things that change from build to build
 PROJECT			= current
-VERSION		 	= 1.6.0
+VERSION		 	= 1.7.1
 PYTHON_BIN	 	= /usr/bin/python
 PREFIX		 	= /usr
 INSTALL_ROOT 	=
 
 # File lists. (change rarely)
-PROGRAMS		= cadmin cinstall
+PROGRAMS		= cinstall
 CONFIG			= current.conf
 SRC				= src
 DOC             = docs CHANGELOG LICENSE README TODO RELEASE-NOTES
@@ -82,7 +82,6 @@ install:: sedrules
 	$(INSTALL_DIR) $(INSTALL_ROOT)$(SBIN_DIR)
 	$(INSTALL_DIR) $(INSTALL_ROOT)$(SYSCONF_DIR)
 
-	$(INSTALL_BIN) cadmin $(INSTALL_ROOT)$(SBIN_DIR)/cadmin
 	$(INSTALL_BIN) cinstall $(INSTALL_ROOT)$(SBIN_DIR)/cinstall
 	$(INSTALL_DATA) $(CONFIG) $(INSTALL_ROOT)$(SYSCONF_DIR)
 

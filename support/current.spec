@@ -5,13 +5,15 @@
 
 Summary: A server for Red Hat's up2date tools.
 Name: current
-Version: 1.6.0
+Version: 1.7.1
 Release: 1
 License: GPL
 Group: System Environment/Daemons
 URL: http://current.tigris.org
 Source0: ftp://ftp.biology.duke.edu/pub/admin/current/%{name}-%{version}.tar.gz
-Requires: python rpm-python mod_python mod_ssl 
+Requires: rpm-python mod_ssl 
+Requires: mod_python >= 3.1
+Requires: python >= 2.3
 Requires: rpm >= 4.0.2-8
 Requires: httpd 
 BuildRequires: docbook-style-xsl docbook-style-dsssl docbook-dtds

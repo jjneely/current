@@ -7,7 +7,7 @@ export
 
 # Things that change from build to build
 PROJECT			= current
-VERSION		 	= 1.5.11
+VERSION		 	= 1.5.91
 PYTHON_BIN	 	= /usr/bin/python
 PREFIX		 	= /usr
 INSTALL_ROOT 	=

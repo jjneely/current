@@ -17,7 +17,7 @@ Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
 
 import pprint
 import sys
-import optik
+import optparse as optik
 sys.path.append('/usr/share/rhn')
 
 # Grab the network code from up2date itself.
@@ -117,8 +117,14 @@ def main():
     elif (sys.argv[1] == 'scan_channel'):
         scan_channels(sys.argv[2:])
     else:
-        print "Generic help message here."   
+        print """Current Administration Tool
+Licensed under the GNU GPL version 2.0 or greater.
 
+create_channel -- Create a new Current channel
+add_dir        -- Add a directory to a channel
+scan_channel   -- Scan packages and update channel information
+
+"""
 
 if __name__ == '__main__':
     try:

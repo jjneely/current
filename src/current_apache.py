@@ -35,7 +35,8 @@ import db
 # Here are the recognized RHN api modules
 __modules__ = ['errata', 'queue', 'registration', 'up2date', 'cadmin', 'applet']
 
-from api import *
+#from api import *
+import api
 
 def apacheLog(message, level='NOTICE'):
     """ log a message to the apache error log. pretties up an ugly api """
@@ -269,7 +270,8 @@ def callAPIMethod(method, params):
         return xmlrpclib.Fault(1000, 'Module %s not recognized' % module)
 
     # This could blow up. but if it does, it's a server problem/bug
-    tmp_api = eval('%s.__current_api__' % module)
+    tmp_api = api.__getattribute__(module).__current_api__
+    #tmp_api = eval('%s.__current_api__' % module)
 
     if not function in tmp_api:
         # known module, new function
@@ -287,7 +289,8 @@ def callAPIMethod(method, params):
 
     log('Dispatching: %s' % method, DEBUG)
     try:
-        func = eval(method)
+        func = api.__getattribute__(module).__getattribute__(function)
+        #func = eval(method)
         result = apply(func, params)
         return result
     except TypeError, e:

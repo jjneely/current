@@ -1,4 +1,11 @@
                         Current Project Changelog
+
+* Sun Feb 27 2005 Jack Neely <jjneely@gmail.com>
+- Current 1.5.91 AKA 1.6.0 Release Canidate 1
+- Make cadmin use optparse instead of optik
+- Removed those evil evals() from the XMLRPC server.  We use the newer
+  __getattribute__() call.
+
 * Wed Feb 16 2005 Jack Neely <jjneely@gmail.com>
 - Current 1.5.11
 - ConstructParser is gone in favor of headerParser to parse the list-like

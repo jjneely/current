@@ -22,7 +22,7 @@ CONFIG_DIR="/etc/current"
 LOG_DIR="/var/log/httpd"
 PID_DIR="/var/run"
 
-sys.path.append(MODULES_DIR)
+#sys.path.append(MODULES_DIR)
 import configfile
 
 
@@ -99,9 +99,9 @@ class Config:
         del self._defaults
 
         
-    def __getattr__(self, item):
-	""" We support config.key type access. """
-        return self._data.get(item, "")
+#     def __getattr__(self, item):
+# 	""" We support config.key type access. """
+#         return self._data.get(item, "")
 
 
     def __getitem__(self, item):

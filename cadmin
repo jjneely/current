@@ -19,6 +19,7 @@ Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
 # These are replaced by make, so beware
 MODULES_DIR="/usr/share/current"
 
+import pprint
 import sys
 sys.path.append(MODULES_DIR)
 sys.path.append('/usr/share/rhn')
@@ -37,14 +38,14 @@ def main():
     server = rpcServer.getServer()
     server.use_CA_chain(rhns_ca_cert)
 
-    result = rpcServer.doCall(server.current.hello, 'hunter', 'matthews')
+    result = rpcServer.doCall(server.current.status)
 
-    print result
+    pprint.pprint(result)
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
         print "Interupted by user command"
-    
+
 ## END OF LINE ##    

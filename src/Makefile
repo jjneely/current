@@ -2,7 +2,7 @@
 # Makefile for installing the python modules for current
 #
 
-MODULES			= arch auth backend channel configfile configure \
+MODULES			= arch auth backend configfile configure \
                   ConstructParser current_apache currentdb current \
                   errata logger misc queue registration shelf_channel \
                   shelf up2date 

@@ -19,7 +19,7 @@ import string
 import sys
 
 import misc
-import packagedb
+#import packagedb
 import auth
 from logger import *
 

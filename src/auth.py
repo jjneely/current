@@ -14,7 +14,7 @@ import string
 import sha
 import time
 
-import config
+import configure
 import ConstructParser
 from logger import *
 
@@ -87,7 +87,7 @@ class SysId:
     def _calcChecksum(self):
         """ Calculate the checksum field of the system id. """
         
-        str = config.cfg.getItem('server_secret')
+        str = configure.config['server_secret']
         for attr in ["system_id", "os_release", "architecture", 
                      "profile_name", "username" ]:
             str = str + self._data[attr] 
@@ -142,7 +142,7 @@ class SysHeaders:
     
     def __init__(self, headers=None):
         self.data = {}
-        self.data['X-RHN-Server-Id'] = config.cfg.getItem('server_id')
+        self.data['X-RHN-Server-Id'] = configure.config['server_id']
         self.data['X-RHN-Auth-Channels'] = []
 
         if headers:
@@ -215,7 +215,7 @@ class SysHeaders:
     def _calcChecksum(self):
         """ Calculate the checksum field of the header id. """
         
-        str = config.cfg.getItem('server_secret')
+        str = configure.config['server_secret']
         for attr in ['X-RHN-Auth-User-Id', 'X-RHN-Server-Id', 
                      'X-RHN-Auth-Expiration']:
             str = str + self.data[attr] 
@@ -268,7 +268,7 @@ class SysHeaders:
         
         # Check for server value matching. We won't accept from other
         # people's servers
-        if self.data['X-RHN-Server-Id'] != config.cfg.getItem('server_id'):
+        if self.data['X-RHN-Server-Id'] != configure.config['server_id']:
             return (0, "SysHeaders from a different server")
 
         # Client authentication data must be unaltered.

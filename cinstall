@@ -72,17 +72,17 @@ def main():
         configure.config.load()
         config = configure.config
 
-        args = config.args
+        args = config['args']
     except (configure.FormatError, configure.MissingError), ex:
         print 'Error:', ex
         sys.exit(1)
 
     # Check that the user actually setup a proper config file.
-    if config.current_dir == 'YOUR_CURRENT_DIR_HERE':
+    if config['current_dir'] == 'YOUR_CURRENT_DIR_HERE':
         sys.exit('ERROR: You must edit the config file to start')
         
     ## Logging system must be operational for the other modules to work.
-    logconfig(config.log_level, sys.stdout)
+    logconfig(config['log_level'], sys.stdout)
 
     if len(args) == 0:
         print 'ERROR: You must specify a command to run'
@@ -91,9 +91,9 @@ def main():
     if args[0] == 'create_apache_config':
 
         # Make sure these strings are local, to make the % come out right.
-        apache_config_file = config.apache_config_file
+        apache_config_file = config['apache_config_file']
         mod_dir = MODULES_DIR
-        web_dir = os.path.join(config.current_dir, 'www')
+        web_dir = os.path.join(config['current_dir'], 'www')
 
         apache_config = open(apache_config_file, 'w')
 
@@ -114,12 +114,12 @@ def main():
         # Create everything,
         # first the log file
         ## This part is universal
-        log_file = open(config.log_file, 'w')
-        log_file.write('Current v%s log file\n' % config.version)
+        log_file = open(config['log_file'], 'w')
+        log_file.write('Current v%s log file\n' % config['version'])
         log_file.close()
 
         ## The web dir is universal
-        web_dir = os.path.join(config.current_dir, 'www')
+        web_dir = os.path.join(config['current_dir'], 'www')
         os.system('mkdir -p %s' % web_dir)
 
         # Now init the database
@@ -129,19 +129,19 @@ def main():
         backend.db.initdb(config)
 
         # Then change the perms
-        if config.access_type == 'user':
+        if config['access_type'] == 'user':
             os.system('chown -R %s %s %s' % 
-                (config.access_arg, config.log_file, config.current_dir))
+                (config['access_arg'], config['log_file'], config['current_dir']))
             os.system('chmod -R u+rwX %s %s' %
-                (config.log_file, config.current_dir)) 
-        elif config.access_type == 'group':
+                (config['log_file'], config['current_dir'])) 
+        elif config['access_type'] == 'group':
             os.system('chgrp -R %s %s %s' % 
-                (config.access_arg, config.log_file, config.current_dir))
+                (config['access_arg'], config['log_file'], config['current_dir']))
             os.system('chmod -R g+rwX %s %s' % 
-                (config.log_file, config.current_dir))
-        elif config.access_type == 'all':
+                (config['log_file'], config['current_dir']))
+        elif config['access_type'] == 'all':
             os.system('chmod -R o+rwX %s %s' % 
-                (config.log_file, config.current_dir))
+                (config['log_file'], config['current_dir']))
         else:
             # for access_type None, we do nothing
             # (the sysadmin is going to do it themselves)

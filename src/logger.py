@@ -13,7 +13,6 @@ import sys
 import traceback
 import time
 import os
-import config
 
 MANDATORY = 0
 VERBOSE   = 1

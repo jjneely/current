@@ -1,5 +1,5 @@
 """
-$Id: config.py,v 1.3 2003/01/29 01:56:29 jwbernin Exp $
+$Id: config.py,v 1.4 2003/01/29 02:08:01 jwbernin Exp $
 
 Handle configuration setup.
 

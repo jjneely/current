@@ -15,7 +15,7 @@ import pprint
 
 import misc
 import auth
-import config
+import configure
 from logger import *
 
 
@@ -38,11 +38,11 @@ __current_api__ = [
 
 
 def welcome_message():
-    return config.cfg.getItem("welcome_message")
+    return configure.config['welcome_message']
     
 
 def privacy_statement():
-    return config.cfg.getItem("privacy_statement")
+    return configure.config['privacy_statement']
 
 
 def reserve_user(username, password):

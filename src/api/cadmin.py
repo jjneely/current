@@ -10,23 +10,24 @@ License (GPL) v2.
 
 """
 
-import xmlrpclib
+__all__ = ['status']
+
 import string
-import pprint
+import sys
 
 from logger import *
 import auth
-import config
+import configure
 
 # Special array of exported functionality. 
 # Idea stolen from up2date/getMethod.py
 __current_api__ = [
-    'hello',
+    'status',
     ]
 
 
-def hello(first, second):
-    """ test api call """
+def status():
+    """ Get some information about the server itself. """
 
     logfunc(locals())
 
@@ -36,8 +37,18 @@ def hello(first, second):
 #     if not si.isValid():
 #         return xmlrpclib.Fault(1000, "Invalid client certificate.")
 
-    # We do nothing except hand our args back in a pretty string.
-    return "hello world! welcome from %s and %s" % (first, second)
+    # we hand back a dict with the information
+    status = {}
+
+    # python version and some other junk
+    status['python_executable'] = sys.executable
+    status['python_path'] = sys.path
+    try:
+        status['python_version'] = sys.version_info
+    except:
+        status['python_version'] = 'Its too old, Yogi'
+
+    return status
 
 
 ## END OF LINE ##

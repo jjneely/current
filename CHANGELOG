@@ -1,5 +1,18 @@
                         Current Project Changelog
 
+* Mon Oct 28 2002 Hunter Matthews <thm@duke.edu>      v1.5.2
+- Updated database docs.
+- api modules turned into an api package, and current api name changed to 
+  cadmin
+- Database modules all collected and moved into a db package.
+- backend.py becomes the __init__.py of the db package.
+- Sub packages created for shelf, pysqlite, and postgres backends.
+- Note that only shelf imports correctly for now.
+- db.conn will be the global database object for everything.
+- src/db/current_db.py is the parent class for all the backends.
+  It will document all the API calls that every backend must support.
+- Started roughing out the sqlite backend. PACKAGES and RPMS update.
+
 * Tue Oct 15 2002 Hunter Matthews <thm@duke.edu>
 - cadmin split into cadmin (totally different) and cinstall.
   cinstall runs once, then you start the server and just use cadmin 

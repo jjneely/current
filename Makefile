@@ -7,7 +7,7 @@ export
 
 # Things that change from build to build
 PROJECT			= current
-VERSION		 	= 1.5.0
+VERSION		 	= 1.5.2
 PYTHON_BIN	 	= /usr/bin/python
 PREFIX		 	= /usr
 INSTALL_ROOT 	=
@@ -94,10 +94,11 @@ install:: sedrules
 	$(INSTALL_DIR) $(INSTALL_ROOT)$(SYSCONF_DIR)
 
 	$(INSTALL_BIN) cadmin $(INSTALL_ROOT)$(SBIN_DIR)/cadmin
+	$(INSTALL_BIN) cinstall $(INSTALL_ROOT)$(SBIN_DIR)/cinstall
 	$(INSTALL_DATA) $(CONFIG) $(INSTALL_ROOT)$(SYSCONF_DIR)
 
 clean::
-	@rm -fv *.pyc *.pyo *~ .*~ current.log
+	@rm -rfv *.pyc *.pyo *~ .*~ current.log
 
 # Now do the same in the subdirs
 all install clean sedrules:: $(SUBDIRS)

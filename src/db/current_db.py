@@ -22,8 +22,12 @@ class CurrentDB:
 
     """
 
+## API ##
+
     def __init__(self):
         """ Create a database object. """
+        __api__ = 1
+
         pass
 
 
@@ -42,9 +46,27 @@ class CurrentDB:
         os.system("mkdir -p %s" % web_dir)
 
 
+    def addRpmDir(self, dirname):
+        """ Add an entire directory of rpms all at once """
+    
+        if not os.path.isdir(dirname):
+            print "Warning: %s was not a valid dir" % dirname
+            return
+    
+        for file in os.listdir(dirname):
+            pathname = os.path.join(dirname, file)
+            addRpmPackage(pathname)
+    
+    
+    def addRpmPackage(self, pathname):
+        """ Add a single Rpm to the channel. """  
+        
+        # I thought this would be generic, but its not...     
+        pass
 
 
+## HELPER FUNCTIONS - NOT PART OF THE CURRENTDB API ##
 
-
-
+                    
 ## END OF LINE ##
+                        

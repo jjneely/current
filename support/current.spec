@@ -13,37 +13,30 @@ BuildRequires: docbook-utils docbook-utils-pdf
 BuildArchitectures: noarch
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 
+
 %description
 Current is a server implementation for Red Hat's up2date tools. It's
 designed for small to medium departments to be able to set up and run their
 own up2date server, feeding new applications and security patches to
 workstations/servers.
 
+
 %prep 
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
-
 %setup -q
+
 
 %build
 make all
 
+
 %install
 make install INSTALL_ROOT=$RPM_BUILD_ROOT
-#mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d/
-#cp support/current.init $RPM_BUILD_ROOT/etc/rc.d/init.d/current
+
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 
-# %post
-# if [ "$1" = "0" ]; then
-# 	/sbin/chkconfig --add current
-# fi
-# 
-# %preun
-# if [ "$1" = "0" ]; then
-# 	/sbin/chkconfig --del current
-# fi
 
 %files
 %defattr(-,root,root)
@@ -61,6 +54,9 @@ make install INSTALL_ROOT=$RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Oct 17 2002 Hunter Matthews <thm@duke.edu>
+- Took out old code bits
+
 * Sun Aug 18 2002 Hunter Matthews <thm@duke.edu>
 - Took out current (old standalone server)
 - Took out init.d for stunnel and current

@@ -14,13 +14,8 @@ Copyright 2002 John Berninger
 This software may be freely redistributed under the terms of the GNU Public
 License (GPL) v2.
 
-History:
-John took a really old hack of mine and actually made it work. I modified
-it to use apache for the big file transfers, and then to set the correct
-headers, plus some cleanup.
+See http://www.biology.duke.edu/computer/unix/current
 """
-
-__author__  = 'John Berninger <john_berninger@ncsu.edu>'
 
 import base64
 import xmlrpclib
@@ -32,9 +27,9 @@ import sys
 from mod_python import apache
 
 from logger import *
-import config
+import configure
 import misc
-import packagedb
+#import packagedb
 import auth
 
 # Here are the recognized RHN api modules
@@ -67,28 +62,28 @@ def init_backend():
 
     # Config object
     apacheLog("Getting the server configuration", 'INFO')
-    config.cfg = config.Config(config.defaults)
-    config.cfg.load()
+    configure.config = configure.Config(configure.defaults)
+    configure.config.load(apache=1)
 
     # Logging
     # We need logging running before we can init the database.
-    logfile = config.cfg.getItem('log_file')
-    level = int(config.cfg.getItem('log_level'))
+    logfile = configure.config['log_file']
+    level = int(configure.config['log_level'])
     logconfig(level, open(logfile, "a", 0))
     apacheLog("Starting logging", 'INFO')
     apacheLog("Using current log %s" % logfile, 'INFO')
 
-    log("Current v%s starting up" % config.VERSION, MANDATORY)
+    log("Current v%s starting up" % configure.VERSION, MANDATORY)
 
     # Database 
     # In the future, the database may need to be up before auth
-    packagedb.db = packagedb.PackageDB()
-    for chan in config.cfg.getItem('valid_channels'):
-        chan_info = config.cfg.getItem('channels')[chan]
-        try:
-            packagedb.db.addChannel(chan_info)
-        except:
-            log("Error trying to add channel from %s" % chan_info['db_dir'], MANDATORY)
+#     packagedb.db = packagedb.PackageDB()
+#     for chan in configure.config['valid_channels']:
+#         chan_info = configure.config['channels'][chan]
+#         try:
+#             packagedb.db.addChannel(chan_info)
+#         except:
+#             log("Error trying to add channel from %s" % chan_info['db_dir'], MANDATORY)
 
     # Authentication
     auth.authorize = auth.Authorization()
@@ -103,7 +98,7 @@ def accesshandler(req):
     apacheLog("Inside the accesshandler", 'NOTICE')
 
     # we assume that if the config object is there, all the init got done.
-    if not config.cfg:
+    if not configure.config:
         init_backend()
 
     if 0:      # debugging code - leave this here
@@ -136,7 +131,7 @@ def typehandler(req):
     apacheLog("Inside the typehandler", 'NOTICE')
 
     # we assume that if the config object is there, all the init got done.
-    if not config.cfg:
+    if not configure.config:
         init_backend()
 
     # setting headers creatively
@@ -162,7 +157,7 @@ def handler(req):
     apacheLog("Inside the PythonHandler", 'NOTICE')
 
     # we assume that if the config object is there, all the init got done.
-    if not config.cfg:
+    if not configure.config:
         init_backend()
 
     if not req.method == 'POST':
@@ -204,7 +199,7 @@ def loghandler(req):
     apacheLog("Inside the loghandler", 'NOTICE')
 
     # we assume that if the config object is there, all the init got done.
-    if not config.cfg:
+    if not configure.config:
         init_backend()
 
     for key in req.headers_out.keys():

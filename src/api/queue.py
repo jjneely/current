@@ -26,7 +26,7 @@ import pprint
 
 from logger import *
 import auth
-import config
+
 
 # Special array of exported functionality. 
 # Idea stolen from up2date/getMethod.py

@@ -6,12 +6,12 @@ import string
 import shelve
 
 import misc
-import shelf_channel
+import channel
 from logger import *
-import currentdb
+from db.current_db import CurrentDB
 
 
-class ShelfDB(currentdb.CurrentDB):
+class ShelfDB(CurrentDB):
     """ Implements CurrentDB (at least the rpm parts) as python shelves.
 
     This backend is ickier than the others, but is older and better
@@ -36,7 +36,7 @@ class ShelfDB(currentdb.CurrentDB):
         # We steal a dir off the main current dir for our databases.
         # we'll have one main pickle/shelf for the whole thing, and then
         # one dir + shelves per channel.
-        db_dir = os.path.join(config.current_dir, 'db')  
+        db_dir = os.path.join(config['current_dir'], 'db')  
         os.system('mkdir -p %s' % db_dir)
 
         c_shelve = shelve.open(os.path.join(db_dir, 'current.wdb'))
@@ -56,8 +56,8 @@ class ShelfDB(currentdb.CurrentDB):
     # loadChannels() does what the main current() file used to do, but it's
     # actually back-end specific.
     def loadChannels(self, config):
-        for chan in config.cfg.getItem('valid_channels'):
-            db_dir = config.cfg.getItem('channels')[chan]['db_dir']
+        for chan in config.config['valid_channels']:
+            db_dir = config.config['channels'][chan]['db_dir']
             try:
                 log("Adding channel '%s' in dir %s" % (chan, db_dir), DEBUG)
                 self.addChannel(db_dir)

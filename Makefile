@@ -86,7 +86,7 @@ release: sedrules
 	rm -rf $(PROJECT)-$(VERSION).tar.gz $(PROJECT)-$(VERSION)
 	mkdir $(PROJECT)-$(VERSION)
 	cp -ra $(ALLFILES) $(PROJECT)-$(VERSION)
-	tar czf $(PROJECT)-$(VERSION).tar.gz -X tar-excludes $(PROJECT)-$(VERSION)
+	tar czf $(PROJECT)-$(VERSION).tar.gz --exclude CVS -X tar-excludes $(PROJECT)-$(VERSION)
 	rm -rf $(PROJECT)-$(VERSION)
 
 install:: sedrules

@@ -16,8 +16,8 @@ import re
 config = None
 
 ## These are replaced by make, so beware
-VERSION="1.5john"
-MODULES_DIR="/home/jwbernin/current-sql/src"
+VERSION="1.5.3"
+MODULES_DIR="/usr/share/current"
 CONFIG_DIR="/etc/current"
 LOG_DIR="/var/log/httpd"
 PID_DIR="/var/run"

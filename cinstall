@@ -1,4 +1,4 @@
-#! /usr/bin/python2
+#! /usr/bin/python
 
 """ cinstall is the program that will help you to first get current installed
 and working.
@@ -14,7 +14,7 @@ Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
 
 ## constants and defaults
 # These are replaced by make, so beware
-MODULES_DIR="/home/jwbernin/current/src"
+MODULES_DIR="/usr/share/current"
 
 import sys
 sys.path.append(MODULES_DIR)

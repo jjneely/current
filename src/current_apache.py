@@ -64,7 +64,16 @@ def init_backend():
     # We need logging running before we can init the database.
     logfile = configure.config['log_file']
     level = int(configure.config['log_level'])
-    logconfig(level, open(logfile, "a", 0))
+
+    # This is a common error - The user apache runs as either can't create
+    # or can't append to the current.log file.
+    try:
+        logconfig(level, open(logfile, "a", 0))
+    except IOError, e:
+        apacheLog("Cannot open the %s log file. Usually a permissions problem." % logfile, 'ALERT')
+        apacheLog("This is going to hinder all current operation - please fix", 'ALERT')
+        return
+
     apacheLog("Starting logging", 'INFO')
     apacheLog("Using current log %s" % logfile, 'INFO')
 
@@ -169,7 +178,7 @@ def handler(req):
         except:
             # had a problem with the xmlrpc call...
             logException()
-            log ("Couldn't decode XMLRPC call.  We have problems.", DEBUG)
+            log ("Couldn't decode XMLRPC call.", DEBUG)
             return apache.HTTP_BAD_REQUEST
     
         try:
@@ -217,7 +226,8 @@ def sendClientResult(req, result):
     if isinstance(result, xmlrpclib.Fault):
         log('Result is a Fault', DEBUG)
         req.headers_out.add('X-RHN-Fault-Code', str(result.faultCode))
-        req.headers_out.add('X-RHN-Fault-String', base64.encodestring(result.faultString))
+        req.headers_out.add('X-RHN-Fault-String', string.strip(base64.encodestring(result.faultString)))
+        data = xmlrpclib.dumps(result, methodresponse=1)
     else:
         log('Result is normal data: turn it into an XML chunk', DEBUG2)
 

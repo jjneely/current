@@ -23,10 +23,7 @@ def selectBackend(db_type):
     # but for now, we keep it simple and stupid
 
     global db
-    if db_type == 'shelf':
-        import shelf
-        db = shelf.ShelfDB()
-    elif db_type == 'postgres':
+    if db_type == 'postgres':
         import postgres
         db = postgres.PostgresDB()
     elif db_type == 'pysqlite':

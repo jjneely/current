@@ -1,5 +1,30 @@
                         Current Project Changelog
 
+* Fri Jul 25 2003 Hunter Matthews <thm@duke.edu>
+- Took out "on(COLUMN)" syntax from SQL queries - this should make all but 
+  the initdb sql compatible between postgres and mysql.
+- Applied some bug fixes (is this a list or not) from the mysql patch.
+- There was code to convert RPM.size (an int) into a string. 
+  Changed the schema instead to just make it a string.
+  (We never do math on the value, we just hand it to the client)
+- Cleaned up really old design comments in the postgres schema.
+- The schema change for RPM.size must be tested - it may break the solveDep
+  API call.
+
+* Wed Jul 23 2003 Hunter Matthews <thm@duke.edu>
+- Comment cleanups in cadmin
+- Took out the DSN code for postgres - my understanding is that this is only
+  useful for ODBC, and we don't support that. If someone really wants it,
+  it can go back in for 1.6.1
+- Applied all the capitalization parts of the mysql patch. This should make
+  that patch MUCH smaller.
+
+* Tue Jul 22 2003 Hunter Matthews <thm@duke.edu>
+- Fixed up the bogus 8.x/9 spec file requires.
+- Fixed up the shipped current.conf to be 8.x/9 friendly.
+- Code cleanup to cadmin - we use the same ca cert file up2date will use
+                           and removed some old duplicate code.
+
 * Sat Jul 19 2003 John Berninger  <johnw@berningeronline.net>
 - Notes on client support added to schema-design.txt
 - Small bugfix? for RPM.py. rpmmodule is using SERIAL when we want EPOCH

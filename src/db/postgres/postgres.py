@@ -432,9 +432,9 @@ class PostgresDB(CurrentDB):
             self.cursor.execute("""insert into RPM
                                 (package_id, srpm_id, pathname, arch, size)
                                 values
-                                (%d, %d, '%s', '%s', %d)""" %
+                                (%d, %d, '%s', '%s', '%s')""" %
                                 (package_id, srpm_id, header[RPM.CT_PATHNAME],
-                                 header[RPM.ARCH], int(header[RPM.CT_FILESIZE]) ) )
+                                 header[RPM.ARCH], header[RPM.CT_FILESIZE] ))
 
         rpm_id = self._getRpmId(header[RPM.CT_PATHNAME])
         assert rpm_id
@@ -509,7 +509,7 @@ class PostgresDB(CurrentDB):
 
         # First, get a list of unique pkg names:
 
-        self.cursor.execute("""select distinct on (pkgname) pkgname from PACKAGE
+        self.cursor.execute("""select distinct pkgname from PACKAGE
                     inner join RPM on (PACKAGE.package_id = RPM.package_id)
                     inner join CHAN_RPM_ORIG on (RPM.rpm_id = CHAN_RPM_ORIG.rpm_id)
                     inner join CHANNEL on (CHANNEL.channel_id = CHAN_RPM_ORIG.chan_id)
@@ -545,8 +545,13 @@ class PostgresDB(CurrentDB):
         query = self.cursor.fetchall()
 
         # Sort the list
-        # We construct the lambda evilly so that it's actually sorted in 
+        # We construct the lambda backwards so that it's actually sorted in 
         # reverse order...
+        # FIXME: why does this try block need to be here?
+        try:
+            query = list(query)
+        except:
+            pass
         query.sort(lambda x,y: RPM.versionCompare((y[3], y[1], y[2]), (x[3], x[1], x[2])))
 
         # Now update the RPM table appropriately.
@@ -580,7 +585,7 @@ class PostgresDB(CurrentDB):
         # First, populate the listPackages directory.
         log("Grabbing listPackages information", TRIVIA)
         self.cursor.execute("""select PACKAGE.pkgname, PACKAGE.version,
-                PACKAGE.release, PACKAGE.epoch, RPM.arch, RPM.size from
+                PACKAGE.release, PACKAGE.epoch, RPM.arch, RPM.size, CHANNEL.label from
                 PACKAGE, RPM
                 inner join CHAN_RPM_ACT on (RPM.rpm_id = CHAN_RPM_ACT.rpm_id)
                 inner join CHANNEL on (CHAN_RPM_ACT.chan_id = CHANNEL.channel_id)
@@ -588,11 +593,10 @@ class PostgresDB(CurrentDB):
                 and PACKAGE.package_id = RPM.package_id
                 order by PACKAGE.pkgname""" % (channel,) )
         query = self.cursor.fetchall()
-        # query should now contain the list of lists we (almost) want.
-        for row in query:
-            row[5] = "%d" % (row[5],)
-            row.append(channel)
-        # now query should contain exactly what we want. (wow, that was cool...)
+        try:
+            query = list(query)
+        except:
+            pass
         query = (query,)
         log("Creating listPackages file", DEBUG2)
         pathname = os.path.join(config['current_dir'], 'www', channel, 'listPackages', updatefilename )
@@ -638,7 +642,8 @@ class PostgresDB(CurrentDB):
 
         # Now populate getPackageSource
         log("grabbing getPackageSource information", TRIVIA)
-        self.cursor.execute("""select distinct on (SRPM.filename) SRPM.filename, SRPM.pathname from SRPM
+        # FIXME: why is SRPM.filename listed twice here???
+        self.cursor.execute("""select distinct SRPM.filename, SRPM.pathname from SRPM
                 inner join RPM on (SRPM.srpm_id = RPM.srpm_id)
                 inner join CHAN_RPM_ACT on (RPM.rpm_id = CHAN_RPM_ACT.rpm_id )
                 inner join CHANNEL on (CHAN_RPM_ACT.chan_id = CHANNEL .channel_id)
@@ -724,7 +729,7 @@ class PostgresDB(CurrentDB):
             return None 
         act_ch_id = channels[0][0]
         # Find the RPM ID of the package in the active channel
-        self.cursor.execute("""select distinct on (RPMPROVIDE.rpm_id) 
+        self.cursor.execute("""select distinct  
                     RPMPROVIDE.rpm_id from RPMPROVIDE
                     inner join RPM on (RPMPROVIDE.rpm_id = RPM.rpm_id)
                     inner join CHAN_RPM_ACT on (RPM.rpm_id = CHAN_RPM_ACT.rpm_id )

@@ -2,9 +2,10 @@
 # Makefile for installing the python modules for current
 #
 
-MODULES			= current_apache auth channel config configfile \
-                  ConstructParser errata logger misc packagedb \
-                  registration up2date
+MODULES			= arch auth backend channel configfile configure \
+                  ConstructParser current_apache currentdb current \
+                  errata logger misc queue registration shelf_channel \
+                  shelf up2date 
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 
@@ -18,7 +19,7 @@ all: sedrules $(OBJECTS)
 
 files: $(PYFILES)
 
-sedrules: config.py 
+sedrules: configure.py 
 	sed -e 's%^VERSION=.*%VERSION="$(VERSION)"%' \
         -e 's%^MODULES_DIR=.*%MODULES_DIR="$(DATA_DIR)"%' \
         -e 's%^CONFIG_DIR=.*%CONFIG_DIR="$(SYSCONF_DIR)"%' \

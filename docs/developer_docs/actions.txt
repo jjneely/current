@@ -1,0 +1,83 @@
+Red Hat Networks Client Actions
+
+rhnsd is a small C daemon installed with the up2date client. Basically, it
+wakes up every two hours and runs rhn_check. rhn_check is a relatively
+simple python program that calls one RHN api call (queue.get()) to get
+'actions', which are functions on the client that the server can run.
+
+The actions are called when the server figures out that database changes 
+mean something needs to happen on various clients (new errata means various
+clients need a new package) or due to explicit sysadmin request.
+
+Long term, I'd like to add to the actions that the clients can respond to 
+to include installing new config files, controlling daemons, etc.
+
+Short term, we're going to implement a crude action to deal with the fact 
+that right now the database can't tell which updates a client needs - the 
+client needs to go through the full up2date -u cycle.
+
+This file will document the existing RHN provided actions.
+
+An 'action', the datatype actually returned by the server to run these 
+functions is docuemented in rhn_api.txt
+
+
+Errata
+------
+
+update(errataidlist)
+    params:
+        errataidlist should be a list or tuple (list preferred) of 
+        errataids, which are then used to query the server with 
+        up2date.getErrataInfo(). That returns a list of packages
+        which are then compared against the packages installed on the 
+        client. Any packages actually needing updating are then 
+        updated using packages.update()
+        
+    return:
+        value is whatever packages.update() returns.
+    
+    
+Hardware
+--------
+
+refresh_list()
+    params: 
+        none
+        
+    return:             
+        calls registration.refresh_hw_profile() in the same way
+        up2date or rhn_register would.
+        
+        actual value returned is 
+            (12, "error refreshing system hardware", {}) on error, or
+            (0, "hardware list refreshed", {})
+            
+
+Packages
+--------
+
+remove(pkg_list)
+    params:
+        a list of packages to remove
+        
+    implementation:
+        pkg_list is simply passed to up2date.removePackages()
+        
+    return:
+        success:
+            (0, "%s installed successfully" % pkgList, {})
+            (which is bogus...)        
+            
+        on error:
+            (13, "Invalid arguments passed to function",{}) if bad call,
+            (14, "%s" % e, {}) if up2date.DependencyError
+            (15, "%s" % e, {}) if up2date.RpmRemoveError
+            (16, "<stuff>", {}) if up2date.RpmRemoveSkipListError
+            
+                                
+update(pkgList)
+    params:
+        a list of packages to update
+        
+                                 

@@ -38,10 +38,12 @@ import packagedb
 import auth
 
 # Here are the recognized RHN api modules
-__modules__ = [ 'registration', 'up2date', 'errata' ]
+__modules__ = ['errata', 'queue', 'registration', 'up2date', 'current']
+import current
+import errata
+import queue
 import registration
 import up2date
-import errata
 
 
 def apacheLog(message, level='NOTICE'):

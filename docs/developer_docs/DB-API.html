@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="generator"
+content="HTML Tidy for Linux/x86 (vers 1st August 2002), see www.w3.org" />
+<link rel="stylesheet" href="/base.css" type="text/css" />
+<title>The Python DB-API interface</title>
+<meta name="MSSmartTagsPreventParsing" content="TRUE" />
+</head>
+<body>
+<div class="navbar"><a href="/">Home</a> &gt;&nbsp;<a
+href="/python/">Python</a> &gt;&nbsp;<a
+href="/python/writing/">Writing</a> &gt;&nbsp; 
+<h1 class="title">The Python DB-API interface</h1>
+
+<div style="text-align:right">[<a href="/search.html">Search
+amk.ca</a>]<br />
+ Last Modified: 9 Aug 2002</div>
+</div>
+
+<div class="content">
+<hr />
+<h3>Introduction</h3>
+
+<p>Many people use Python because, like other scripting languages,
+it is a portable, platform-independent and general-purpose language
+that can perform the same tasks as the database-centric,
+proprietary 4GL tools supplied by database vendors. Like 4GL tools,
+Python lets you write programs that access, display and update the
+information in the database with minimal effort. Unlike many 4GLs,
+Python also gives you a variety of other capabilities, such as
+parsing HTML, making socket connections and encrypting data.</p>
+
+<p>Possible applications for the Python DB-API include:</p>
+
+<ul>
+<li>Many Web sites construct pages on the fly to display
+information requested by the user, such as selections from the
+products offered in a catalogue or from the documents available in
+a library. Doing this requires CGI scripts that can extract the
+desired information from a database and render it as HTML.</li>
+
+<li>An Intranet application might use the Tkinter module and the
+DB-API to provide a graphical user interface for browsing through a
+local database, such as accounts receivable or a customer
+list.</li>
+
+<li>Python programs can be used to analyze data by computing
+statistical properties of the data.</li>
+
+<li>Python programs can form a testing framework for programs that
+modify the database, in order to verify that some integrity
+constraint is maintained.</li>
+</ul>
+
+There are lots of commercial and freeware databases available, and
+most of them provide Structured Query Language (SQL) for retrieving
+and adding information. However, while most databases have SQL in
+common, the details of how to perform an SQL operation vary. The
+various individuals who wrote the Python database modules invented
+their own interfaces, and the resulting proliferation of different
+Python modules caused problems: no two of them were exactly alike,
+so if you decided to switch to a new database product, you had to
+rewrite all the code that retrieved and inserted data. 
+<p>To solve the problem, a Special Interest Group (or SIG) for
+databases was formed. People interested in using Python for a given
+application form a SIG of their own: they meet on an Internet
+mailing list where they discuss the topic, exchange ideas, write
+code (and debug it), and eventually produce a finished product.
+(Sounds a lot like the development process for the Linux kernel,
+doesn't it?)</p>
+
+<p>After some discussion, the Database SIG produced a specification
+for a consistent interface to relational databases -- the DB-API.
+Thanks to this specification, there's only one interface to learn.
+Porting code to use a different database product is much simpler,
+often requiring the change of only a few lines.</p>
+
+<p>The database modules written before the Database SIG are still
+around and don't match the specification -- the mSQL module is the
+most commonly used one. These modules will eventually be rewritten
+to comply with the DB-API; it's just a matter of the maintainers
+finding the time to do it.</p>
+
+<h3>Relational Databases</h3>
+
+A relational database is made up of one or more tables. Each table
+is divided into columns and rows. A column contains items of a
+similar type, such as customer IDs or prices, and a row contains a
+single data item, with a value for each column. A single row is
+also called a <dfn>tuple</dfn> or a <dfn>relation</dfn>, which is
+where the term "relational database" originates. 
+<p>For an example database, we'll use a small table designed to
+track the attendees for a series of seminars. (See listing 1.) The
+Seminars table lists the seminars being offered; an example row is
+<code>(1, Python Programming, 200, 15)</code>. Each row contains a
+unique identifying ID number (1, in this case), the seminar's title
+(Python Programming), its cost ($200), and the number of places
+still open (15). The Attendees table lists the name of each
+attendee, the seminar that he or she wishes to attend, and whether
+the fee has been paid. If someone wants to attend more than one
+seminar, there will be more than one row with that person's name,
+with each row having a different seminar number and payment
+status.</p>
+
+<table align="center">
+<caption>Seminars</caption>
+
+<tr>
+<th>ID</th>
+<th>title</th>
+<th>cost</th>
+<th>places_left</th>
+</tr>
+
+<tr>
+<td>1</td>
+<td>Python Programming</td>
+<td>200</td>
+<td>15</td>
+</tr>
+
+<tr>
+<td>2</td>
+<td>Intro to Linux</td>
+<td>100</td>
+<td>32</td>
+</tr>
+
+<tr>
+<td>3</td>
+<td>Socket Programming</td>
+<td>475</td>
+<td>7</td>
+</tr>
+
+<tr>
+<td>4</td>
+<td>Web Commerce</td>
+<td>300</td>
+<td>26</td>
+</tr>
+</table>
+
+<table align="center">
+<caption>Attendees</caption>
+
+<tr>
+<th>name</th>
+<th>seminar</th>
+<th>paid</th>
+</tr>
+
+<tr>
+<td>Albert</td>
+<td>1</td>
+<td>no</td>
+</tr>
+
+<tr>
+<td>Albert</td>
+<td>4</td>
+<td>no</td>
+</tr>
+
+<tr>
+<td>Beth</td>
+<td>1</td>
+<td>yes</td>
+</tr>
+
+<tr>
+<td>Chuck</td>
+<td>2</td>
+<td>no</td>
+</tr>
+
+<tr>
+<td>Dale</td>
+<td>4</td>
+<td>yes</td>
+</tr>
+
+<tr>
+<td>Elaine</td>
+<td>3</td>
+<td>yes</td>
+</tr>
+
+<tr>
+<td>Elaine</td>
+<td>1</td>
+<td>yes</td>
+</tr>
+
+<tr>
+<td>Felix</td>
+<td>4</td>
+<td>no</td>
+</tr>
+</table>
+
+<p>The examples below will use the soliddb module, which supports
+accessing SOLID databases from Python. SOLID is a product from
+Solidtech that was reviewed by Bradley Willson in LJ, September,
+1997. I'm not trying to cover CGI or Tkinter programming, so only
+the commands to access the database are presented here, in the same
+manner as if typed directly into the Python interpreter.</p>
+
+<h3>Getting Started</h3>
+
+To begin, the program must first import the appropriate Python
+module for connecting to the database product being used. By
+convention, all database modules compliant with the DB-API have
+names that end in 'db': e.g., soliddb, and oracledb. 
+<p>The next step is to create an object that represents a database
+connection. The object has the same name as the module. The
+information required to open a connection, and its format, varies
+for different databases. Usually it includes a user name and
+password, and some indication of how to find the database server,
+such as a TCP/IP hostname. If you're using the free trial version
+of SOLID, Unix pipes are the only method available to connect to
+the server, so the code is:</p>
+
+<pre>
+&gt;&gt;&gt; import soliddb
+&gt;&gt;&gt; db = soliddb.soliddb('UPipe SOLID', 'amk', 'mypassword');
+&gt;&gt;&gt; db
+&lt;Solid object at 809bf10&gt;
+</pre>
+
+<h3>Cursor Objects</h3>
+
+<p>Next, you should create a cursor object. A cursor object acts as
+a handle for a given SQL query; it allows retrieval of one or more
+rows of the result, until all the matching rows have been
+processed. For simple applications that do not need more than one
+query at a time, it's not necessary to use a cursor object since
+database objects support all the same methods as cursor objects.
+We'll deliberately use cursor objects in the following example.
+(For more on beginning SQL, see <cite>At The Forge</cite> by Reuven
+Lerner in LJ, Octoboer, 1997.)</p>
+
+<p>Cursor objects provide an <code>execute()</code> method that
+accepts a string containing an SQL statement to be performed. This,
+in turn, causes the database server to create a set of rows that
+match the query.</p>
+
+<p>The results are retrieved by calling a method whose name begins
+with 'fetch', which returns one or more matching rows, or None if
+there are no more rows to retrieve. The <code>fetchone()</code>
+method always returns a single row, while <code>fetchmany()</code>
+returns a small number of rows, and <code>fetchall()</code> returns
+all the rows that match. For example, to list all the seminars
+being offered:</p>
+
+<pre>
+&gt;&gt;&gt;cursor = db.cursor();
+&gt;&gt;&gt; # List all the seminars
+&gt;&gt;&gt; cursor.execute('select * from Seminars')
+&gt;&gt;&gt; cursor.fetchall()
+[(4, 'Web Commerce', 300.0, 26),
+ (1, 'Python Programming', 200.0, 15), 
+ (3, 'Socket Programming', 475.0, 7), 
+ (2, 'Intro to Linux', 100.0, 32), 
+ ]
+</pre>
+
+A row is represented as a Python tuple, so the first row returned
+is <code>(4, 'Web Commerce', 300.0, 26)</code>. Notice that the
+rows aren't returned in sorted order; to do that, the query has to
+be slightly different (just add 'order by ID' to the SQL query).
+Because they return multiple rows, the <code>fetchmany()</code> and
+<code>fetchall()</code> methods return a list of tuples. It's also
+possible to manually iterate through the results using the
+<code>fetchone()</code> method and looping until it returns
+<code>None</code>, as in this example which lists all the attendees
+for seminar 1: 
+<pre>
+&gt;&gt;&gt; cursor.execute('select * from Attendees where seminar=1')
+&gt;&gt;&gt; while (1):
+...    attendee = cursor.fetchone()
+...    if attendee == None: break
+...    print attendee
+...
+('Albert', 1, 'no')
+('Beth', 1, 'yes')
+('Elaine', 1, 'yes')
+</pre>
+
+<p>SQL also lets you write queries that operate on multiple tables,
+as in this query, which lists the seminars that Albert will be
+attending.</p>
+
+<pre>
+&gt;&gt;&gt; cursor.execute("""select Seminars.title
+...                   from Seminars, Attendees 
+...                   where Attendees.name = 'Albert' 
+...                   and Seminars.ID = Attendees.seminar""")
+&gt;&gt;&gt; cursor.fetchall()
+[('Python Programming',), ('Web Commerce',)]
+</pre>
+
+<p>Now that we can get information out of the database, it's time
+to start modifying it by adding new information. Changes are made
+by using the SQL insert and update statements. Just like queries,
+the SQL command is passed to the <code>execute()</code> method of a
+cursor object.</p>
+
+<h3>Transactions</h3>
+
+Before showing how to add information, there's one subtlety to be
+noted that occurs when a task requires several different SQL
+commands to complete. Consider adding an attendee to a given
+seminar. This requires two steps. In the first step, a row must be
+added to the Attendees table giving the person's name, the ID of
+the seminar they'll be attending, and whether or not they've paid.
+In the second step, the <code>places_left</code> value for their
+seminar should be decreased by one, since there's room for one less
+person. SQL has no way to combine two commands, so this requires
+two <code>execute()</code> calls. But what if something happens and
+the second command isn't executed?--because the computer crashed,
+the network died, or there was a typo in the Python program? The
+database is now inconsistent: an attendee has been added, but the
+<code>places_left</code> column for that seminar is now wrong. 
+<p>Most databases offer transactions as a solution for this
+problem. A transaction is a group of commands, such that either all
+of them are executed, or none of them are. Programs can issue
+several SQL commands as part of a transaction, and then commit
+them, (i.e. tell the database to apply all these changes
+simultaneously"). Alternatively, the program can decide that
+something's wrong, and <dfn>roll back</dfn> the transaction, which
+says "Forget all these changes."</p>
+
+<p>For databases that support transactions, the Python interface
+silently starts a transaction when the cursor is created. The
+<code>commit()</code> method commits the updates made using that
+cursor, and the <code>rollback()</code> method discards them. Each
+method then starts a new transaction. Some databases don't have
+transactions, but simply apply all changes as they're executed. On
+these databases, <code>commit()</code> does nothing, but you should
+still call it in order to be compatible with those databases that
+do support transactions.</p>
+
+<p>Listing 2 is a Python function tries to get all this right by
+committing the transaction once both operations have been
+performed.</p>
+
+<pre>
+def addAttendee(name, seminar, paid):
+    # Fetch the number of places left, and the cost
+    cursor.execute('select places_left from Seminars where ID=%s' % (seminar),)
+    (places_left, )=cursor.fetchone()
+    # If there
+    if places_left==0: 
+        raise ValueError, 'No more places left in seminar'+str(seminar)
+    # Add a row to the Attendees table  
+    cursor.execute("insert into Attendees values (?, ?, ?)", (name,
+seminar, paid) )
+    # Decrease the places_left count of the selected seminar
+    cursor.execute("update Seminars set places_left = %i where ID=%s"
+% (places_left-1, seminar) )
+    # Commit the changes        
+    db.commit()
+</pre>
+
+<p>Calling this function is simple:</p>
+
+<pre>
+addAttendee('George', 4, 'yes')
+</pre>
+
+<p>We can verify that the change was performed by checking the
+listing for seminar #4, and listing its attendees. This produces
+the following output:</p>
+
+<pre>
+Seminars:
+4       'Web Commerce'  300.0   25
+
+Attendees:
+Albert  4       no
+Dale    4       yes
+Felix   4       no
+George  4       yes
+</pre>
+
+Note that this function is still buggy if more than one process or
+thread tries to execute it at the same time. Database programming
+can be potentially quite complex. With this standardized interface,
+it's not difficult to write all kinds of Python programs that act
+as easy-to-use front ends to a database. 
+<h3>References</h3>
+
+<p>Solidtech Web site: <a
+href="http://www.solidtech.com">http://www.solidtech.com</a></p>
+
+<p>DB-SIG Web page: <a
+href="http://www.python.org/sigs/db-sig/">http://www.python.org/sigs/db-sig/</a></p>
+
+<p>C.J. Date, "An Introduction to Database Systems", 1995:
+Addison-Wesley, ISBN 0-201-54329-X.</p>
+</div>
+</body>
+</html>
+

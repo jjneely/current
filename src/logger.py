@@ -111,6 +111,13 @@ def logfunc(args, level=DEBUG2):
     # Handle args=None and methods, which have a (sometimes huge) self.
     if args and args.has_key('self'):
         del args['self']
+
+    # I'm tired of seeing the sysid. We need to know its there, not its 
+    # value everywhere. This  requires discipline in the api functions to
+    # always call it "sysid_string"
+    if args and args.has_key('sysid_string'):
+        args['sysid_string'] = '<sysid_string not logged>'
+
     tmp = tmp + '%(file)s:%(func)s(%(args)s)\n' % locals()
 
     logging_config['file'].write(tmp)

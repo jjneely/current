@@ -1,8 +1,33 @@
                         Current Project Changelog
 
+* Tue Oct 15 2002 Hunter Matthews <thm@duke.edu>
+- cadmin split into cadmin (totally different) and cinstall.
+  cinstall runs once, then you start the server and just use cadmin 
+- cadmin is just test code - it'll get really long again pretty soon.
+- John asked about 8.0, and since I want optik for cadmin, this will 
+  probably be the last (only?) current v1.5 that works on RHL 7.x
+- cadmin now talks to the current api calls in the server.
+  (IE, up2date uses up2date and registration calls, rhn_check uses queue
+   calls, well now current has its own API)
+- shelf.py started getting the new API calls.
+  I'm working out the new api against the shelf backend, and will then 
+  port john's sql code into it.
+
+* Wed Oct  2 2002 Hunter Matthews <thm@duke.edu>
+- Removed use of misc.pathJoin(), replaced with standard os.path.join()
+- Added in John's possible schema redesign.
+- Added config.foo and config['foo'] type access to the configure object
+- Cleaned up all the old 1.0.x command line options 
+  Need to back port that to 1.4
+- Took channel parsing out of config right now - trying new db centric model.
+- Forward ported backend.py, shelf.py, and shelf_adm.py from the 1.1 tree.
+- Starting monkeying around with install vs admin issues in current.
+  This is very very pre-alpha code at the moment.
+
 * Mon Sep 30 2002 Hunter Matthews <thm@duke.edu>      v1.4.1
 - Sorry for the delay - it was a long week personally.
 - Tested on server here, seems to work even for some simple error cases.
+- Forward ported changes to 1.5
 
 * Tue Sep 24 2002 Hunter Matthews <thm@duke.edu>
 - Updated TODO list with what was actually complete in 1.4.0
@@ -21,11 +46,13 @@
 - Fixed the lack of error handling/reporting in up2date API calls when 
   there's no matching or authorized channels for a client. Probably the 
   most common symptom of perms problems.
+- Forward ported changes to 1.5
 
 * Fri Sep 20 2002 Hunter Matthews <thm@duke.edu>     v1.4.0
 - Caught a last minute formatting problem
 - bumped version to 1.4.0
 - released as 1.4.0
+- Forward ported changes to 1.5
 
 * Thu Sep 19 2002 Hunter Matthews <thm@duke.edu>
 - FIX: current_apache.init_backend() had a syntax error in the error 

@@ -1,329 +1,50 @@
 #! /usr/bin/python
 
-""" cadmin is the administrative program that performs offline tasks.
+""" cadmin is the administrative program that performs online tasks.
 
-cadmin exists so we don't clutter up the main server program with non-online
-tasks. For now, that consists of creating new channels, adding single rpms
+For now, that consists of creating new channels, adding single rpms
 (new errata) to existing channels, etc.
-
-Right now, in pre-1.0 and 1.x versions, cadmin MUST be run while the main
-server is not running. In later versions, it would be REALLY cool to provide
-additional xml-rpc calls to do this in an online mode.
-
-Note that this program doesn't (nor any other) modify or create the config
-file for you. You must do that. This program prepares the channels and other
-databases, and current itself then uses those databases.
-
-This program is poorly written, and will be replaced soon. I hope.
 
 This software is distributed under the GPL v2, see file "LICENSE"
 Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
 
 """
 
-## constants and defaults
+# We cheat like we've never cheated before... 
+# we steal up2dates network code itself.
+# this gives us relatively easy network code
+# unfortunately, it ties us far more closely to up2date internals
+
+# Configured module dir
 # These are replaced by make, so beware
 MODULES_DIR="/usr/share/current"
 
-
 import sys
-import getopt
-import os
-import os.path
-import string
-import pwd
-import grp
-
-
 sys.path.append(MODULES_DIR)
+sys.path.append('/usr/share/rhn')
 
-import channel
-import config
-import misc
+# Grab the network code from up2date itself.
+from up2date_client import rpcServer
 
-from logger import *
+# don't import config - might not be running on a machine with current.conf
+# don't import logger - same reasoning
 
-APACHE_CONFIG = """
-#############################################################################
-# Configuration added for Current  (up2date)
-#
-# We take over the /XMLRPC URL and all its sub urls
-# (<Location>)
-#
-# We take over the (configurable) /local/linux/ directory and all sub dirs.
-# (<Directory>)
-#
-# Remember that Directory has precedence over Location
-#
-##
-## YOU MUST put "Include %(apache_config_file)s" in your httpd.conf file!
-##
-#############################################################################
-
-#LogLevel debug              Set this for debugging
-
-Alias /XMLRPC/$RHN %(web_dir)s
-
-<Directory %(web_dir)s>
-    # Make certain this is set - current won't work without it
-    Options FollowSymLinks
-</Directory>
-
-<Location ~ "/XMLRPC$">
-    PythonPath "sys.path + ['%(mod_dir)s']"
-    SetHandler python-program
-    PythonHandler current_apache
-</Location>
-
-<Location /XMLRPC/$RHN>
-    PythonPath "sys.path + ['%(mod_dir)s']"
-    PythonHandlerModule current_apache
-</Location>
-
-## END OF CURRENT ##
-"""
-
-hit = 0
-
-def permChecker(arg, dirname, names):
-    """ CHeck all the names in dirname for appropriate permissions."""
-
-    global hit 
-
-    # lstat the dir itself
-    hit = hit + 1
-    if not os.access(dirname, os.R_OK):
-        raise Exception("Can't read %s" % dirname)
-
-    for file in names:
-        hit = hit + 1
-        if not os.access(os.path.join(dirname, file), os.R_OK):
-            raise Exception("Can't read %s/%s" % (dirname, file))
+# Just hard code this monkey
+# Its the one for current anyway...
+rhns_ca_cert = '/usr/share/rhn/RHNS-CA-CERT'
 
 def main():
-    # Process our command line and config file 
-    try:
-        config.cfg = config.Config(config.defaults)
-        config.cfg.load(0)
-        args = config.cfg.getItem('args')
-    except (config.FormatError, config.MissingError), ex:
-        print 'Error:', ex
-        sys.exit(1)
+    server = rpcServer.getServer()
+    server.use_CA_chain(rhns_ca_cert)
 
-    # Check that the user actually setup a proper config file.
-    if config.cfg.getItem('server_secret') == 'YOUR_SECRET_STRING_HERE' or \
-      config.cfg.getItem('server_id') == 'YOUR_HOSTNAME_HERE':
-        sys.exit('ERROR: You must edit the config file to start')
-        
-    # Look for an already running server - we need to know that, BEFORE
-    # we begin logging
-#     if os.path.exists(config.cfg.getItem('pid_file')):
-#         try:
-#             pid = int(open(config.cfg.getItem('pid_file')).read())
-#         except ValueError:
-#             sys.exit('Pidfile %s contains non numeric value' % config.cfg.getItem('pid_file'))
-#     
-#         try:
-#             os.kill(pid, 0)
-#         except OSError, why:
-#             import errno
-#             if why[0] == errno.ESRCH:
-#                 # The pid doesnt exists.
-#                 print 'Removing stale pid_file %s' % config.cfg.getItem('pid_file')
-#                 os.remove(config.cfg.getItem('pid_file'))
-#             else:
-#                 sys.exit('Can\'t check status of PID %s from pid_file %s: %s' % (pid, config.cfg.getItem('pid_file'), why[1]))
-#         else:
-#             sys.exit('Current server is already running, PID %s' %  pid)
+    result = rpcServer.doCall(server.current.hello, 'hunter', 'matthews')
 
-    ## Logging system must be operational for the other modules to work.
-    # FIXME: tradition says this should be a dash for stdout/stderr
-    #   How should Config know that?
-    logconfig(config.cfg.getItem('log_level'), sys.stdout)
-
-    if len(args) == 0:
-        print 'ERROR: You must specify a command to run'
-        sys.exit(1)
-
-    if args[0] == 'create':
-        # Create a new channel.
-
-        if len(args) == 2:
-            channel_names = [args[1]]
-        else:
-            channel_names = config.cfg.getItem('valid_channels')
-
-        for chan_name in channel_names:
-
-            chan_info = config.cfg.getItem('channels')[chan_name]
-    
-            # Create the base dirs for current (web_dir and db_dir)
-            web_dir = misc.PathJoin(config.cfg.getItem('current_dir'), 
-                                    'www', chan_name)
-            if not os.path.exists(web_dir):
-                os.makedirs(web_dir)
-            
-            db_dir = misc.PathJoin(config.cfg.getItem('current_dir'), 
-                                   'db', chan_name)
-            if not os.path.exists(db_dir):
-                os.makedirs(db_dir)
-            
-            newchan = channel.Channel()
-            newchan.open(chan_info, 'c')
-            newchan.update()
-            newchan.close()
-
-    elif args[0] == 'create_apache_config':
-
-        # Make sure these strings are local, to make the % come out right.
-        apache_config_file = config.cfg.getItem('apache_config_file')
-        mod_dir = MODULES_DIR
-        web_dir = misc.PathJoin(config.cfg.getItem('current_dir'), 'www')
-
-        apache_config = open(apache_config_file, 'w')
-
-        apache_config.write(APACHE_CONFIG % locals())
-        apache_config.close()
-
-    elif args[0] == 'checkdb':
-        if len(args) == 2:
-            channel_names = [args[1]]
-        else:
-            channel_names = config.cfg.getItem('valid_channels')
-
-        for chan_name in channel_names:
-            chan_info = config.cfg.getItem('channels')[chan_name]
-            mychan = channel.Channel()
-            mychan.open(chan_info, 'r')
-            mychan.check_consistency()
-            mychan.close()
-
-    elif args[0] == 'checkperms':
-        print "This feature is BETA - please notify the list of problems"
-        if len(args) == 2:
-            channel_names = [args[1]]
-        else:
-            channel_names = config.cfg.getItem('valid_channels')
-
-        for chan_name in channel_names:
-            chan_info = config.cfg.getItem('channels')[chan_name]
-            # We do this here, instead of in channel.py because
-            # a) channel.py is out of hand anyway
-            # b) this is really filesystem related.
-
-            type = string.lower(config.cfg.getItem('access_check_type'))
-            
-            if type == 'none':
-                sys.exit(1)
-            elif type == 'user':
-                user = config.cfg.getItem('access_check_arg')
-                uid = pwd.getpwnam(user)[2]
-                os.setuid(uid)
-            elif type == 'group':
-                group = config.cfg.getItem('access_check_arg')
-                gid = grp.getgrnam(group)[2]
-                os.setgid(gid)
-            elif type == 'all':
-                user = 'nobody'
-                uid = pwd.getpwnam(user)[2]
-                os.setuid(uid)
-            else:
-                raise Exception("access_check_type must be 'none', 'user', 'group', or 'all'")
-
-            dirs = [chan_info['db_dir'], chan_info['web_dir']]
-            dirs = dirs + chan_info['rpm_dirs'] + chan_info['src_dirs']
-            for dir in dirs:
-                os.path.walk(dir, permChecker, None)
-
-            print "All permissions checked ok"
-
-            global hit
-            print "stated", hit
-
-
-    elif args[0] == 'update':
-        # This is where we update the channel without recreating it.
-
-        if len(args) == 2:
-            channel_names = [args[1]]
-        else:
-            channel_names = config.cfg.getItem('valid_channels')
-
-        for chan_name in channel_names:
-            chan_info = config.cfg.getItem('channels')[chan_name]
-            # If the db_dir doesn't exist, we're kinda skanked...
-            if not os.path.exists(chan_info['db_dir']):
-                print 'ERROR: cannot update a non-existent channel'
-                sys.exit(3)
-            mychan = channel.Channel()
-            mychan.open(chan_info, 'u')
-            mychan.update()
-            mychan.close()
-
-    elif args[0] == 'create_certificate':
-        os.chdir('/etc/current')
-        os.system('openssl genrsa -out server.key 1024')
-        os.system('openssl req -new -x509 -days 365 -key server.key -out server.crt')
-#        os.system('echo "" >> current.key')
-#        os.system('cat current.key current.crt > current.pem')
-        os.system('openssl x509 -noout -text -in server.crt > RHNS-CA-CERT')
-        os.system('cat server.crt >> RHNS-CA-CERT')
-
-    elif args[0] == 'print_config':
-        # Dump the configuration file itself.
-        config.cfg.dump(sys.stdout)
-
-    elif args[0] == 'print_channels':
-        for chan_info in config.cfg.getItem('valid_channels'):
-            print chan_info
-
-    elif args[0] == 'info':
-        # User requested information about a channel (that already exists)
-        if len(args) == 3:
-            # user requested a particular detail (chan.dump() arg)
-            detail = args[1]
-            channel_name = args[2]
-        else:
-            detail = 'i'  # most generic information 
-            channel_name = args[1]
-
-        level =  int(config.cfg.getItem('log_level'))
-        if level > 0:
-            detail = detail + 'v'
-        chan_info = config.cfg.getItem('channels')[channel_name]
-        infochan = channel.Channel()
-        infochan.open(chan_info, 'r')
-        infochan.dump(detail)
-        infochan.close()
-
-    else:
-        print 'cadmin [options] COMMAND args\n' \
-            'options include only -v (verbose) for now\n' \
-            '\n' \
-            'Where COMMANDS are:\n' \
-            'create -- optional arg is the channel_id to create\n' \
-            '          otherwise, create all of them\n' \
-            'create_apache_config -- create the apache config\n' \
-            'checkdb -- check the database for consistency\n' \
-            '           otherwise, check all of them\n' \
-            'checkperms -- check the permissions of files in the channel\n' \
-            '           otherwise, check all of the channels\n' \
-            'update -- update an existing channel\n' \
-            '          otherwise, update all of them\n' \
-            'create_certificate -- create new ssl key and RHNS-CA-CERT\n' \
-            'print_config -- no args\n' \
-            'print_channels -- no args\n' \
-            'info -- optional arg is a list of particular info\n'\
-            'help -- print this quick help\n'
-#            'initconfig -- no args\n' \
-#            'delete -- arg 1 is the package name, arg is the channel\n' \
-
-
+    print result
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        pass
+        print "Interupted by user command"
     
 ## END OF LINE ##    

@@ -565,27 +565,28 @@ errata.getPackageErratum()
 Queue
 -----
 
-Types:
-
-An action from the server is a dict with fields:
-'id':
-'version': a string, representing a single int. (fed to int())
-           rhn_check understands version 2 in 2.7.86
-'action': XMLRPC encoded method call for the client
-          includes the normal 'method' and 'params' portions.
-
-A status from the client back to the server is a dict with fields:
-'uname': results of os.uname() call
-'uptime': two integers representing total uptime in seconds and 
-          uptime in this run-level
-          FIXME: is this a list? 
-          
-                        
-
 queue.submit()
     versions: 2.7, 2.9
     params: (action_id, status, message, data)
-    returns:
+    returns: Completely unknown - see discussion below.
+
+    If the server sends the wrong version of action to the client in
+    queue.get(), the client will do a queue.submit() with an
+    xmlrpclib.Fault(-99)
+
+    If the server incorrectly calls the action (wrong arg count, wrong type)
+    then the status will be 6, the message a description, and the data {}.
+          
+    Whatever action is called is responsible for generating the
+    status, message, and data values.
+                        
+    status appears to be a simple int, the message is a string, and data a
+    dict.
+    
+    The client drops the return value from this call on the floor, so I 
+    can't figure out either its type or its possible values. Right now, 
+    current returns a simple int of 0.
+
     
 queue.get()
     versions: 2.7, 2.9
@@ -593,10 +594,37 @@ queue.get()
     returns:
     
     action_version is a simple int, and has been '2' for all of 2.7-2.9
-    client_status is the dict described in the "Types" section above.
+    client_status is a dict with two fields:
+
+    'uname': results of os.uname() call
+    'uptime': two integers in a list representing total uptime in seconds and 
+        uptime in this run-level
+          
+    Sample:
+    [
+      'sysid encoded as an xmlstring',
+      2,
+      {'uname': ['Linux',
+                 'jade.biology.duke.edu',
+                 '2.4.18-3',
+                 '#1 Thu Apr 18 07:37:53 EDT 2002',
+                 'i686'],
+       'uptime': [5957, 5865]}
+    ]
+
+                        
+    return type is a dictionary:    
+        must not be a string or empty dictionary
+        
+        'id':
+        'version': a string representing a single int. (fed to int())
+            rhn_check understands version 2 in 2.7.86
+        'action': XMLRPC encoded method call for the client
+            includes the normal 'method' and 'params' portions.
+
     
-HUNTER: you're at the check_action and handle_action fucntions    
+    An empty dict can be used to represent no actions for this client.
 
 
-That should be enough to cook your noodle. Its done a number on me.
+That lot should be enough to cook your noodle. Its done a number on me.
     

@@ -22,7 +22,6 @@ import time
 import copy
 import xmlrpclib
 
-import misc
 from logger import *
 
 # Prevents using an older database with incompatible code.
@@ -206,8 +205,8 @@ class Channel:
                 nlist.append(pkg)
         nlist = (nlist,)
 
-        filename = misc.PathJoin(self.chanInfo['list_dir'], 
-                                 self.chanInfo['last_modified'])
+        filename = os.path.join(self.chanInfo['list_dir'], 
+                                self.chanInfo['last_modified'])
         pl_file = gzip.GzipFile(filename, 'wb', 9)
         
         str = xmlrpclib.dumps(nlist, methodresponse=1)
@@ -591,7 +590,7 @@ class Channel:
             return
 
         for file in os.listdir(dirname):
-            pathname = misc.PathJoin(dirname, file)
+            pathname = os.path.join(dirname, file)
             self._addRpmPackage(pathname)
 
 
@@ -784,7 +783,7 @@ class Channel:
         # self.dump('namvp')
 
         # Add the symlink for the GET requests
-        linkname = misc.PathJoin(self.chanInfo['package_dir'],
+        linkname = os.path.join(self.chanInfo['package_dir'],
                                  os.path.basename(pathname))
         if not os.path.exists(linkname):
             os.symlink(pathname, linkname)
@@ -792,7 +791,7 @@ class Channel:
         # Cache the header itself for getPackageHeader() call
         # compressed, not compressed, compressed, not compressed
         hdr_name = string.replace(file, '.rpm', '.hdr')
-        filename = misc.PathJoin(self.chanInfo['headers_dir'], hdr_name)
+        filename = os.path.join(self.chanInfo['headers_dir'], hdr_name)
         h_file = open(filename, 'w')
         h_file.write(hdr.unload())
         h_file.close()
@@ -953,7 +952,7 @@ class Channel:
                     self._shelfRemove(self.dep_obsoletes, onames[i], value)
 
         # Remove the symlink
-        os.remove(misc.PathJoin(self.chanInfo['package_dir'], 
+        os.remove(os.path.join(self.chanInfo['package_dir'], 
                                 os.path.basename(pathname)))
 
         # Remove the cached header 
@@ -969,7 +968,7 @@ class Channel:
             return
 
         for file in os.listdir(dirname):
-            pathname = misc.PathJoin(dirname, file)
+            pathname = os.path.join(dirname, file)
             self._addSrcPackage(pathname, file)
 
 
@@ -991,8 +990,8 @@ class Channel:
         self.src_index[file] = pathname
 
         # in 1.3.10 - we may not need the index anymore?
-        linkname = misc.PathJoin(self.chanInfo['packagesource_dir'],
-                                 os.path.basename(pathname))
+        linkname = os.path.join(self.chanInfo['packagesource_dir'],
+                                os.path.basename(pathname))
 
         if not os.path.exists(linkname):
             os.symlink(pathname, linkname)

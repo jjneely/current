@@ -7,13 +7,13 @@ export
 
 # Things that change from build to build
 PROJECT			= current
-VERSION		 	= 1.4.1
+VERSION		 	= 1.5.0
 PYTHON_BIN	 	= /usr/bin/python
 PREFIX		 	= /usr
 INSTALL_ROOT 	=
 
 # File lists. (change rarely)
-PROGRAMS		= cadmin
+PROGRAMS		= cadmin cinstall
 CONFIG			= current.conf
 SRC				= src
 DOC             = docs CHANGELOG LICENSE README TODO RELEASE-NOTES
@@ -44,13 +44,24 @@ all:: sedrules files
 
 files: $(ALLFILES)
 
-sedrules:: sedspec sedcadmin 
+sedrules:: sedspec sedcadmin sedcinstall
 
 sedspec: support/current.spec
 	sed -e 's%Version:.*%Version: $(VERSION)%' < $< > $<.tmp
 	mv -f $<.tmp $<
 
 sedcadmin: cadmin
+	sed -e 's%^VERSION=.*%VERSION="$(VERSION)"%' \
+            -e 's%^MODULES_DIR=.*%MODULES_DIR="$(DATA_DIR)"%' \
+            -e 's%^CONFIG_DIR=.*%CONFIG_DIR="$(CONFIG_DIR)"%' \
+            -e 's%^LOG_DIR=.*%LOG_DIR="$(LOG_DIR)"%' \
+            -e 's%^PID_DIR=.*%PID_DIR="$(PID_DIR)"%' \
+            -e '1 s%#!.*%#! $(PYTHON_BIN)%' \
+        < $< > $<.tmp
+	mv -f $<.tmp $<
+	chmod u+x $<
+
+sedcinstall: cinstall
 	sed -e 's%^VERSION=.*%VERSION="$(VERSION)"%' \
             -e 's%^MODULES_DIR=.*%MODULES_DIR="$(DATA_DIR)"%' \
             -e 's%^CONFIG_DIR=.*%CONFIG_DIR="$(CONFIG_DIR)"%' \

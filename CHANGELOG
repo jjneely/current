@@ -1,4 +1,11 @@
                         Current Project Changelog
+* Sun May 18 2003 John Berninger <johnw@berningeronline.net>
+- Added file dependency tracking
+- reworked rpm_wrapper to provide a __getitem__ / __getattr__ model
+- modified database schema to handle file paths up to 4096 characters
+  as taken from definition of FILENAME_MAX
+- we desperately need to work on speed issues at db creation
+
 * Fri Apr 25 2003 John Berninger <johnw@berningeronline.net>
 - several bugfixes for 9.0 trees
 - bugfix in rpm_wrapper when reading a non-RPM return a None object but doesn't throw an exception

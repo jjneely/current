@@ -17,7 +17,7 @@ Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
 
 # Configured module dir
 # These are replaced by make, so beware
-MODULES_DIR="/home/jwbernin/current/src"
+MODULES_DIR="/usr/share/current"
 
 import pprint
 import sys

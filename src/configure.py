@@ -16,7 +16,7 @@ import re
 config = None
 
 ## These are replaced by make, so beware
-VERSION="1.5.3"
+VERSION="1.5.4"
 MODULES_DIR="/usr/share/current"
 CONFIG_DIR="/etc/current"
 LOG_DIR="/var/log/httpd"

@@ -361,7 +361,7 @@ class PostgresDB(CurrentDB):
     def _packageInDB(self, rpm_info):
         pid = self._getPackageId(rpm_info['name'], rpm_info['version'],
                                 rpm_info['release'], rpm_info['epoch'])
-        if (pid != 0 ):
+        if ( pid != None and pid != 0 ):
             self.cursor = self.conn.cursor()
             sql = """ select rpm_id from rpm where rpm.package_id = '%d'
                                     and rpm.arch = '%s'""" % (pid, rpm_info['arch'])

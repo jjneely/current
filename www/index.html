@@ -1,56 +1,142 @@
+<!-- For those paying attention at home, yes, the format of the this web 
+    page SHAMELESSLY stolen form the rapidsvn page. I think they did a much
+    better job on layout and organization than I could have. -->
+    
 <html>
 <head>
 <title>Current: A server for Red Hat's up2date tools</title>
-<meta name="description" content="current">
-<meta name="keywords" content="Linux, Red Hat, up2date, rhn">
 </head>
 <body>
 
-<p align=center><img src="current-2.jpg" alt="current logo" align=top height=100 width=300></p>
+<hr noshade/>
+<img src="current-2.jpg" alt="Current" height="100" width="300"/>
+<p/>
 
-<h3>An open source server for Red Hat's up2date tools.</h3>
+<!-- Leaving this in for later.
+<a href="screenshots.html">Screenshots</a> | 
+<a href="svncpp.html">SvnCpp C++ API</a> | 
+<a href="#download">Download</a>
+<p/>
+-->
 
-<p> Red Hat's up2date is a suite of tools (sometimes called the Red Hat
-Network) for keeping a Red Hat Linux system "up to date" with new
-security/bug fix RPMs.  It also allows you to add completely new RPMs to
-clients over the network. The tools do a thorough job of handling boot-loader
-configurations, new kernels, packages dependencies and conflicts.
-</p>
+Current is an open source implementation for Red Hat's up2date tools.
 
-<p> Unfortunately, Red Hat has not released their server, which does not
-fully address the needs of some users/departments. Thus, 'current' was born.
-</p>
+<h3>Mission</h3>
 
+To completely reimplement a correct server for all of Red Hat's excellent
+up2date tools. Current is not expected to scale to the same mammoth
+proportions, but it should be fast enough and capable enough to support
+several hundred machines without driving the sysadmins mad.
+<p/>
 
-<p> Current is primarily intended for the small to medium organization that
-wants to control the RPMs installed on its machines. It's completely useless
-for the single computer at home that needs security patches (just use RHN -
-its free for the first computer). Its also not going to scale to the level
-of RHN - but for a thousand hosts or less, its reasonable. </p>
+<h3>Accomplishments</h3>
+<ul>
+<li>Production quality for 2.7 and 2.8 clients with a Red Hat 7.x server.
+<li>Experimental support for 3.0 clients and Red Hat 8.0 as a server.
+<li>Full database backend in development (and working).
+<li>As easy to setup for the admin as we can make it.
+</ul>
+<p/>
 
-<p> Right now, current v1.4 is release quality. The API used by up2date v2.7
-and v2.8 is working for gui and text interfaces in the basic mode (grab
-packages, list available packages, find what packages this computer needs
-updated). It doesn't attempt any of the more advanced management features
-that RHN provides. The current (pun intended) plan (better laid out in the
-roadmap.txt file in the package) is to become a complete anonymous server
-solution for 1.X, and then tackle the more advanced features of RHN. </p>
+<h3>News</h3>
+<ul>
+<li><b>[30 Jan 2003] Annouced the mailing list is splitting</b>
+<br/>
+Now that we're hosted at current.tigris.org, we can take advantage of 
+the additional mailing lists provided. (And a big Thank You to Seth Vidal
+at Dulug for providing our old list). Please go to the 
+<a href="http://current.tigris.org/servlets/ProjectMailingListList">current
+mailing list page</a>  to subscribe to one of the new lists. We'll gradually
+transition from the old list over the next month.
+<p/>
 
-<p>Current is implemented using apache, mod_python, and mod_ssl. This is 
-an excellent fit, as that what RHN uses. :) Naturally, Red Hat has nothing to 
-do with this project, except to release excellent client packages. Please
-don't bother them with bug reports if you are using current.
-</p>
+<li><b>[26 Jan 2003] Now proudly hosted at tigris.org</b>
+<br/>
+But if you're reading this, you probably already knew that.
+<p/>
 
-<h3>Related resources</h3>
+</ul>
+
+<a name="download"/>
+<h3>Downloads</h3>
+<p>
 
 <ul>
-<li><a href="http://rhn.redhat.com">Red Hat Network website</a></li>
-<li><a href="http://httpd.apache.org">The apache web server</a></li>
-<li><a href="http://www.modpython.org">The mod_python apache module</a></li>
-<li><a href="http://www.modssl.org">The mod_ssl apache module</a></li>
-<li><a href="http://www.python.org">The Python home page</a></li>
+<b>Source Code</b>
+<li>
+Latest source:<br/>
+The source is stored in tigris.org's CVS system. Please see the help menu
+to the right (or click on the Source Code link at the top left) to get 
+or browse our CVS repository.
 
+<ul>
+<b>Releases</b>
+<li>
+For actual tar balls or installable rpms, please 
+<a href="http://current.tigris.org/servlets/ProjectDocumentList">download them
+</a>from here.
+</p>
+
+<li>We'll maintain the existing ftp repository 
+<a href="fto://ftp.biology.duke.edu/pub/admin/current">here, </a> for anyone 
+who needs it.
+
+</ul>
+
+
+<h3>Contributing</h3>
+To discuss ideas, bug fixes, or submit patches then join the development 
+<a href="http://rapidsvn.tigris.org/servlets/ProjectMailingListList">
+mailing list</a>. If your patch implements an existing RFE or fixes a known
+BUG, you can also/instead attach it to our 
+<a href="http://rapidsvn.tigris.org/servlets/ProjectIssues">
+Issue Tracker</a>.
+<p/>
+
+
+<h3>Ideas on the table</h3>
+<p>
+Naturally, supporting new versions of the client and making current work
+on newer releases of Red Hat Linux are a priority. Other areas we look 
+forward to:
+
+<ul>
+<li> Full SQL backend database: <br/>
+Development is ongoing on the jwbernin-postgres-branch. The 1.5.x series will
+simply reimplement the features we have now, but with a much saner SQL 
+based backend (and enough changes to sanely support it). John's spearheading
+this campaign.
+
+<li> Basic client management: <br/>
+Once we have the basics complete in the SQL backend (to support the same
+modes of use we have now) we naturally want to start supporting at least
+the basic client management features available in up2date. This includes 
+full push (rhnsd/rhn_check) and being able to "group" clients together.
+Naturally, this has to follow the 1.5.x/1.6.x release.
+
+<li> To infinity, and beyond: <br/>
+Applet support, full HTML driven management interfaces, full errata
+annoucements, "proxy" server like support, there are literally dozens of
+really useful features in up2date that we can support, if only we write
+enough python. :)
+<p/>
+
+
+<h3>Related Resources</h3>
+<ul>
+<li><a href="http://rhn.redhat.com">Red Hat Network website - If current doesn't meet your needs, go here. This WILL. Thanks to Red Hat for an excellent client.</a>
+<li><a href="http://www.python.org">The Python home page</a>
+<li><a href="http://httpd.apache.org">The apache web server</a>
+<li><a href="http://www.modpython.org">The mod_python apache module</a>
+<li><a href="http://www.modssl.org">The mod_ssl apache module</a>
+
+<hr noshade/>
+
+<p align="center">
+<a href="http://www.python.org/">
+<img src="PythonPowered.gif" alt="Python"/>
+</a>
+</p>
 
 </body>
 </html>

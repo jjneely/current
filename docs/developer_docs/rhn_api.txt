@@ -290,8 +290,12 @@ registration.list_packages()
     returns = a [ [NVRE], [NVRE], [NVRE] ] type list of lists.
     faultCodes: 99 = delay
 
-    Note: Only appears in the listPackages() function, which is not used.
-          Probably not used in 3.0 either...
+    Note: Only appears in the listPackages() function, which is not used
+    in any release from 2.7 (rhn_register 2.7.2) to 3.1
+    
+    I would assume that it would list the packages that the database 
+    thinks are installed on a given system. But thats impossible to know
+    without more context.
           
 
 registration.new_system()
@@ -526,7 +530,7 @@ up2date.listChannels()
     
     
 up2date.listPackages()
-    versions: 2.7
+    versions: 2.7, 2.8, 3.0, 3.1
     params: (channel, lastmod)
     returns: unknown
     faultCodes: unknown
@@ -549,7 +553,7 @@ up2date.solveDependencies()
     
     
 up2date.subscribeChannels()
-    versions: 2.7, 2.8, 3.0
+    versions: 2.7, 2.8, 3.0, 3.1
     version removed:
     params: (sysid, channels, username, password)
     returns: unknown - NOT USED YET IN 3.0
@@ -557,7 +561,7 @@ up2date.subscribeChannels()
     
     
 up2date.unsubscribeChannels()
-    versions: 2.7, 2.8, 3.0
+    versions: 2.7, 2.8, 3.0, 3.1
     params: (sysid, channels, username, password)
     returns: unknown - NOT USED YET IN 3.0
     faultCodes: unknown
@@ -629,11 +633,11 @@ Queue
 -----
                                                                                 
 queue.get()
-    versions: 2.7, 2.9
+    versions: 2.7, 2.9, 3.0, 3.1
     params: (systemid, action_version, client_status)
-    returns:
+    returns: a SINGLE action encoded in a dict
                                                                                 
-    action_version is a simple int, and has been '2' for all of 2.7-2.9
+    action_version is a simple int, and has been '2' for all of 2.7-3.1
     client_status is a dict with two fields:
                                                                                 
     'uname': results of os.uname() call
@@ -642,9 +646,9 @@ queue.get()
                                                                                 
     Sample:
     (
-      'sysid encoded as an xmlstring',
-      2,
-      {'uname': ['Linux',
+      'sysid encoded as an xmlstring',      # sysid_string
+      2,                                    # the action_version
+      {'uname': ['Linux',                   # client_status
                  'jade.biology.duke.edu',
                  '2.4.18-3',
                  '#1 Thu Apr 18 07:37:53 EDT 2002',
@@ -652,19 +656,20 @@ queue.get()
        'uptime': [5957, 5865]}
     )
                                                                                 
-    return type is a dictionary:
-        'id':
+    return type is a single dictionary:
+        'id': an identifier for this particular action
+              handed right back to the database as part of the submit call
         'version': a string representing a single int. (fed to int())
-            rhn_check understands version 2 in 2.7.86
+            rhn_check understands version 2 from 2.7 to at least 3.1
         'action': XMLRPC encoded method call for the client
             includes the normal 'method' and 'params' portions.
                                                                                 
-    An empty dict can be used to represent no actions for this client.
+    An empty dict can be used to represent no action for this client.
                                                                                 
 
 queue.submit()
     versions: 2.7, 2.9
-    params: (action_id, status, message, data)
+    params: (sysid, action_id, status, message, data)
     returns: Completely unknown - see discussion below.
                                                                                 
     If the server sends the wrong version of action to the client in
@@ -674,8 +679,8 @@ queue.submit()
     If the server incorrectly calls the action (wrong arg count, wrong type)
     then the status will be 6, the message a description, and the data {}.
                                                                                 
-    Whatever action is called is responsible for generating the
-    status, message, and data values.
+    Whatever action called is responsible for generating the status,
+    message, and data values.
                                                                                 
     status appears to be a simple int, the message is a string, and data a
     dict.

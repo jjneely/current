@@ -1,4 +1,8 @@
                         Current Project Changelog
+* Sat Jun 14 2003 Hunter Matthews <thm@duke.edu>
+- Forward ported rhn_api.txt file from 1.4.x - it was the most recent
+- Forward ported changes from 1.4.1 
+
 * Sun May 18 2003 John Berninger <johnw@berningeronline.net>
 - Added file dependency tracking
 - reworked rpm_wrapper to provide a __getitem__ / __getattr__ model

@@ -56,6 +56,12 @@ Alias /XMLRPC/$RHN %(web_dir)s
     PythonHandler current_apache
 </Location>
 
+<Location ~ "/APPLET$">
+    PythonPath "sys.path + ['%(mod_dir)s']"
+    SetHandler python-program
+    PythonHandler current_apache
+</Location>
+
 <Location /XMLRPC/$RHN>
     PythonPath "sys.path + ['%(mod_dir)s']"
     PythonTypeHandler current_apache

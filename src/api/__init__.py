@@ -15,7 +15,7 @@ import errata
 import queue
 import registration
 import up2date
-
+import applet
 
 ## END OF LINE ##
 

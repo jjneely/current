@@ -34,7 +34,7 @@ import auth
 import db
 
 # Here are the recognized RHN api modules
-__modules__ = ['errata', 'queue', 'registration', 'up2date', 'cadmin']
+__modules__ = ['errata', 'queue', 'registration', 'up2date', 'cadmin', 'applet']
 
 from api import *
 
@@ -267,6 +267,7 @@ def callAPIMethod(method, params):
         log('  params were: %s' % pprint.pformat(params), MANDATORY)
         return xmlrpclib.Fault(1000, 'Method call not in expected format')
 
+    log('method = %s' % method)
     (module, function) = string.split(method, '.', 1)
     # Is this a new or a known call?
     if not module in __modules__:

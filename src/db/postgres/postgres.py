@@ -442,7 +442,7 @@ class PostgresDB(CurrentDB):
         self.cursor.execute(""" select distinct on (pkgname) pkgname from package
                     inner join rpm on (package.package_id = rpm.package_id)
                     inner join channel on (channel.channel_id = rpm.original_channel_id)
-                    where channel.name = '%s'""" % (channel,) )
+                    where channel.label = '%s'""" % (channel,) )
         pkgs = []
         newest_ids = []
         query = self.cursor.fetchall()
@@ -460,6 +460,7 @@ class PostgresDB(CurrentDB):
         assert (len(chqry) == 1 )
         chid = int(chqry[0][0])
         for id in newest_ids:
+            log('setting rpmid %s active' % id)
             self.cursor.execute("""update rpm set active_channel_id = %d
                     where rpm.rpm_id = %d""" % (chid, id) )
 
@@ -683,7 +684,46 @@ class PostgresDB(CurrentDB):
         logfunc(locals())
         return result            
 
+    def getLastUpdate(self, release, arch):
+        # This routine added for APPLET functionality - simply gets the most
+        # recent update time of the most recently updated channel for the
+        # given release / arch combination.
+        # Get a connection
+        self.cursor = self.conn.cursor()
+        # First, get the base arch, since arch may not be a canonical.
+        carch = misc._getCannonArch(arch)
 
+        # Now, get all the channels of given carch / release, sorted by
+        # update time.
+        self.cursor.execute("""select lastupdate from CHANNEL
+                    where arch = '%s'
+                    and osrelease = '%s'
+                    order by lastupdate desc"""
+                    % (carch, release) )
+        result = self.cursor.fetchall()
+        if ( len(result) < 1 ):
+            return -1
+        else:
+            return result[0][0]
 
+    def listAppletPackages(self, release, arch):
+        # This routine will return a list of all packages in all compatible
+        # channels - it's designed for use with the APPLET code.
+        # FIXME: We will need to somehow determine which channels a given
+        # client is subscribed to at a later point...  how to do this, if
+        # uuid is unrelated to anything?  dunno...
+
+        # Get a cursor
+        self.cursor = self.conn.cursor()
+        self.cursor.execute(""" select pkgname, version, release, epoch
+                from package
+                inner join rpm on (rpm.package_id = package.package_id)
+                inner join channel on (channel.channel_id = rpm.active_channel_id)
+                where channel.arch = '%s' and channel.osrelease = '%s'
+                order by pkgname"""
+                % (arch, release) )
+        result = self.cursor.fetchall()
+        log ('grabbed %s packages' % len(result) )
+        return result
 
 

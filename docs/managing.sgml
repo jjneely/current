@@ -57,6 +57,11 @@ records what options the daemon was started with the last time it was started,
 it does not control the options.
 </para>
 <para>
+If you have any preexisting options in this file, you should keep them.  You
+will have to add a <quote>-i</quote> to this file if it's not already there to
+allow TCP/IP connections to the server.
+</para>
+<para>
 Once you've modified those files, you can re-start the PosrgreSQL service and
 create the user that the Current server will use to connect to the database.
 This user and password must be the same username and password that appear in
@@ -114,9 +119,10 @@ the channel definition.  There are six options available for this command:
 <glossdef>
 <para>This option specifies the "name" of the channel; the name is used
 only for human consumption and is not critical for server operations.  The
-name provided must be a valid directory name for the server; only alphanumerics
-are permitted.  Each channel is required to have a name attribute 
-associated with it.
+name provided must be a valid directory name for the server; i.e. it can
+only contain characters that would be valid in a filename, and cannot
+contain any escaped characters such as a space.  Each channel is required to 
+have a name attribute associated with it.
 </para>
 </glossdef>
 </glossentry>

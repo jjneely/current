@@ -1,4 +1,10 @@
                         Current Project Changelog
+* Sat Apr 19 2003 John Berninger <johnw@berningeronline.net>
+- build bugfixes
+- bugfixes for archtab.py, configure.py, api/up2date.py
+- scan_channel will simply ignore non-RPM/SRPM files instead of bombing
+- scan_channel resets active pointers to fix dependency solving
+
 * Wed Apr 16 2003 John Berninger <johnw@berningeronline.net>
 - Hunter: applet fixes look okay.
 - added checks to not error out when a scan_channel hits a non-RPM or -SRPM

@@ -11,7 +11,7 @@ CREATE TABLE CHANNEL (
   lastupdate             varchar(64) default NULL,
 
   PRIMARY KEY  (channel_id)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 CREATE TABLE CHANNEL_DIR (
   channel_dir_id         int(11)       NOT NULL auto_increment,
@@ -21,7 +21,7 @@ CREATE TABLE CHANNEL_DIR (
 
   PRIMARY KEY (channel_dir_id),
   KEY channel_dir_chan_id_idx (channel_id)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 CREATE TABLE PACKAGE (
   package_id             int(11)       NOT NULL auto_increment,
@@ -35,7 +35,7 @@ CREATE TABLE PACKAGE (
   KEY version_idx (version),
   KEY release_idx (release),
   KEY epoch_idx (epoch)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 CREATE TABLE RPM (
   rpm_id                 int(11)       NOT NULL auto_increment,
@@ -51,7 +51,7 @@ CREATE TABLE RPM (
   KEY package_id_idx (package_id),
   KEY active_channel_id_idx (active_channel_id),
   KEY srpm_id_idx (srpm_id)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 CREATE TABLE RPMOBSOLETE (
   rpmobsolete_id         int(11)       NOT NULL auto_increment,
@@ -62,7 +62,7 @@ CREATE TABLE RPMOBSOLETE (
 
   PRIMARY KEY  (rpmobsolete_id),
   KEY rpmosbolete_rpm_id_idx (rpm_id)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 CREATE TABLE RPMPROVIDE (
   rpmprovide_id          int(11)       NOT NULL auto_increment,
@@ -73,7 +73,7 @@ CREATE TABLE RPMPROVIDE (
 
   PRIMARY KEY  (rpmprovide_id),
   KEY rpmprovide_rpm_id_idx (rpm_id)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 CREATE TABLE SRPM (
   srpm_id                int(11)       NOT NULL auto_increment,
@@ -81,5 +81,5 @@ CREATE TABLE SRPM (
   pathname               text          NOT NULL,
 
   PRIMARY KEY  (srpm_id)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 """

@@ -20,7 +20,7 @@ Version: 1.5.3
 Release: %{release}
 License: GPL
 Group: System Environment/Daemons
-URL: http://www.biology.duke.edu/computer/unix/current
+URL: http://current.tigris.org
 Source0: ftp://ftp.biology.duke.edu/pub/admin/current/%{name}-%{version}.tar.gz
 Requires: python rpm-python mod_python mod_ssl 
 Requires: rpm >= 4.0.2-8
@@ -69,6 +69,9 @@ make install INSTALL_ROOT=$RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Apr  3 2003 Hunter Matthews <thm@duke.edu>
+- Fix Issuezilla #13, wrong URL in spec file.
+
 * Mon Feb 17 2003 John Berninger <johnw@berningeronline.net> 1.5.3pre1
 - Merged changes from postgres-branch into trunk, merged selected changes from
   1.4.x branch to trunk (7.x vs 8.x builds)

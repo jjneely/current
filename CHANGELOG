@@ -1,5 +1,12 @@
                         Current Project Changelog
 
+* Thu Apr  3 2003 Hunter Matthews <thm@duke.edu>
+- Somehow we've lost a TON of changelog entries. I'm not sure where they
+  went.
+- John tagged out 1.5.3 and 1.5.4. I'm getting 1.5.4 out the door tonight.
+- From John's tag, the only change I've made is correcting the Makefile 
+  and spec to be correct against tigris.org and we use CVS now.
+
 * Thu Oct 31 2002 Hunter Matthews <thm@duke.edu>
 - Finished up the cinstall initdb (pysqlite) code path.
   Finished here means "works for me" and has what I think will be needed.

@@ -17,7 +17,7 @@ PROGRAMS		= cadmin cinstall
 CONFIG			= current.conf
 SRC				= src
 DOC             = docs CHANGELOG LICENSE README TODO RELEASE-NOTES
-MISC            = Makefile support tar-excludes
+MISC            = Makefile support .cvsignore
 
 ALLFILES        = $(PROGRAMS) $(SRC) $(CONFIG) $(DOC) $(MISC)
 
@@ -86,7 +86,7 @@ release: sedrules
 	rm -rf $(PROJECT)-$(VERSION).tar.gz $(PROJECT)-$(VERSION)
 	mkdir $(PROJECT)-$(VERSION)
 	cp -ra $(ALLFILES) $(PROJECT)-$(VERSION)
-	tar czf $(PROJECT)-$(VERSION).tar.gz --exclude CVS -X tar-excludes $(PROJECT)-$(VERSION)
+	tar czf $(PROJECT)-$(VERSION).tar.gz -X .cvsignore $(PROJECT)-$(VERSION)
 	rm -rf $(PROJECT)-$(VERSION)
 
 install:: sedrules

@@ -294,7 +294,6 @@ class PostgresDB(CurrentDB):
         return result
 
     def _addRpmPackage(self, config, path, channel):
-        log("Adding RPM %s to channel %s" % (path, channel), TRIVIA)
         self.cursor = self.conn.cursor()
         filename = os.path.basename(path)
         rpm_info = self.rpmWrapper.getRpmInfo(path)
@@ -307,7 +306,13 @@ class PostgresDB(CurrentDB):
         # sanity check:
         if (None == rpm_info):
             return 1
+        # Check to see if the package is already in the DB before we do something stupid.
+        if ( self._packageInDB(rpm_info) ):
+            log ("Package already in DB - not scanning.", TRIVIA)
+            return 1
  
+        log("Adding RPM %s to channel %s" % (path, channel), TRIVIA)
+
         # Get the channel ID:
         self.cursor.execute("""select channel_id from CHANNEL
                 where label = '%s' """ % (channel,))
@@ -316,6 +321,7 @@ class PostgresDB(CurrentDB):
             log("no results for channel pull!")
             return 0
         ch_id = chreslts[0][0]
+
         log("Inserting package information.", TRACE)
         package_id = self._insertPackageTable(rpm_info)
         if ( package_id == 0 ):
@@ -352,6 +358,23 @@ class PostgresDB(CurrentDB):
         else:
             return int(row[0][0])
 
+    def _packageInDB(self, rpm_info):
+        pid = self._getPackageId(rpm_info['name'], rpm_info['version'],
+                                rpm_info['release'], rpm_info['epoch'])
+        if (pid != 0 ):
+            self.cursor = self.conn.cursor()
+            sql = """ select rpm_id from rpm where rpm.package_id = %d
+                                    and rpm.arch = %s""" % (pid, rpm_info['arch'])
+            self.cursor.execute(sql)
+            results=  self.cursor.fetchall()
+            if (len(results) > 1):
+                raise Exception, "EEEEP! db.db._packageInDB()"
+            if ( len(results) == 0):
+                return 0
+            else:
+                return 1
+        return pid
+        
     def _insertPackageTable(self, rpm_info):
         package_id = self._getPackageId(rpm_info['name'], rpm_info['version'],
                                 rpm_info['release'], rpm_info['epoch'])
@@ -621,7 +644,10 @@ class PostgresDB(CurrentDB):
         log("Creating getPackage symlinks...", DEBUG2)
         for row in query:
             dir = os.path.join(dpath, os.path.basename(row[0]) )
-            os.symlink(row[0], dir)
+            try:
+                os.symlink(row[0], dir)
+            except OSError, error:
+                log("OS Error number %s occurred - why?" % error, DEBUG)
         log("getPackage symlinks created", DEBUG)
         results['getPackage'] = "ok"
 
@@ -722,6 +748,7 @@ class PostgresDB(CurrentDB):
                     order by lastupdate desc"""
                     % (carch, release) )
         result = self.cursor.fetchall()
+        self.conn.commit()
         if ( len(result) < 1 ):
             return -1
         else:

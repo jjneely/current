@@ -1,5 +1,27 @@
                         Current Project Changelog
 
+* Mon Sep 30 2002 Hunter Matthews <thm@duke.edu>      v1.4.1
+- Sorry for the delay - it was a long week personally.
+- Tested on server here, seems to work even for some simple error cases.
+
+* Tue Sep 24 2002 Hunter Matthews <thm@duke.edu>
+- Updated TODO list with what was actually complete in 1.4.0
+- Minor logging tweaks in current_apache.py
+- Updated auth.py module with detailed problem reporting 
+  Updated all api calls to turn those reports into specific Faults for 
+  the client.
+- Improved constructors in auth objects to be simpler, more useful
+- Log header auth failure at point of failure and reason
+- At some point I narfed the XML vs xmlrpc.Fault test in sendClientResult.
+  If it was a Fault, we'd still try to access it as a dict.
+- API results being a dict was a leftover from 1.0 days. 
+  Changed the API fns to just return whatever python object/value 
+  sendClientResult now simpler as a result.
+  Updated all the API calls
+- Fixed the lack of error handling/reporting in up2date API calls when 
+  there's no matching or authorized channels for a client. Probably the 
+  most common symptom of perms problems.
+
 * Fri Sep 20 2002 Hunter Matthews <thm@duke.edu>     v1.4.0
 - Caught a last minute formatting problem
 - bumped version to 1.4.0

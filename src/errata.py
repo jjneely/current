@@ -38,10 +38,10 @@ def getPackageErratum(sysid_string, pkg):
     logfunc(locals())
 
     # Authorize the client
-    si = auth.SysId()   
-    si.loadstring(sysid_string)
-    if not si.isValid():
-        return xmlrpclib.Fault(1000, "Invalid client certificate.")
+    si = auth.SysId(sysid_string)   
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
 
     advisory = [{
         "errata_type": "unknown",
@@ -50,8 +50,7 @@ def getPackageErratum(sysid_string, pkg):
         "description": "No details about this package are available. Sorry."
         }]
 
-    return {'type': 'xml',
-            'data': advisory}
+    return advisory
         
 
 ## END OF LINE ##    

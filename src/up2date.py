@@ -35,35 +35,38 @@ def login(sysid_string):
     logfunc(locals())
 
     # Authorize the client
-    si = auth.SysId()
-    si.loadstring(sysid_string)
-    if not si.isValid():
-        return xmlrpclib.Fault(1000, "Invalid client certificate.")
+    si = auth.SysId(sysid_string)   
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
 
-    # Setup the basic HeadersId stuff
-    hi = auth.HeadersId()
+    # Setup the basic SysHeaders stuff
+    hi = auth.SysHeaders()
     hi.loadSysId(si)
     hi.setTimeValues()
     
     # Need a list of channels this client is authorized for 
     # FIXME: we assume only one channel right now is returned...
-    # FIXME: This could fail
     channels = packagedb.db.getCompatibleChannels(si.getattr('architecture'), 
                                                   si.getattr('os_release'))    
+    if len(channels) == 0:
+        return xmlrpclib.Fault(1000, 
+            "No compatible channels found for client")
 
     # This is mostly here as a marker - we'd pass in a list of all possible
     #   (compatible) channels, and get back a list (pos. empty) of the ones
     #   this client was authorized to to touch.
-    # FIXME: This could fail
     channels = auth.authorize.getAuthorizedChannels(si, channels)
+    if len(channels) == 0:
+        return xmlrpclib.Fault(1000, 
+            "Client is not authorized for any channels")
 
     # Actually append that information to our headerId
     for chan in channels:
         hi.addAuthChannel(chan)
 
     hi.setChecksum()            
-    return {'type': 'xml', 
-            'data': hi.dumpLoginInfo()}
+    return hi.dumpLoginInfo()
     
 
 def listChannels(sysid_string):
@@ -72,22 +75,26 @@ def listChannels(sysid_string):
     logfunc(locals())
 
     # Authorize the client
-    si = auth.SysId()
-    si.loadstring(sysid_string)
-    if not si.isValid():
-        return xmlrpclib.Fault(1000, "Invalid client certificate.")
+    si = auth.SysId(sysid_string)   
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
 
     # Need a list of channels this client is authorized for 
     # FIXME: we assume only one channel right now is returned...
-    # FIXME: This could fail
     channels = packagedb.db.getCompatibleChannels(si.getattr('architecture'),
                                                   si.getattr('os_release'))
+    if len(channels) == 0:
+        return xmlrpclib.Fault(1000, 
+            "No compatible channels found for client")
 
     # This is mostly here as a marker - we'd pass in a list of all possible
     #   (compatible) channels, and get back a list (pos. empty) of the ones
     #   this client was authorized to to touch.
-    # FIXME: This could fail
     channels = auth.authorize.getAuthorizedChannels(si, channels)
+    if len(channels) == 0:
+        return xmlrpclib.Fault(1000, 
+            "Client is not authorized for any channels")
 
     # Must not alter the in-memory copy - we need a temp form
     result = copy.deepcopy(channels)
@@ -97,8 +104,8 @@ def listChannels(sysid_string):
         for key in chan.keys():
             if key not in ('name', 'parent_channel', 'label', 'arch', 'description'):
                 del chan[key]
-    return {'type': 'xml',
-            'data': result}
+
+    return result
 
         
 def solveDependencies(sysid_string, unknowns):
@@ -109,20 +116,19 @@ def solveDependencies(sysid_string, unknowns):
     logfunc({'unknowns': unknowns})    ## cheat: sysid is boring
 
     # Authorize the client
-    si = auth.SysId()
-    si.loadstring(sysid_string)
-    if not si.isValid():
-        return xmlrpclib.Fault(1000, "Invalid client certificate.")
+    si = auth.SysId(sysid_string)   
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
 
     channels = packagedb.db.getCompatibleChannels(si.getattr('architecture'),
                                                   si.getattr('os_release'))
+    if len(channels) == 0:
+        return xmlrpclib.Fault(1000, 
+            "No compatible channels found for client")
 
-    if channels == None:    
-        return xmlrpclib.Fault(1000, "Cannot find matching distribution")
- 
     provides = {}
     for unk in unknowns:
-        # FIXME: This can fail.
         # according to up2date 2.7.11, pkg could be _plural_, and right now
         # it sucks off the first one returned.
         pkgs = packagedb.db.solveDependancy(channels[0]['label'], 
@@ -138,8 +144,7 @@ def solveDependencies(sysid_string, unknowns):
             for pkg in pkgs:
                 provides[unk].append(pkg[0:4])
 
-    return {'type': 'xml',
-            'data': provides}
+    return provides
 
 
 ## END OF LINE ##    

@@ -1095,22 +1095,6 @@ class Channel:
             del shelf[key]
 
 
-#     def _compareVersion(pkg1, pkg2):
-# 
-#         if pkg1[3] == "":
-#             pkg1[3] = None
-#         else:
-#             pkg1[3] = "%s" % pkg1[3]
-#             
-#         if pkg2[3] == "":
-#                 pkg2[3] = None
-#         else:
-#             pkg2[3] = "%s" % pkg2[3]
-#             
-#         return rpm.labelCompare((pkg1[3], pkg1[1], pkg1[2]),
-#                                 (pkg2[3], pkg2[1], pkg2[2]))
-
-
 def _orderArchs(item1, item2):
     if item1[4] == item2[4]: 
         return 0

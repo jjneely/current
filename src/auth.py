@@ -1,7 +1,7 @@
 ## auth.py
 """ Authentication and Authorization module for current.
 
-For authentication, we have SysId and HeaderId objects that try to say who
+For authentication, we have SysId and SysHeader objects that try to say who
 and what a client is. For authorization, we have the Authorization object.
 
 Copyright (c) 2001 Hunter Matthews    Distributed under GPL.
@@ -37,8 +37,10 @@ class SysId:
                   'profile_name', 'username']
 
 
-    def __init__(self):
+    def __init__(self, sysid_string=None):
         self._data = {}
+        if sysid_string:    
+            self.loadstring(sysid_string)
 
 
     def loadstring(self, xmlstring):
@@ -111,33 +113,40 @@ class SysId:
                      'operating_system', 'os_release', 'architecture',
                      'profile_name', 'username']:
             if not self._data.has_key(attr):
-                return 0
+                return (0, "Sysid missing required attribute")
         
         # Check that authentication data is unaltered
         sum = self._calcChecksum()
         if self._data['checksum'] != sum:
-            return 0
+            return (0, "Sysid checksum is incorrect")
 
         # Type must be real, as yet I'm not sure what that is.
         if self._data['type'] != 'REAL':
-            return 0
+            return (0, "Sysid type is incorrect")
 
         # We don't support sysid's from other server systems, and
         # we only support anonymous clients. (at the moment).
         system_id = self._data['system_id']
         (server_software, number) = string.split(system_id, '-')
-        if server_software != 'Current' and number != 'ANONYMOUS':
-            return 0       
+        if server_software != 'Current':
+            return (0, "Sysid is from some other server software")
 
-        return 1 
+        if number != 'ANONYMOUS':
+            return (0, "Sysid does not have a valid system_id number")
+
+        # Everythings ok
+        return (1, "Sysid is valid")
 
 
-class HeadersId:
+class SysHeaders:
     
-    def __init__(self):
+    def __init__(self, headers=None):
         self.data = {}
         self.data['X-RHN-Server-Id'] = config.cfg.getItem('server_id')
         self.data['X-RHN-Auth-Channels'] = []
+
+        if headers:
+            self.loadHeaders(headers)
 
         
     def loadSysId(self, si):
@@ -255,27 +264,23 @@ class HeadersId:
         for attr in ['X-RHN-Auth-User-Id', 'X-RHN-Server-Id', 
                      'X-RHN-Auth-Expiration', 'X-RHN-Auth-Channels']:
             if not self.data.has_key(attr):
-                log("Could not find attr %s" % attr, VERBOSE)
-                return 0
+                return (0, "SysHeaders missing required attribute")
         
         # Check for server value matching. We won't accept from other
         # people's servers
         if self.data['X-RHN-Server-Id'] != config.cfg.getItem('server_id'):
-            log("server id %s didn't match %s" % \
-                (self.data['X-RHN-Server-Id'], 
-                 config.cfg.getItem('server_id')), VERBOSE)
-            return 0
+            return (0, "SysHeaders from a different server")
 
         # Client authentication data must be unaltered.
         sum = self._calcChecksum()
         if not self.data['X-RHN-Auth'] == sum:
-            log("calculated checksum %s didn't match client %s" % 
-                (sum, self.data['X-RHN-Auth']), VERBOSE)
-            return 0
+            return (0, "SysHeaders checksum is incorrect")
 
         # This can't be all - look for more stuff
-        log("Returning authorized", DEBUG2)
-        return 1
+        # FIXME: has the expiration gone past?
+        # FIXME: do the auth-channels match this actual request?
+        # But not in 1.4.1...
+        return (1, "SysHeaders are valid")
 
 
 class Authorization:
@@ -301,36 +306,6 @@ class Authorization:
         """
 
         return channels
-
-
-def _main():
-
-    xmlstring = open("sysid.sample", "r").read()
-    
-    si = SysId()
-    si.loadstring(xmlstring)
-
-    print "Old sysid:"
-    print si.dump()    
-    
-    print "calculated checksum:"
-    print si.calcChecksum()
-
-    if si.getattr('checksum') == si.calcChecksum():
-        print "Normal: They match"
-    else:
-        print "Normal: No match"
-
-    si.setattr("os_release", "3.0.3")
-    print si.dump()
-    if si.getattr('checksum') == si.calcChecksum():
-        print "altered: They match"
-    else:
-        print "altered: No match"
-
-
-if __name__ == '__main__':
-    _main()
 
 
 ## END OF LINE ##    

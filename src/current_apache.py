@@ -64,17 +64,19 @@ def init_backend():
     apacheLog("Starting backend", 'NOTICE')
 
     # Config object
+    apacheLog("Getting the server configuration", 'INFO')
     config.cfg = config.Config(config.defaults)
     config.cfg.load()
 
     # Logging
     # We need logging running before we can init the database.
-    apacheLog("Starting logging", 'INFO')
-
     logfile = config.cfg.getItem('log_file')
     level = int(config.cfg.getItem('log_level'))
     logconfig(level, open(logfile, "a", 0))
+    apacheLog("Starting logging", 'INFO')
     apacheLog("Using current log %s" % logfile, 'INFO')
+
+    log("Current v%s starting up" % config.VERSION, MANDATORY)
 
     # Database 
     # In the future, the database may need to be up before auth
@@ -102,17 +104,20 @@ def accesshandler(req):
     if not config.cfg:
         init_backend()
 
-#    apacheLog(req.uri)
-#    for key in req.headers_in.keys():
-#        apacheLog("headers_in[%s] == %s" %(key, req.headers_in[key]))
+    if 0:      # debugging code - leave this here
+        apacheLog(req.uri)
+        for key in req.headers_in.keys():
+            apacheLog("headers_in[%s] == %s" %(key, req.headers_in[key]))
  
-    hi = auth.HeadersId()
-    hi.loadHeaders(req.headers_in)
- 
-    if not hi.isValid():
+    # Now we can actually check on the  clients authorizations
+    hi = auth.SysHeaders(req.headers_in)
+    (valid, reason) = hi.isValid()
+    if not valid:
+        apacheLog("Request %s could not be authorized" % req.uri, 'NOTICE')
+        apacheLog("Reason for failure was %s" % reason, 'NOTICE')
         return apache.HTTP_UNAUTHORIZED
-
-    return apache.OK
+    else:
+        return apache.OK
 
 
 def typehandler(req):
@@ -160,8 +165,9 @@ def handler(req):
 
     if not req.method == 'POST':
         # This would be considered a Bad Thing...
+        # FIXME: we need to log more stuff here, to debug the problem
         apacheLog("Unkown request type found!")
-        log ("Don't know how to handle this request type: %s" % req.method, DEBUG)
+        log("Don't know how to handle this request type: %s" % req.method, DEBUG)
         return apache.HTTP_BAD_REQUEST
     else:
         try:
@@ -184,11 +190,10 @@ def handler(req):
         except:
             logException()
             return apache.HTTP_BAD_REQUEST
+
+        apacheLog('Result = %s' % pprint.pformat(result), 'NOTICE')
     
         return sendClientResult(req, result)
-
-    # We shouldn't ever reach this line...
-    return apache.OK
 
 
 def loghandler(req):
@@ -218,26 +223,20 @@ def sendClientResult(req, result):
 
     data = ''                           # start off with nothing
 
-    if result['type'] == 'xml':
-        log('Result is a normal XML chunk', DEBUG2)
-        if type(result['data']) != type(()):
-            data = (result['data'],)
-        else:
-            data = result['data']
-        data = xmlrpclib.dumps(data, methodresponse=1)
-
-    elif isinstance(result, xmlrpclib.Fault):
+    if isinstance(result, xmlrpclib.Fault):
         log('Result is a Fault', DEBUG)
         req.headers_out.add('X-RHN-Fault-Code', str(result.faultCode))
         req.headers_out.add('X-RHN-Fault-String', base64.encodestring(result.faultString))
-
     else:
-        # We have no clue what the result was, bug.
-        log('Could not determine type of return data', MANDATORY)
-        log('Result type was %s', type(result))
-        req.headers_out.add('X-RHN-Fault-Code', '-100')
-        req.headers_out.add('X-RHN-Fault-String', 
-            base64.encodestring('Internal server error: could not determine result type'))
+        log('Result is normal data: turn it into an XML chunk', DEBUG2)
+
+        # Force data to be encapsulated in a tuple.
+        # NOTE: thats NOT at all what the tuple() builtin does.
+        if type(result) != type(()):
+            data = (result,)
+        else:
+            data = result
+        data = xmlrpclib.dumps(data, methodresponse=1)
 
     # All POST results are 'text/xml' with the length set, regardless of 
     # a normal or error condition return.

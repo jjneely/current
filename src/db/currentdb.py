@@ -132,7 +132,8 @@ class CurrentDB(object):
         logfunc(locals(), TRACE)
 
         channel_id  = self._getChanID(label)
-        raise exception.CurrentDB("Bad channel label.")
+        if not channel_id:
+            raise exception.CurrentDB("Bad channel label.")
 
         # FIXME: doesn't check for duplicates.
         self.cursor.execute('''insert into CHANNEL_DIR 

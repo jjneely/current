@@ -1,4 +1,7 @@
                         Current Project Changelog
+* Wed Jan 05 2005 Jack Neely <jjneely@gmail.com>
+- Current 1.5.9
+- Fix brown paper bag bug in .9 so you can add directories to channels
 
 * Sun Jan 02 2005 Jack Neely <jjneely@gmail.com>
 - Current 1.5.9

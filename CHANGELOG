@@ -1,6 +1,22 @@
                         Current Project Changelog
+* Wed Feb 16 2005 Jack Neely <jjneely@gmail.com>
+- Current 1.5.11
+- ConstructParser is gone in favor of headerParser to parse the list-like
+  strings from the up2date clients.  Much cleaner.
+- If filesystems bits of cadmin scan_channel blow up the database transaction
+  that is part of that operation are rolled back.  This leaves Current in
+  the same state that it was before the scan_channel command
+- traceback during RPM delete code when using PostgreSQL fixed
+- Documentation for 1.6 is hopefully much more in shape.  Looking for
+  contributors here
+- MySQL support -- Pauline Middelink
+- solveDependancy() fixes -- Pauline Middelink
+- patch for parent channels -- Pauline Middelink
+- Catch cases where rpmnlib can return None in a specific planetary
+  alignment
+
 * Wed Jan 05 2005 Jack Neely <jjneely@gmail.com>
-- Current 1.5.9
+- Current 1.5.10
 - Fix brown paper bag bug in .9 so you can add directories to channels
 
 * Sun Jan 02 2005 Jack Neely <jjneely@gmail.com>

@@ -46,6 +46,15 @@ Current. If you feel something should go in here, please email me.
         createChannel)).\n"&gt;"</a></li>
     <li><a href="#t7">I'm running Red Hat Linux 8.0 and I recently
         updated/installed apache and [now] Current won't work</a></li>
+    <li><a href="#t8">I'm running Fedora Core 2 or Fedora Core 3 using a
+        PostgreSQL database and I keep getting "Operational error in 'INIT'"
+        in my current.log file.  No cadmin command work.  
+        What's wrong?</a></li>
+    <li><a href="#t9">I'm running Fedora Core 3, Red Hat Enterprise Linux 4, 
+        or greater OS and Current wont work at all.  The current.log file 
+        says nothing is wrong.  Up2date and cadmin always get "Internal 
+        Server Error" every time the talk to the Current server.  
+        What's wrong?</a></li>
     </ol>
 </ul>
 
@@ -57,12 +66,11 @@ Current. If you feel something should go in here, please email me.
 <a name="g1"/>
 <h3>What versions of the up2date client API are supported?</h3>
 
-The 2.7 version of the API is fully supported with the exception of
+The 2.7 - 4.3 versions of the API are fully supported with the exception of
 server-pushed actions.  The 2.5 version is no longer <!-- (and never will
  be again) --> supported. <!-- In fact, it never existed.  2.5 was all a
 big government conspiracy deliberately aimed at Open Source.  These are not
 the API calls you are looking for; go on about your business. --> 
-2.9 APIs will be supported at some point in the near future.
 
 <a name="g2"/>
 <h3>Does the server name need to be the real name of the server (so reverse
@@ -341,6 +349,32 @@ apache drops root permissions before Current starts running and only root
 can read the directory, Current can't get to its log file. Either change the
 permissions back or move the log file to somewhere the apache user can reach
 it. (Like /var/log)
+</p>
+
+<a name="t8"></a>
+<h3>I'm running Fedora Core 2 or Fedora Core 3 using a
+    PostgreSQL database and I keep getting "Operational error in 'INIT'"
+    in my current.log file.  No cadmin command work.
+    What's wrong?</h3>
+
+<p>
+In Fedora Core 2 and Fedora Core 3 some of the <tt>postgresql-python</tt>
+are very broken.  So broken, in fact, that they will not execute any SQL
+commands.  Upgrade to the latest PostgreSQL packages and the problem should
+be fixed.
+</p>
+
+<a name="t9"></a>
+<h3>I'm running Fedora Core 3, Red Hat Enterprise Linux 4, or greater OS
+    and Current wont work at all.  The current.log file says nothing is 
+    wrong.  Up2date and cadmin always get "Internal Server Error" every
+    time the talk to the Current server.  What's wrong?</h3>
+
+<p>
+You need to disable SELinux.  The Current source code and, most likely, your
+RPMS that would want Current to server are in directories where SELinux 
+does not allow Apache to read.  Edit the <tt>/etc/sysconfig/selinux</tt> file
+to disable SELinux and then reboot.
 </p>
 
 </body>

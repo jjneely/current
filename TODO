@@ -1,5 +1,7 @@
                        Current Server TODO List
 
+* Convert to use python's logging module
+
 * Support the capabilities in capabilities.py in the up2date code base.
   See Issue #29
 
@@ -37,14 +39,6 @@
   our lives easier to support multiple databases?
 
   http://pdo.neurokode.com/
-
-BUGS in 1.5.x so far:
-postgres.makeChannel()
-    We do the database bits first, commit(), then try the directory crap.
-    If the directory crap fails, we can't run makeChannel() again to fix 
-    it.
-    Solution: db first, then try: filesystem crap: except: rollback else: 
-    commit
 
 1.6.0 ship checklist
 

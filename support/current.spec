@@ -5,7 +5,7 @@
 
 Summary: A server for Red Hat's up2date tools.
 Name: current
-Version: 1.5.10
+Version: 1.5.11
 Release: 1
 License: GPL
 Group: System Environment/Daemons
@@ -49,7 +49,7 @@ make install INSTALL_ROOT=$RPM_BUILD_ROOT
 %doc docs/*.txt docs/FAQ
 %doc docs/client
 %doc docs/developer_docs
-%doc docs/current-guide.ps docs/current-guide
+%doc docs/current-guide
 %config(noreplace) /etc/current/current.conf
 %dir /etc/current
 %dir /usr/share/current

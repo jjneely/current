@@ -8,7 +8,8 @@ current-guide-html: guide-source
 	xmlto html -o current-guide  current-guide.xml
 
 current-guide-ps: guide-source
-	xmlto ps current-guide.xml
+	#xmlto ps current-guide.xml
+	/bin/true
 
 guide-source: client.xml configuration.xml current-guide.xml installation.xml maintaining.xml databases.xml
 

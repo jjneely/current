@@ -1,7 +1,5 @@
 """ Implementation of the PostgreSQL backend for Current"""
 
-# We NEVER want to pass a cursor object outside of this module.  NEVER.
-
 import pgdb
 import schema
 from db.currentdb import CurrentDB
@@ -19,9 +17,8 @@ import pprint
 
 class PostgresDB(CurrentDB):
     def __init__(self):
-        # What to put here?
         self.conn = None
-        self.cursor = None   # not sure if this is ideal...
+        self.cursor = None
 
     def __del__(self):
         self.cursor.close()
@@ -30,60 +27,38 @@ class PostgresDB(CurrentDB):
         self.conn = None
 
     def initdb(self, config):
-        # We don't do normal loggin here, we use prints, as this is
-        # currently handled locally (no pun intended).
         CurrentDB.initdb(self, config)
 
-        try:
-            self.conn = pgdb.connect(config['db_dsn'])
-            print "Connected vis DSN"
-        except:
-            try:
-                self.conn = pgdb.connect(user=config['db_user'], host=config['db_host'], password=config['db_pass'], database=config['db_name'])
-                print "Connected via user, password, host, database"
-            except Exception, e:
-                print "Could not connect to database!"
-                print "\n";
-                print "Please make sure your Postgres instance is configured to allow TCP/IP"
-                print "connections from this host with the specified username and password to"
-                print "the specified database."
-                sys.exit(0)
+        self.connect(config)
 
-        print "Connection obtained.  Going to create database tables."
         self.cursor = self.conn.cursor()
-        try:
-            self.cursor.execute(schema.INITDB)
-        except Exception, e:
-            print "Error creating database tables!  Perhaps you need to drop and"
-            print "recreate this database."
-            print e
-            sys.exit(0)        
+        self.cursor.execute(schema.INITDB)
         self.conn.commit()
-        print "Database table create commited.  Initdb done.  You can now start the"
-        print "actual Current server on this host and populate the channel information"
-        print "with cadmin."
+        log("Database table create commited.  Initdb done.", TRACE)
+
 
     def connect(self, config):
-        # We'll definitely need loggin here, but I've yet to figure out
-        # how to make that work sanely.
         log("Obtaining connection", TRACE)
-        if ( self.conn != None ):
+        if self.conn:
             log("Connection already exists!", TRACE)
             return
-        try: 
+
+        if 'db_dsn' in config:
             self.conn = pgdb.connect(config['db_dsn'])
             log("Connection obtained via DSN", TRACE)
-        except:
+        else:
             self.conn = pgdb.connect(user=config['db_user'], host=config['db_host'], password=config['db_pass'], database=config['db_name'])
-            log ("Connection via user/password", TRACE)
+            log("Connection via user/password", TRACE)
+
 
     def disconnect(self):
-        if ( self.cursor != None ):
+        if self.cursor:
             self.cursor.close()
             self.cursor = None
-        if ( self.conn != None ):
+        if self.conn:
             self.conn.close()
             self.conn = None
+
 
     def makeChannel(self, config, channel):
         logfunc(locals(), TRACE)
@@ -600,7 +575,7 @@ class PostgresDB(CurrentDB):
         log("Grabbing getObsoletes information", TRIVIA)
         self.cursor.execute("""select package.pkgname, package.version,
                 package.release, package.epoch, rpm.arch,
-                rpmobsolete.name, rpmobsolete.flags, rpmobsolete.vers
+                rpmobsolete.name, rpmobsolete.vers, rpmobsolete.flags
                 from package, rpmobsolete, rpm
                 inner join channel on (rpm.active_channel_id = channel.channel_id)
                 where channel.label = '%s'

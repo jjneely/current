@@ -38,9 +38,11 @@ later).
 1.6.x will be the production version of the up porting 1.5.x
 
 1.7.x will work on refining additional SQL backends and supporting the
-rhn_applet
+rhn_applet and subchannels.  A simple web interface for monitoring clients
+that update from this Current server.  A reworked cadmin tool.
 
-1.8.x Production anonymous only server using pysqlite.
+1.8.x Production anonymous only server using multiple SQL databases, 
+subchannels, and a simple anonymous web interface.
 
 1.9.x Begining support on host tracking, actions, etc. 
 
@@ -64,7 +66,5 @@ have to tell me.
 
 4. We'll start to need a more powerful control/administrative system than
 cadmin pretty soon. I'd like that to be web based (like RHN itself). 
-    
-    
 
 

@@ -14,7 +14,7 @@ Copyright 2003   Hunter Matthews  <thm@duke.edu>
 
 ## constants and defaults
 # These are replaced by make, so beware
-MODULES_DIR="/usr/share/current"
+MODULES_DIR="src/"
 
 import sys
 import os

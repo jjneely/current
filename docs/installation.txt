@@ -50,9 +50,9 @@ below must be done as root.
 
 *) Edit the /etc/current/current.conf file to your liking.  The Apache
 web server must be able to write the the log_file given.  At this
-point we support two databases where db_type can be 'postgres' or
-'pysqlite'.  A PostgreSQL database backend requires you to specify
-the user, host, database, password configs.  The SQLite backend
+point we support two databases where db_type can be 'postgres', 'mysql' or
+'pysqlite'.  MySQL and  PostgreSQL database backendd requires you to 
+specify the user, host, database, password configs.  The SQLite backend
 does not require any extra configuration.  Current will put the 
 SQLite database in current_dir/db/current.sqlite
 
@@ -87,10 +87,14 @@ put this in a cron job.
 
 There you have it.  You should now have a working Current server.
 
-Note that both SQLite and PostgreSQL require you to periodically 
+* Note that both SQLite and PostgreSQL require you to periodically 
 "VACUUM" the databases.  You'll need to do that to keep the databases
 small, fast, and sane.  A rawhide channel can take up to 40 to 100
 MB of hard drive space for the database.
+
+* Note that SELinux may need to be disabled to run Current.  SELinux only
+allows apache to read files from certain places.  My home directory where
+I do development is not one of them.
 
 
 Installation on the clients:
@@ -108,7 +112,9 @@ Installation on the clients:
 * As root, in /etc/sysconfig/rhn/ edit the rhn_register and up2date config
   files. The only entries you are required to change for the Current server
   are noSSLServerURL and serverURL. (The entries are the same in both files,
-  and should be identical between rhn_register and up2date).
+  and should be identical between rhn_register and up2date).  You may also
+  need to change the location of the RHNS-CA-CERT file if you wish to keep
+  the certificate for the Current server in a different place.
   
   From Red Hat, they are setup to point to RHN (naturally)
   serverURL=https://www.rhns.redhat.com/XMLRPC
@@ -181,11 +187,7 @@ Updates, changes, errors, or whatever in these doc should be reported to
 the mailing list, issues@current.tigris.org
 
 
-Note 1: Right now, only one channel per arch/os_release combination is
-supported. You can "add" packages easily to the base redhat simply by
-including multiple dirs per channel.
-  
-Note 2: The example config file implies that I've used a full CD image/ nfs
+Note 1: The example config file implies that I've used a full CD image/ nfs
 install tree as my package set. That IS how I do it - I hope for my
 situation to be able to have one tree that is used both to install new
 clients and keep old ones up2date. However, thats not a requirement - you
@@ -195,12 +197,12 @@ database.
 As a bare minimum, just the published Red Hat errata in a single dir would
 make a very valuable Current server for simple/small sites....
     
-Note 3: During channel creation, if your tree is like mine, there might be
+Note 2: During channel creation, if your tree is like mine, there might be
 some warnings about duplicate packages (exactly the same package seen twice,
 through symlinks). Since thats not a problem for the database to resolve, it
 prints a warning and moves on. Nothing _has_ to be done about these
 warnings.
 
-Note 4: rhn_register has been incorporated directly into up2date as of
+Note 3: rhn_register has been incorporated directly into up2date as of
 Red Hat Linux 8.0.
 

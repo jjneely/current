@@ -73,7 +73,8 @@ class CurrentDB(object):
     def abort(self):
         """If an exception occures in a cirtical part of the DB code
            we need to be able to abore the transaction."""
-
+        
+        log("Database transaction aborted!", VERBOSE)
         self.conn.rollback()
 
 
@@ -138,7 +139,7 @@ class CurrentDB(object):
         # FIXME: doesn't check for duplicates.
         self.cursor.execute('''insert into CHANNEL_DIR 
                                (channel_id, dirpathname) 
-                               values (%d, %s)''', 
+                               values (%s, %s)''', 
                             (channel_id, dirname))
         self.conn.commit()
         log("Directory added to channel", DEBUG)
@@ -191,7 +192,7 @@ class CurrentDB(object):
         chanID = self._getChanID(channel)
 
         self.cursor.execute("""update CHANNEL set lastupdate = %s
-                            where channel_id = %d""", (t, chanID))
+                            where channel_id = %s""", (t, chanID))
 
         return 0
 
@@ -265,9 +266,11 @@ class CurrentDB(object):
                                 (rpm_id,))
             
             self.cursor.execute("""select count(*) from RPM where
-                                   package_id = %s""", (package_id))
-            r = resultSet(self.cursor)
-            if r['count(*)'] == 0:
+                                   package_id = %s""", (package_id,))
+            r = self.cursor.fetchone()
+            log("Num of RPMs with package_id=%s: %s" % (package_id,
+                str(r)), DEBUG2)
+            if r[0] == 0:
                 # We know there are no more refferences to this PACKAGE
                 self.cursor.execute("""delete from PACKAGE where 
                                        package_id = %s""", (package_id,))
@@ -349,7 +352,7 @@ class CurrentDB(object):
     def _insertChannelTable(self, chanID, rpmID):
 
         self.cursor.execute('''insert into CHANNEL_RPM (rpm_id, channel_id) 
-                            values (%d, %d) ''', 
+                            values (%s, %s) ''', 
                             (rpmID, chanID))
 
         log("RPM ID=%s added to channel" % rpmID, TRACE)
@@ -429,7 +432,7 @@ class CurrentDB(object):
         self.cursor.execute('''insert into RPM
                                (package_id, filename, arch, size)
                                values
-                               (%d, %s, %s, %s)''',
+                               (%s, %s, %s, %s)''',
                             (package_id, header[RPM.CT_PATHNAME],
                              header[RPM.ARCH], header[RPM.CT_FILESIZE]))
 
@@ -445,11 +448,11 @@ class CurrentDB(object):
         if flags != None and vers != None:
             query = """insert into DEPENDANCIES 
                        (rpm_id, dep, vers, flags, type) values
-                       (%d, %s, %s, %s, %d)"""
+                       (%s, %s, %s, %s, %s)"""
             t = (rpm_id, dep, vers, flags, type)
         else:
             query = """insert into DEPENDANCIES (rpm_id, dep, type)
-                       values (%d, %s, %d)"""
+                       values (%s, %s, %s)"""
             t = (rpm_id, dep, type)
 
         self.cursor.execute(query, t)
@@ -480,14 +483,14 @@ class CurrentDB(object):
         # Clear out this channels entries from the CHANNEL_RPM_ACTIVE table
         chan_id = self._getChanID(channel)
         self.cursor.execute('''delete from CHANNEL_RPM_ACTIVE
-                               where channel_id = %d''', (chan_id,))
+                               where channel_id = %s''', (chan_id,))
 
         # First, get a list of unique pkg names:
         self.cursor.execute('''select distinct PACKAGE.name 
                                from PACKAGE, RPM, CHANNEL_RPM
                                where PACKAGE.package_id = RPM.package_id and
                                      RPM.rpm_id = CHANNEL_RPM.rpm_id and
-                                     CHANNEL_RPM.channel_id = %d
+                                     CHANNEL_RPM.channel_id = %s
                                      and PACKAGE.issource = 0''', (chan_id,))
         newest_ids = []
         query = self.cursor.fetchall()
@@ -499,9 +502,8 @@ class CurrentDB(object):
             log('setting rpmid %s active' % id, DEBUG2)
             self.cursor.execute('''insert into CHANNEL_RPM_ACTIVE
                                    (rpm_id, channel_id)
-                                   values (%d, %d)''', (id, chan_id))
+                                   values (%s, %s)''', (id, chan_id))
 
-        self.conn.commit()
         return 0
 
 
@@ -511,7 +513,7 @@ class CurrentDB(object):
                                from PACKAGE, RPM, CHANNEL_RPM
                                where PACKAGE.package_id = RPM.package_id and
                                RPM.rpm_id = CHANNEL_RPM.rpm_id and 
-                               CHANNEL_RPM.channel_id = %d and
+                               CHANNEL_RPM.channel_id = %s and
                                PACKAGE.issource = 0 and
                                PACKAGE.name = %s''', (chanID, pkg))
         query = self.cursor.fetchall()
@@ -530,7 +532,7 @@ class CurrentDB(object):
                                from RPM, PACKAGE, CHANNEL_RPM
                                where PACKAGE.package_id = RPM.package_id and 
                                      RPM.rpm_id = CHANNEL_RPM.rpm_id and 
-                                     CHANNEL_RPM.channel_id = %d and 
+                                     CHANNEL_RPM.channel_id = %s and 
                                      PACKAGE.name = %s and 
                                      PACKAGE.version = %s and 
                                      PACKAGE.release = %s and 
@@ -581,7 +583,7 @@ class CurrentDB(object):
                 and PACKAGE.package_id = RPM.package_id
                 and RPM.rpm_id = DEPENDANCIES.rpm_id 
                 and PACKAGE.issource = 0
-                and DEPENDANCIES.type = %d
+                and DEPENDANCIES.type = %s
                 order by PACKAGE.name''', (channel, OBSOLETES))
         
         xmlrpc.fileDump(self.cursor, filename, gz=1)
@@ -695,15 +697,24 @@ class CurrentDB(object):
         # get the canonical architecture.
         carch = archtab.getCannonArch(arch)
 
+        # find all channels of this type
+        self.cursor.execute('''select channel_id, label
+                      from CHANNEL
+                      where arch = %s
+                      and osrelease = %s order by label desc''', (carch, release))
+        query = self.cursor.fetchall()
+        parents = {}
+        for row in query:
+            parents[row[0]] = row[1]
+
         log("arch: %s, rel: %s" % (carch, release), DEBUG2)
         self.cursor.execute('''select name, label, arch, description, 
-                    lastupdate from CHANNEL
+                    lastupdate, parentchannel_id from CHANNEL
                     where arch = %s
                     and osrelease = %s''', (carch, release))
         query = self.cursor.fetchall()
         log("found: %s" % str(query), DEBUG2)
         chanList = []
-        # FIXME: get parent channel info in there.
         for row in query:
             chan = {}
             chan['name'] = row[0]
@@ -711,7 +722,10 @@ class CurrentDB(object):
             chan['arch'] = row[2]
             chan['description'] = row[3]
             chan['lastupdate'] = row[4]
-            chan['parent_channel'] = ''
+            if row[5] == None:
+                chan['parent_channel'] = ''
+            else:
+                chan['parent_channel'] = parents[row[5]]
             chanList.append(chan)
 
         return chanList
@@ -729,7 +743,7 @@ class CurrentDB(object):
                     where DEPENDANCIES.rpm_id = RPM.rpm_id
                     and RPM.rpm_id = CHANNEL_RPM_ACTIVE.rpm_id
                     and CHANNEL_RPM_ACTIVE.channel_id = %s
-                    and DEPENDANCIES.type = %d
+                    and DEPENDANCIES.type = %s
                     and DEPENDANCIES.dep = %s''' 
         self.cursor.execute(query, (act_ch_id, PROVIDES, unknown))
         r = resultSet(self.cursor)
@@ -764,8 +778,8 @@ class CurrentDB(object):
         result = fixedResult
 
         log("up2date.solveDependency is returning %s" % result, DEBUG)
-        if (type(result[0]) != type([])):
-            result = [result]
+#        if (type(result[0]) != type([])):
+#            result = [result]
         return result            
 
 

@@ -13,7 +13,7 @@ URL: http://current.tigris.org
 Source0: ftp://ftp.biology.duke.edu/pub/admin/current/%{name}-%{version}.tar.gz
 Requires: python rpm-python mod_python mod_ssl 
 Requires: rpm >= 4.0.2-8
-Requires: httpd postgresql-server postgresql-python
+Requires: httpd 
 BuildRequires: docbook-style-xsl docbook-style-dsssl docbook-dtds
 BuildRequires: docbook-utils docbook-utils-pdf
 BuildArchitectures: noarch

@@ -113,12 +113,25 @@ def accesshandler(req):
     # debugging code - leave this here
     log("Inside Current accesshandler", TRIVIA)
     log(req.uri, DEBUG2)
-    #for key in req.headers_in.keys():
-    #    log("headers_in[%s] == %s" %(key, req.headers_in[key]), TRACE)
- 
-    # Now we can actually check on the  clients authorizations
-    hi = auth.SysHeaders(req.headers_in)
-    (valid, reason) = hi.isValid()
+    for key in req.headers_in.keys():
+        #if key[0:5] in ["x-rhn", "x-up2"]:
+        log("headers_in[%s] == %s" %(key, req.headers_in[key]), TRACE)
+
+    try:
+        # Now we can actually check on the  clients authorizations
+        hi = auth.SysHeaders(req.headers_in)
+        (valid, reason) = hi.isValid()
+    except CurrentException, e:
+        log("ERROR: A CurrentException was raised -- in accesshandler().",
+            MANDATORY)
+        logException()
+        return apache.HTTP_INTERNAL_SERVER_ERROR
+    except Exception, e:
+        log("ERROR: accesshandler() blew up with undefined error",
+            MANDATORY)
+        logException()
+        return apache.HTTP_INTERNAL_SERVER_ERROR
+                        
     if not valid:
         log("Request %s could not be authorized" % req.uri, VERBOSE)
         log("Reason for failure was %s" % reason, VERBOSE)

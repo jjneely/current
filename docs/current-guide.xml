@@ -1,0 +1,44 @@
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" 
+   "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
+<!ENTITY installing SYSTEM "installation.xml">
+<!ENTITY configuring SYSTEM "configuration.xml">
+<!ENTITY managing SYSTEM "managing.xml">
+<!ENTITY client SYSTEM "client.xml">
+<!ENTITY maintenance SYSTEM "maintaining.xml">
+<!ENTITY databases SYSTEM "databases.xml">
+<!ENTITY glossary SYSTEM "gloss.xml">
+]>
+
+<!--  Current Admin and User Guide -->
+
+<book status="final">
+  <title>Current: An Open Source Server for Red Hat's up2date Updater</title>
+
+<bookinfo>
+  <title>Current: An Open Source Server for Red Hat's up2date Updater</title>
+  <author><firstname>Jack</firstname><surname>Neely</surname>
+    <affiliation>
+      <orgname>NCSU College of Physical and Mathematical Sciences</orgname>
+      <address>
+        <email>jjneely@gmail.com</email>
+      </address>
+    </affiliation>
+  </author>
+  <author><firstname>John</firstname><surname>Berninger</surname>
+    <affiliation>
+      <orgname>NCSU Department of Mathematics</orgname>
+      <address>
+        <email>John_Berninger@ncsu.edu</email>
+        <email>Johnw@berningeronline.net</email>
+      </address>
+    </affiliation>
+  </author>
+</bookinfo>
+
+&installing;
+&configuring;
+&managing;
+&client;
+&maintenance;
+&glossary;
+</book>

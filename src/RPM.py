@@ -45,6 +45,8 @@ locals().update(tagnames)
 __all__ = tagnames.keys()
 __all__.append('Header')
 
+from logger import *
+
 class RPMException(Exception):
     pass
 
@@ -200,11 +202,11 @@ class Header(object):
             os.close(fd)
         except:
 #            logException()
-            print "Warning: Could not open package %s" % pathname
+            log("Warning: Could not open package %s" % pathname, VERBOSE)
             return (None, None)
             
         if header == None:
-            print "Warning: Could not read package %s" % pathname
+            log("Warning: Could not open package %s" % pathname, VERBOSE)
             return (None, None)
         else:
             return (header, isSource)
@@ -220,7 +222,7 @@ class Header(object):
             isSource = header[rpm.RPMTAG_SOURCEPACKAGE]
             os.close(fd)
         except Exception, e:
-            print "Warning: Could not open package %s" % pathname
+            log("Warning: Could not open package %s" % pathname, VERBOSE)
             return (None, None)
                              
         if type(isSource) == list:
@@ -231,10 +233,19 @@ class Header(object):
                 raise RPMException("Unexpected RPMTAG_SOURCEPACKAGE value")
 
         if header == None:
-            print "Warning: Could not read package %s" % pathname
+            log("Warning: Could not read package %s (Null header)" % pathname,
+                VERBOSE)
             return (None, None)
-        else:                                                                                
-            return (header, isSource)
+        
+        if isSource == None:
+            # *cover ears* LALALA LA-LA LALALA!
+            isSource = 0 # false
+
+        if not type(isSource) == int:
+            raise RPMException("Unexpected RPMTAG_SOURCEPACKAGE type %s" %
+                               str(type(isSource)))
+        
+        return (header, isSource)
 
 
 # We need to figure out what to do with this routine...

@@ -1,11 +1,11 @@
 <!-- Mainaging your Current server -->
-<chapter id="manage"<title>Managing your Current Server</title>
+<chapter id="manage"><title>Managing your Current Server</title>
 <section id="manageintro"><title>Introduction</title>
 <para>
 Management and maintenance of Current has changed dramatically from the 1.4.x
-series to the 1.5.x series.  This portion of the guide will give you the
-instructions you need to get your 1.5.x devel server (or later, a 1.6.x 
-production server) up and running and serving packages.  Please read this
+series to the 1.6.x series.  This portion of the guide will give you the
+instructions you need to get your 1.5.x devel server or a 1.6.x 
+production server up and running and serving packages.  Please read this
 section carefully, as there is very little that has not changed since 1.4.x.
 </para>
 </section>
@@ -27,7 +27,7 @@ will greatly enhance the usability and future expandability of Current; we'd
 really like to hear feedback from users about the usability of this new
 management method.
 </para>
-<section id="createchan"><title>cadmin create_channel</title>
+<section id="createchan"><title>Creating the Channel</title>
 <para>
 There are three commands you will need to use to set up a channel in Current.
 The first, <command>cadmin create_channel</command>, is what actually creates
@@ -103,10 +103,10 @@ please submit a bug report.  In the production (1.6.x) releases, this output wil
 on success unless specifically asked for with a future --verbose (-v) flag.
 </para>
 </section>
-<section id="chanadddir"><title>add_dir</title>
+<section id="chanadddir"><title>Adding a Directory</title>
 <para>
 The second command you will need is <command>cadmin add_dir</command>.  This
-command takes three options:
+command takes two options:
 </para>
 <glosslist>
 <glossentry id="addlabel"><glossterm>--label (-l)</glossterm>
@@ -116,21 +116,12 @@ This is the channel label, as above.  A label is required.
 </para>
 </glossdef>
 </glossentry>
-<glossentry id="bindir"><glossterm>--bin-dir (-b)</glossterm>
+<glossentry id="bindir"><glossterm>--dir (-d)</glossterm>
 <glossdef>
-<para>The --bin-dir option specifies a directory of binary (as opposed to
-source) RPMS that should be associated with this channel.  This option is
-not required (you can specify only source directories if you wish), and can be
-repeated for multiple binary directories.
-</para>
-</glossdef>
-</glossentry>
-<glossentry id="srcdir"><glossterm>--src-dir (-s)</glossterm>
-<glossdef>
-<para>The --src-dir option specifies a directory of source (as opposed to
-binary) RPMS that should be associated with this channel.  This option is
-not required (you can specify only binary directories if you wish), and can be
-repeated for multiple source directories.
+<para>
+  This option must be followed by the absolute path to a directory of
+  RPMs or SRPMs.  The packages in this directory will become part
+  of the channel specified by the channel label.
 </para>
 </glossdef>
 </glossentry>
@@ -149,12 +140,12 @@ This cannot be emphasized emough: all directories must be
 directories on the machine <command>cadmin</command> is being run on.
 </para>
 </section>
-<section id="scanchan"><title>scan_channel</title>
+<section id="scanchan"><title>Scan Channel</title>
 <para>
 The third command you will need to become familiar with is the
 <command>cadmin scan_channel</command> command.  This command only takes a
-single option, the <quote>--label</quote> option as above.  You can specify
-multiple --label options with this command.  This command is what tells the
+single option, the <option>--label</option> option as above.  You can specify
+multiple <option>--label</option> options with this command.  This command is what tells the
 server to do the bulk of the setup work; it looks at the channel configuration,
 reads through the RPMS in the directories specified by the <command>cadmin
 add_dir</command> command, and imports the required information into the 

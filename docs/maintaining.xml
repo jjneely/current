@@ -9,5 +9,11 @@ Likewise, all <command>cadmin</command> commands are executed through the
 Apache server.  We have not yet tested performing database updates while
 clients are actively connected; please test this functionality with care.
 </para>
+<para>
+  You need to run <command>cadmin scan_channel</command> with the proper
+  channel labels when your server trees change.  Most people set this
+  up as part of the cron job that updates the trees on the server.
+  This is the only maintenance that Current 1.6 needs.
+</para>
 </section>
 </chapter>

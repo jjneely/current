@@ -27,6 +27,9 @@ def selectBackend(config):
     if config['db_type'] == 'postgres':
         import postgres
         sdb = postgres.PostgresDB(config)
+    elif config['db_type'] == 'mysql':
+        import mysql
+        sdb = mysql.MysqlDB(config)
     elif config['db_type'] == 'pysqlite':
         import pysqlite
         sdb = pysqlite.PySqliteDB(config)

@@ -1,5 +1,8 @@
                        Current Server TODO List
 
+* Support the capabilities in capabilities.py in the up2date code base.
+  See Issue #29
+
 * The cadmin and cinstall programs need to be reworked.  I'd like to do
   a modular approch similar to realmconfig where "cadmin foo" loads the
   foo module from a python package or random directory.  A defined
@@ -43,33 +46,24 @@ postgres.makeChannel()
     Solution: db first, then try: filesystem crap: except: rollback else: 
     commit
 
-postgres.initdb()
-    Should we create the needed dirs here? I think so...
-
-postgres.*
-    All the api functions are returning 'ok' or 'fail' strings. 
-    Fix this
-
-postgres.addDir()
-    Possible to add duplicate dir entries.
-    Solution: add uniquness constrain on (channel_id, dirpathname)
-
-_scanFilesystem() is done
-
-    
 1.6.0 ship checklist
 
 More Code cleanups in general
 Move all the db portable code from postgres.py to currentdb.py
 Remove the src/bin distinction 
 Make the scanning recursive.
-Add cadmin API calls for querying
-Add input checking into cadmin
-Clean up the cmd line parsing in cadmin
 Redo the deps handling in the database
 Check on the use of transactions (where, how many, etc)
 
 and poof, we're done. <sigh>
 
 
+1.8.0 ship checklist
+
+Re-work cadmin into a text based, modular configuration system
+Add input checking into cadmin
+Clean up the cmd line parsing in cadmin
+Add cadmin API calls for querying
+Non-authenticated, web interface for monitoring of clients
+Subchannels
 

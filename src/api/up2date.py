@@ -132,22 +132,31 @@ def solveDependencies(sysid_string, unknowns):
         return xmlrpclib.Fault(1000, 
             "No compatible channels found for client")
 
+    # This is mostly here as a marker - we'd pass in a list of all possible
+    #   (compatible) channels, and get back a list (pos. empty) of the ones
+    #   this client was authorized to to touch.
+    channels = auth.authorize.getAuthorizedChannels(si, channels)
+    if len(channels) == 0:
+        return xmlrpclib.Fault(1000, 
+            "Client is not authorized for any channels")
+
     provides = {}
     for unk in unknowns:
-        # according to up2date 2.7.11, pkg could be _plural_, and right now
-        # it sucks off the first one returned.
-        pkgs = db.db.solveDependancy(channels[0]['label'], 
-                                     si.getattr('architecture'),
-                                     unk)
 
         # packagedb.solveDep will return None if our db can't solve that
         # in which case, we return an empty list for that unk, which is what
         # the client expects.
         provides[unk] = []
 
-        if pkgs:
-            for pkg in pkgs:
-                provides[unk].append(pkg)
+	# iterate over all channels available to the client
+        for chan in channels:
+            pkgs = db.db.solveDependancy(chan['label'], 
+                                         si.getattr('architecture'),
+                                         unk)
+
+            if pkgs:
+                for pkg in pkgs:
+                    provides[unk].append(pkg)
 
     return provides
 

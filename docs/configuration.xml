@@ -1,0 +1,219 @@
+<!--  Current Configuration Guide -->
+<chapter id="configure"><title>Configuration Guide</title>
+<section id="server-common"><title>Common Server Configuration</title>
+<para>
+The first task in configuring Current is to configure to common (or global)
+area of the server; this is the main section of the <filename>current.conf</filename> 
+configuration file.  This configuration is fairly straightforward; you can start
+with the example configuration file, and modify it to suit your needs.
+</para>
+<para>
+The new configuration file in versions 1.5 and greater is significantly shorter than in previous versions.
+There are no longer individual channel entries.  Instead, there are
+database parameters which must be correct, and a few essential constants
+needed by the Current server.
+</para>
+
+<section><title>Database Configuration</title>
+<para>
+Configuring Current for a specific database is covered in the next
+section called <link linkend="database">Setting Up Your Database</link>.
+This includes all configuration variables that begin with <quote>db</quote>.
+</para>
+</section>
+
+<section><title>Logging</title>
+<para>
+Logging is very important for Current.  This log file will have important
+information in it about what the server is doing for each client.  It will
+also have important information regarding any problems and errors that
+the Current server may experiance.  There are two variables that affect
+logging.
+</para>
+<para>The <quote>log_file</quote> variable should be set to the absolute
+path of a file where all logs will be written.  The default is
+<filename>/var/log/current.log</filename>.  The <quote>log_level</quote>
+variable indicates the verbosity of the logs.  The lowest value is 0
+where only death or life proplems are logged.  10 is the highest.  I
+would recommend a setting of 1.  I normally develop with a setting of
+4.  Settings greater than 5 are not currently used.
+</para>
+</section>
+
+<section><title>Apache Configuration</title>
+<para>
+The <quote>apache_config_file></quote> variable defines where the
+<command>cinstall</command> command will put Current's Apache configurations.
+The default value of <filename>/etc/httpd/conf.d/current.httpd.conf</filename>
+is the proper location for Red Hat style distributions.
+</para>
+<para>
+The <quote>access_type</quote> variable defines how <command>cinstall
+</command> sets the permissions on the Current log file and the
+directories that Apache will serve Current's data from.  This
+can be set to <quote>user</quote> for the Apache user to own these
+files.  The variable can be set to <quote>group</quote> which will
+put all these files in the Apache group on your system.  The
+value <quote>all</quote> can be used set world writable permissions.
+This is a security risk and is not recommended.  Finally, you may
+use <quote>none</quote> to do nothing.  Setting the proper permissions
+in this case must be done manually.
+</para>
+<para>
+The <quote>access_arg</quote> is the user or group that permissions will
+be given to as described above.  This should normally be <quote>apache
+</quote>
+</para>
+</section>
+
+<section><title>Current Specific Configuration</title>
+<para>
+The following configuration variables and values affect the internal
+operation of Current or control aspects of the Current/Up2date interaction.
+The <quote>current_dir</quote> variable is very important.  This defines
+a location in your file system that Current can use for serving out
+channels, and packages.  The default value is <filename>/export/current
+</filename>.  The <command>cinstall</command> program will create these
+directories if they do not yet exist.
+</para>
+<para>
+The remaining variables need to be defined, however the value associated 
+with them is less important.  The <quote>welcome_message</quote> and
+<quote>privacy_statement</quote> are strings sent to the Up2date client.
+You may wish to define these to reflect your organization's policies.
+The <quote>server_id</quote> and <quote>server_secret</quote> variables
+aid in the security of the interaction between Current and Up2date.
+Both should be set to some arbitrary text and the latter should never
+be made public.  I would suggest a random MD5 sum for the secret.
+</para>
+</section>
+</section>
+
+<!-- re-insert database configuration instructions here -->
+&databases;
+
+<section id="apacheconfig"><title>Apache Configuration</title>
+<para>
+Next, we need to configure the
+Apache server itself to pass the XMLRPC calls from Up2date clients to
+Current and serve our Current's data files.  This is where
+Current can start causing problems in a production system, which is why we
+strongly recommend you <emphasis>not</emphasis> try this on an active, production web server.
+</para>
+<para>
+We're not going to go into a great deal of detail about Apache's configuration,
+but we will touch on the sections of that file that affect Current.  If you
+need more information about configuring Apache please see the 
+<ulink url="http://www.apache.org">Apache Documentation</ulink>.
+</para>
+<para>
+First, and most important, you must have the
+mod_python module installed and functioning.  Since Current is written in
+Python, for mod_python, not having it just doesn't make sense.  Secondly, you
+must have SSL support enabled and functioning for your Apache server.
+</para>
+<para>
+You should take note of where Apache expects to find the SSL server certificate
+and key files; in modern Red Hat style distributions, these locations are
+<filename>/etc/httpd/conf/ssl.crt/server.crt</filename> for the server
+certificate and <filename>/etc/httpd/conf/ssl.key/server.key</filename>
+for the server key.  You will need to know these directories when you go to
+generate the server certificate and key using <command>cinstall</command>.
+</para>
+<para>
+This configuration step has been greatly simplified with the
+<option>create_apache_config</option> command to <command>cinstall</command>, so
+it no longer needs to be discussed in great detail.  Make sure that you
+have completed the previous sections and have your <filename>current.conf
+</filename> in good order before you run the <command>cinstall</command>
+command above.  It will create an Apache configuration file, normally
+<filename>/etc/httpd/conf.d/current.httpd.conf</filename>, that will be
+loaded the next time you start Apache.
+</para>
+<para>
+Once you've completed all the above configuration steps, you should be able to
+start the Apache server normally.  Once the channels are configured, the
+database populated, and the clients properly configured, everything should 
+Just Work(TM).  If it
+doesn't work, or if anything in this documentation is unclear, please submit a
+bug report / question to the mailing list.  Database creation, channel
+configuration, database population, and client configuration will be
+covered later.
+</para>
+</section>
+
+<section id="postconfig"><title>SSL Configuration</title>
+<para>
+The most critical part of Current's configuration is creating the SSL key file and 
+certificate file which will be used to encrypt communications between the
+clients and the Current server.  To do this, first issue a <command>cinstall
+create_certificate</command> command after installing Current.  This will
+create several files in <filename>/etc/current</filename>, among them
+<filename>server.pem</filename>, <filename>RHNS-CA-CERT</filename>,
+<filename>server.key</filename>, and <filename>server.crt</filename>.
+</para>
+<para>
+The <filename>server.key</filename> and <filename>server.crt</filename>
+must be copied to the <filename>/etc/httpd/conf/ssl.key</filename> and
+<filename>/etc/httpd/conf/ssl.crt</filename> directories, respectively. 
+If you name these files differently then
+the entries concerning these files in <filename>ssl.conf</filename> 
+must be edited.  The <filename>ssl.conf</filename> is part of the
+<filename>mod_ssl</filename> package and is normally located at
+<filename>/etc/httpd/conf.d/ssl.con</filename>.
+</para>
+<warning>
+<para>
+This procedure will affect the SSL setup for your entire Apache
+server, not just for Current.  
+</para>
+</warning>
+<para>
+If you already have an existing SSL configuration working with your Apache
+server, you can use that configuration to generate a CA-CERT file for use with
+Current.  Simply copy the <filename>server.crt</filename> file from the
+<filename>/etc/httpd/conf/ssl.crt</filename> directory to your current
+working directory and issue the following two commands:
+<screen>
+# openssl x509 -noout -text -in server.crt > CURRENT-CA-CERT
+# cat server.crt >> CURRENT-CA-CERT
+</screen>
+</para>
+<para>
+The <filename>CURRENT-CA-CERT</filename> or the <command>cinstall</command>
+generated <filename>RHNS-CA-CERT</filename>
+must be copied to your clients prior to
+using Current; this will be discussed in the client section of this guide.
+</para>
+<para>
+Also critical to operating a Current server is to issue a <command>cinstall
+create_apache_config</command> command in order to create the Apache 
+configuration snippet mentioned above; without this configuration snippet,
+the Apache server will not know to invoke Current.
+</para>
+</section>
+
+<section><title>Using CADMIN</title>
+<para>
+It is probably a good idea to configure the server to use 
+<command>up2date</command> and Current to update itself as a client, as well.
+To do this, simply perform all the configuration steps on the server that you 
+would on a normal client; the client and server software bits are totally
+disjoint and communicate only through XMLRPC calls, they do not step on
+each other on the same system.
+</para>
+<para>
+As of versions 1.5.x, the <command>cadmin</command> command family uses the
+XML-RPC library supplied by Red Hat's up2date package in order to communicate
+with the server rather than working totally independently.  This requires the
+up2date configuration file in <filename>/etc/sysconfig/rhn/up2date</filename>
+to be pointed at the actual Current server.  This implies two fairly
+important changes to managing your server; first, you can now (if you so choose)
+run <command>cadmin</command> from a machine other than the actual Current
+server, assuming you copy the necessary executable over to the new machine,
+and second, the machine that is running the <command>cadmin</command> command
+must have it's up2date configuration file pointed at the Current server (as
+above), and not at RHN.
+</para>
+</section>
+</chapter>

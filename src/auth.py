@@ -14,14 +14,19 @@ import string
 import sha
 import time
 
+import exception
 import configure
-import ConstructParser
+
+from headerParse import *
 from logger import *
 
 # Program global authorization object setup by main().
 authorize = None
 
+class AuthException(exception.CurrentException):
+    pass
 
+    
 class SysId:
     """ Individual client hosts are identified by a sysid structure.
 
@@ -70,14 +75,14 @@ class SysId:
         if attr in SysId._attr_list:
             self._data[attr] = value
         else:
-            raise Exception("Invalid attribute for sysid")
+            raise AuthException("Invalid attribute for sysid")
 
 
     def getattr(self, attr):
         if attr in SysId._attr_list:
             return self._data[attr]
         else:
-            raise Exception("Invalid attribute for sysid")
+            raise AuthException("Invalid attribute for sysid")
 
 
     def dump(self):
@@ -170,7 +175,7 @@ class SysHeaders:
                      'X-RHN-Auth-User-Id', 'X-RHN-Server-Id']:
 
             if not headers.has_key(attr):
-                raise Exception("Missing authentication header: %s" % attr)
+                raise AuthException("Missing authentication header: %s" % attr)
             else:
                 self.data[attr] = headers[attr]
 
@@ -179,22 +184,11 @@ class SysHeaders:
         # simple list, instead of a list of lists, as was expected.
         attr = 'X-RHN-Auth-Channels'
         if not headers.has_key(attr):
-            raise Exception("Missing authentication header: %s" % attr)
-        else:
-            cp = ConstructParser.ConstructParser(headers[attr])
-            try:
-                tmpHdr = cp.parseIt()
-                log ("Header object successfully parsed: %s" % tmpHdr, DEBUG2)
-                if not type(tmpHdr[0]) == type([]):
-                    self.data['X-RHN-Auth-Channels'] = [tmpHdr]
-                else:
-                    self.data['X-RHN-Auth-Channels'] = tmpHdr
-            except Exception, e:
-                log ("Exception caught: %s" % e, DEBUG2)
-                self.data['X-RHN-Auth-Channels'] = ''
-            
-            # we can't print errors from here effectively, so just making
-            # part of the auth data be empty will ensure a neg auth.
+            raise AuthException("Missing authentication header: %s" % attr)
+
+        # This was really harry...now nice and clean
+        fsm = FSMParser(headers['X-RHN-Auth-Channels'])
+        self.data['X-RHN-Auth-Channels'] = fsm.parse()
 
 
     def setTimeValues(self):

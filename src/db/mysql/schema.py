@@ -1,85 +1,85 @@
-INITDB = """
+INITDB =  """
+drop table if exists PACKAGE;
+create table PACKAGE (
+    package_id      INTEGER PRIMARY KEY auto_increment,
+    name            varchar(64) not null,
+    version         varchar(64) not null,
+    release         varchar(64) not null,
+    epoch           varchar(8) not null,
+    issource        smallint not null,
+ 
+    index(name),
+    index(version),
+    index(release)
+    ) Type=InnoDB;
 
-CREATE TABLE CHANNEL (
-  channel_id             int(11)       NOT NULL auto_increment,
-  parentchannel_id       int(11) default NULL,
-  name                   varchar(64) NOT NULL default '',
-  label                  varchar(64) NOT NULL default '',
-  arch                   varchar(64) NOT NULL default '',
-  osrelease              varchar(64) NOT NULL default '',
-  description            text,
-  lastupdate             varchar(64) default NULL,
 
-  PRIMARY KEY  (channel_id)
-) TYPE=InnoDB;
+drop table if exists RPM;
+create table RPM (
+    rpm_id          INTEGER PRIMARY KEY auto_increment,
+    package_id      int not null,
+    filename        text not null,
+    arch            varchar(32) not null,
+    size            varchar(32) not null,
 
-CREATE TABLE CHANNEL_DIR (
-  channel_dir_id         int(11)       NOT NULL auto_increment,
-  channel_id             int(11)       NOT NULL default '0',
-  dirpathname            text,
-  is_bin_dir             tinyint(1)    NOT NULL default '0',
+    index(package_id)/*,
+    index(filename)*/
+    ) Type=InnoDB;
 
-  PRIMARY KEY (channel_dir_id),
-  KEY channel_dir_chan_id_idx (channel_id)
-) TYPE=InnoDB;
 
-CREATE TABLE PACKAGE (
-  package_id             int(11)       NOT NULL auto_increment,
-  pkgname                varchar(64)   NOT NULL default '',
-  version                varchar(64)   NOT NULL default '',
-  release                varchar(32)   NOT NULL default '',
-  epoch                  varchar(8)    default NULL,
+drop table if exists CHANNEL_RPM;
+create table CHANNEL_RPM (
+    channel_rpm_id  INTEGER PRIMARY KEY auto_increment,
+    rpm_id          int not null,
+    channel_id      int not null,
 
-  PRIMARY KEY (package_id),
-  KEY pkgname_idx (pkgname),
-  KEY version_idx (version),
-  KEY release_idx (release),
-  KEY epoch_idx (epoch)
-) TYPE=InnoDB;
+    index(rpm_id),
+    index(channel_id)
+    ) Type=InnoDB;
 
-CREATE TABLE RPM (
-  rpm_id                 int(11)       NOT NULL auto_increment,
-  package_id             int(11)       NOT NULL default '0',
-  srpm_id                int(11)       default NULL,
-  pathname               text          NOT NULL,
-  arch                   varchar(32)   NOT NULL default '',
-  size                   int(11)       NOT NULL default '0',
-  original_channel_id    int(11)       NOT NULL default '0',
-  active_channel_id      int(11)       default NULL,
 
-  PRIMARY KEY  (rpm_id),
-  KEY package_id_idx (package_id),
-  KEY active_channel_id_idx (active_channel_id),
-  KEY srpm_id_idx (srpm_id)
-) TYPE=InnoDB;
+drop table if exists CHANNEL_RPM_ACTIVE;
+create table CHANNEL_RPM_ACTIVE (
+    active_id   INTEGER PRIMARY KEY auto_increment,
+    rpm_id      int not null,
+    channel_id     int not null,
 
-CREATE TABLE RPMOBSOLETE (
-  rpmobsolete_id         int(11)       NOT NULL auto_increment,
-  rpm_id                 int(11)       NOT NULL default '0',
-  name                   varchar(64)   default NULL,
-  flags                  varchar(64)   default NULL,
-  vers                   varchar(64)   default NULL,
+    index(channel_id)
+    ) Type=InnoDB;
 
-  PRIMARY KEY  (rpmobsolete_id),
-  KEY rpmosbolete_rpm_id_idx (rpm_id)
-) TYPE=InnoDB;
 
-CREATE TABLE RPMPROVIDE (
-  rpmprovide_id          int(11)       NOT NULL auto_increment,
-  rpm_id                 int(11)       NOT NULL default '0',
-  name                   text,
-  flags                  varchar(64)   default NULL,
-  vers                   varchar(64)   default NULL,
+drop table if exists DEPENDANCIES;
+create table DEPENDANCIES (
+    dep_id          INTEGER PRIMARY KEY auto_increment,
+    dep             text,
+    rpm_id          int not null,
+    type            int not null,
+    flags           varchar(64),
+    vers            varchar(64),
+    index(rpm_id),
+    index(type)/*,
+    index(dep)*/
+    ) Type=InnoDB;
 
-  PRIMARY KEY  (rpmprovide_id),
-  KEY rpmprovide_rpm_id_idx (rpm_id)
-) TYPE=InnoDB;
 
-CREATE TABLE SRPM (
-  srpm_id                int(11)       NOT NULL auto_increment,
-  filename               text          NOT NULL,
-  pathname               text          NOT NULL,
+drop table if exists CHANNEL;
+create table CHANNEL (
+    channel_id      INTEGER PRIMARY KEY auto_increment,
+    parentchannel_id     int,
+    name            varchar(64) unique not null,
+    label           varchar(64) unique not null,
+    arch            varchar(64) not null,
+    osrelease       varchar(64) not null,
+    description     text,
+    lastupdate      varchar(64)
+    ) Type=InnoDB auto_increment=1;
 
-  PRIMARY KEY  (srpm_id)
-) TYPE=InnoDB;
+
+drop table if exists CHANNEL_DIR;
+create table CHANNEL_DIR (
+    channel_dir_id  INTEGER PRIMARY KEY auto_increment,
+    channel_id      int not null,
+    dirpathname     text,
+    index(channel_id)
+    ) Type=InnoDB;
 """

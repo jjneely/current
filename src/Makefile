@@ -3,7 +3,7 @@
 #
 
 MODULES			= archtab auth configure \
-                  ConstructParser current_apache \
+                  headerParse current_apache \
                   logger RPM exception sets xmlrpc
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))

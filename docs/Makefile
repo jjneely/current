@@ -5,12 +5,12 @@
 all: current-guide-html current-guide-ps
 
 current-guide-html: guide-source
-	db2html current-guide.sgml
+	xmlto html -o current-guide  current-guide.xml
 
 current-guide-ps: guide-source
-	db2ps current-guide.sgml
+	xmlto ps current-guide.xml
 
-guide-source: client.sgml configuration.sgml current-guide.sgml installation.sgml maintaining.sgml
+guide-source: client.xml configuration.xml current-guide.xml installation.xml maintaining.xml databases.xml
 
 # There is no standard place to put html/ps documentation, so, I don't.
 install:

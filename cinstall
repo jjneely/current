@@ -77,7 +77,7 @@ def main():
         configure.config.load()
         config = configure.config
         # cinstall is a special case, we just look at the cmd line args.
-        args = sys.argv
+        args = sys.argv[1:]
     except (configure.FormatError, configure.MissingError), ex:
         print 'Error:', ex
         sys.exit(1)

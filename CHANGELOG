@@ -1,4 +1,9 @@
                         Current Project Changelog
+* Fri Apr 25 2003 John Berninger <johnw@berningeronline.net>
+- several bugfixes for 9.0 trees
+- bugfix in rpm_wrapper when reading a non-RPM return a None object but doesn't throw an exception
+- scan_channel now checks to see if the RPM is in the DB before adding it - yeah for sanity
+- HUNTER: please eval this for a 1.5.5 release
 
 * Sat Apr 19 2003 John Berninger <johnw@berningeronline.net>
 - build bugfixes

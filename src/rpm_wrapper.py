@@ -115,10 +115,17 @@ class rpmWrapper:
 
     def _read41(self, filename):
         # First, suck in the header.
-        ts = rpm.TransactionSet("/", rpm._RPMVSF_NOSIGNATURES)
-        fd = os.open(filename, os.O_RDONLY)
-        hdr = ts.hdrFromFdno(fd)
-        os.close(fd)
+        try:
+            ts = rpm.TransactionSet("/", rpm._RPMVSF_NOSIGNATURES)
+            fd = os.open(filename, os.O_RDONLY)
+            hdr = ts.hdrFromFdno(fd)
+            os.close(fd)
+        except:
+            logException()
+            log ("Reading file - not an RPM?")
+            return None
+        if ( hdr == None ):
+            return None
         info = {}
         info['pathname'] = filename
         info['issrc'] = hdr[rpm.RPMTAG_SOURCEPACKAGE]

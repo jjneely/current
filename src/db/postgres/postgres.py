@@ -363,8 +363,8 @@ class PostgresDB(CurrentDB):
                                 rpm_info['release'], rpm_info['epoch'])
         if (pid != 0 ):
             self.cursor = self.conn.cursor()
-            sql = """ select rpm_id from rpm where rpm.package_id = %d
-                                    and rpm.arch = %s""" % (pid, rpm_info['arch'])
+            sql = """ select rpm_id from rpm where rpm.package_id = '%d'
+                                    and rpm.arch = '%s'""" % (pid, rpm_info['arch'])
             self.cursor.execute(sql)
             results=  self.cursor.fetchall()
             if (len(results) > 1):

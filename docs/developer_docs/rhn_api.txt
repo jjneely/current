@@ -231,12 +231,13 @@ picking some sane languages/standards for doing this)
 
 Registration
 ------------
-up2date itself may make registration calls - they aren't just for
-rhn_register
+Calls about the system itself, not necessarily about any one package.
+(Note that in 3.0 and later, there is no seperate rhn_register package 
+anymore)
 
 
 registration.add_hw_profile()
-    versions: 2.5, 2.7
+    versions: 2.5, 2.7, 2.8, 3.0
     params = (sysid, hardware_info)
     returns = nothing
     faultCodes: 99 = delay.
@@ -248,7 +249,7 @@ registration.add_hw_profile()
 
                     
 registration.add_packages()
-    versions: 2.5, 2.7
+    versions: 2.5, 2.7, 2.8, 3.0
     params = (sysid, package_list)
     returns = nothing
     faultCodes: 99 = delay.
@@ -263,6 +264,8 @@ registration.add_packages()
     [ N, V, R, E ]
     
     of the packages to add to this systems profile.
+
+    NOTE: Looks like this is really used as the "update" packages.
     
 
 registration.delete_hw_profile()
@@ -272,7 +275,7 @@ registration.delete_hw_profile()
 
 
 registration.delete_packages()
-    versions: 2.5, 2.7 
+    versions: 2.5, 2.7, 2.8, 3.0
     params = (sysid, package_list)
     returns = nothing 
 
@@ -282,26 +285,32 @@ registration.delete_packages()
 
 
 registration.list_packages()
-    versions: 2.5,  2.7
+    versions: 2.5,  2.7, 2.8, 3.0
     params = (sysid)
     returns = a [ [NVRE], [NVRE], [NVRE] ] type list of lists.
     faultCodes: 99 = delay
 
     Note: Only appears in the listPackages() function, which is not used.
-
+          Probably not used in 3.0 either...
+          
 
 registration.new_system()
-    versions: 2.5,  2.7
-    params = (system_dict, optional packages)   tuple of 1 or 2 dicts
-        system_dict is a dict of [ username, password, profile_name,
-            architecture, & os_release ]. The profile_name defaults to the
-            hostname of the client. 
+    versions: 2.5, 2.7, 2.8, 3.0
+    params = (auth_dict, optional packages)   tuple of 1 or 2 dicts
+        auth_dict is a dict of [ token, username, password, profile_name,
+            architecture, & os_release, release_name, uuid ].  The profile_name
+            defaults to the hostname of the client.
     faultCodes: 99 = delay.
-    return the sysId of this new system.        
+                60 = Authentication Ticket Error
+    return: The sysId of this new system.        
 
+    The exact contents of the auth_dict vary by version and configuration
+    of the client.
+    
     The optional packages list is implied by the API, but in the text
     client is never used. Instead, a separate registration.add_packages
     call is made with the same info.
+
     SysId is the basically the system_dict, plus some stuff, encoded in 
     xml. 
     
@@ -317,7 +326,7 @@ registration.new_system()
 
           
 registration.new_user()
-    versions: 2.7
+    versions: 2.7, 2.8, 3.0
     params = (username, password, optional email_address, optional orgid,
               optional orgpassword)
              tuple of 2 to 5 strings
@@ -326,19 +335,13 @@ registration.new_user()
     return nothing
 
 
-registration.privacy_statement()    
-    versions: 2.5, 2.7 
-    params are empty
-    return is a string with the message
-    faultCodes: 99 = delay.
-    FIXME: get the message from config
-
-
 registration.refresh_hw_profile()
-    versions: 2.5, 2.7 
-
-    Used by: rhn_check
+    versions: 2.5, 2.7, 2.8, 3.0
+    params: (sysid, hardwareList)
+    return: nothing
     
+    Used by: rhn_check
+    See the hardware module for the format of hardwareList
     Note: Not actually used in rhn_register
 
 
@@ -349,8 +352,8 @@ registration.refresh_packages()
 
 
 registration.register_product()
-    versions: 2.5, 2.7 
-    params = (sys_id, product_info) tuple of length 2
+    versions: 2.5, 2.7, 2.8, 3.0
+    params = (sys_id, product_info) 
         product_info is a poorly named dictionary, which actually describes
         a user. Keys are optional, and can contain
         [ title, first_name, last_name, company, address1, address2, city,
@@ -364,7 +367,7 @@ registration.register_product()
 
     
 registration.reserve_user()
-    versions: 2.5, 2.7 
+    versions: 2.5, 2.7, 2.8, 3.0
     params = (username, password)  tuple of strings, length 2
     faultCodes: 99 = delay.
                 -3 = account already in use
@@ -377,17 +380,17 @@ registration.reserve_user()
 
     
 registration.send_serial()
-    versions: 2.5, 2.7 
+    versions: 2.5, 2.7, 2.8, 3.0
     params = (sys_id, serial_number, OPT oemId) tuple of strings, len 2 or 3
     faultCodes: 99 = delay
-    returns nothing
+    returns: nothing
 
     serial_number is chosen strictly by the user
     oemId is potentially set in the rhn_register config file
 
 
 registration.update_packages()
-    versions: 2.5, 2.7 
+    versions: 2.5, 2.7, 2.8, 3.0
     params = (sysid, package_list)
     returns = nothing
     Called by: rhn_check, 
@@ -402,8 +405,19 @@ registration.update_packages()
           its a new system.
 
 
+registration.update_transactions()
+    versions: 3.0
+    params: (sysid, time, transactionsData)
+    returns: nothing
+    Called by: up2date, but only if rollbacks are enabled.
+    
+    The time parameter is the result of time.time()
+    The transactionData is the result of rollback.getTransactionsData()
+    FIXME: find out what the format of transactionData is
+    
+    
 registration.upgrade_version()
-    versions: 2.5, 2.7 
+    versions: 2.5, 2.7, 2.8, 3.0
     params = (sysid, new_version)
     returns = New sysid
     Where the new version is the new distribution release/version number. 
@@ -413,7 +427,7 @@ registration.upgrade_version()
 
 
 registration.validate_reg_num()
-    versions: 2.5, 2.7 
+    versions: 2.5, 2.7, 2.8, 3.0
     params = (regNum)
     return nothing
     faultCodes: 99 = delay.
@@ -424,13 +438,48 @@ registration.validate_reg_num()
     
     
 registration.welcome_message()
-    versions: 2.5, 2.7 
+    versions: 2.5, 2.7, 2.8, 3.0
     params are empty
     return is a string with the message
     faultCodes: 99 = delay.
-    FIXME: get the message from config
-    
 
+    
+registration.privacy_statement()    
+    versions: 2.5, 2.7, 2.8, 3.0
+    params are empty
+    return is a string with the message
+    faultCodes: 99 = delay.
+
+
+registration.terms_and_conditions()
+    versions: 3.1
+    params: none
+    faultCodes: 99 = delay
+    returns: a long string with the terms and conditions
+
+    Not called yet in 3.1, apparently. 
+
+
+Servers
+-------
+This appears to be the first part of multiple server capability for 
+up2date.
+
+servers.list()
+    version added: 3.0
+    version removed: 
+    params: optional systemid
+    returns: a list of dicts
+        one dict per server
+        each dict contains:
+            "server" = a string  (ex. "xmlrpc.rhn.redhat.com")
+            "handler" = a string (ex. "/XMLRPC")
+            
+    The Red Hat master (listed above in the example) is always added 
+    in the 3.0 and 3.1 code [which will be a problem], and the URL from
+    the config file is always added to the list.
+    
+    
 Up2Date
 -------
 I document the newer GET based calls as if they were regular xmlrpc calls.
@@ -470,7 +519,7 @@ up2date.getPackageSource()
     
 
 up2date.listChannels()
-    versions: 2.7
+    versions: 2.7, 2.8, 3.0
     params: (channel_label, channel_version)
     returns: unknown
     faultCodes: unknown
@@ -484,43 +533,62 @@ up2date.listPackages()
     
     
 up2date.login()
-    versions: 2.7
+    versions: 2.7, 2.8, 3.0
     params: (sysid) 
-    returns: unknown
-    faultCodes: unknown
+    returns: loginInfo
+    faultCodes: none in 3.0 at least
+    
+    See code in current for loginInfo
     
     
-up2date.solveDependancies()
-    versions: 2.7
+up2date.solveDependencies()
+    versions: 2.7, 2.8, 3.0
     params: (sysid, unknowns)
     returns: unknown
     faultCodes: unknown
     
     
 up2date.subscribeChannels()
-    versions: 2.7
-    params: unknown
-    returns: unknown
+    versions: 2.7, 2.8, 3.0
+    version removed:
+    params: (sysid, channels, username, password)
+    returns: unknown - NOT USED YET IN 3.0
     faultCodes: unknown
     
     
 up2date.unsubscribeChannels()
-    versions: 2.7
-    params: unknown
-    returns: unknown
+    versions: 2.7, 2.8, 3.0
+    params: (sysid, channels, username, password)
+    returns: unknown - NOT USED YET IN 3.0
     faultCodes: unknown
     
 
 Errata
 ------
 
+errata.getPackageErratum()
+    versions: 2.7, 2.8, 3.0
+    params: (sysid, package)
+        package is the normal NVR
+    returns: a list of advisories 
+        each element in the list is a dict containing at least
+            errata_type: string
+            advisory: string
+            topic: string
+            description: string
+    faultCodes: none defined. 
+
+    
 errata.GetByPackage()
-    versions: 2.5, 2.7
+    versions: 2.5, 2.7, 2.8, 3.0
     params = (pkgName, os_release) 
              where os_release is the 'version' field from the clients rpmdb.
              why this doesn't use the sysid, I don't know.
     returns a list of structures representing advisories about this package
     faultCodes: none specified. Just return a string.
+
+    Note that in recent versions (at least 3.0 and later) GetByPackage()
+    is only called if the getPackageErratum() fails. 
     
     In up2date 2.5, an advisory is a dict with:
     'errata_type': I assume this is like 'bug, remote exploit, local exploit
@@ -547,61 +615,33 @@ errata.GetByPackage()
     Note: I've guessed at what the fields are from how they are used and 
     their names.
     
-                  
+
 errata.getErrataInfo()
-    versions: 2.7
+    versions: 
     params: (sysid, errata_id)
     returns: unknown
     faultCodes: unknown
     
-    
-errata.getPackageErratum()
-    versions: 2.7
-    params: (sysid, package)
-    returns: unknown
-    faultCodes: unknown
+    Not used anymore... 
     
 
 Queue
 -----
-
-queue.submit()
-    versions: 2.7, 2.9
-    params: (action_id, status, message, data)
-    returns: Completely unknown - see discussion below.
-
-    If the server sends the wrong version of action to the client in
-    queue.get(), the client will do a queue.submit() with an
-    xmlrpclib.Fault(-99)
-
-    If the server incorrectly calls the action (wrong arg count, wrong type)
-    then the status will be 6, the message a description, and the data {}.
-          
-    Whatever action is called is responsible for generating the
-    status, message, and data values.
-                        
-    status appears to be a simple int, the message is a string, and data a
-    dict.
-    
-    The client drops the return value from this call on the floor, so I 
-    can't figure out either its type or its possible values. Right now, 
-    current returns a simple int of 0.
-
-    
+                                                                                
 queue.get()
     versions: 2.7, 2.9
     params: (systemid, action_version, client_status)
     returns:
-    
+                                                                                
     action_version is a simple int, and has been '2' for all of 2.7-2.9
     client_status is a dict with two fields:
-
+                                                                                
     'uname': results of os.uname() call
-    'uptime': two integers in a list representing total uptime in seconds and 
-        uptime in this run-level
-          
+    'uptime': two integers in a list representing total uptime in seconds 
+              and uptime in this run-level
+                                                                                
     Sample:
-    [
+    (
       'sysid encoded as an xmlstring',
       2,
       {'uname': ['Linux',
@@ -610,23 +650,44 @@ queue.get()
                  '#1 Thu Apr 18 07:37:53 EDT 2002',
                  'i686'],
        'uptime': [5957, 5865]}
-    ]
-
-                        
-    return type is a dictionary:    
-        must not be a string or empty dictionary
-        
+    )
+                                                                                
+    return type is a dictionary:
         'id':
         'version': a string representing a single int. (fed to int())
             rhn_check understands version 2 in 2.7.86
         'action': XMLRPC encoded method call for the client
             includes the normal 'method' and 'params' portions.
-
-    
+                                                                                
     An empty dict can be used to represent no actions for this client.
+                                                                                
 
+queue.submit()
+    versions: 2.7, 2.9
+    params: (action_id, status, message, data)
+    returns: Completely unknown - see discussion below.
+                                                                                
+    If the server sends the wrong version of action to the client in
+    queue.get(), the client will do a queue.submit() with an
+    xmlrpclib.Fault(-99)
+                                                                                
+    If the server incorrectly calls the action (wrong arg count, wrong type)
+    then the status will be 6, the message a description, and the data {}.
+                                                                                
+    Whatever action is called is responsible for generating the
+    status, message, and data values.
+                                                                                
+    status appears to be a simple int, the message is a string, and data a
+    dict.
+                                                                                
+    The client drops the return value from this call on the floor, so I
+    can't figure out either its type or its possible values. Right now,
+    current returns a simple int of 0.
+                                                                                
+                                                                                
 Applet
 ------
+
 The rhn-applet first appeared in Red Hat Linux 7.3 as version 1.0.6. In Red
 Hat Linux 8.0, rhn-applet was released at version 2.0.0. No other versions
 exist at this time. The only changes in the rpc interface between the two
@@ -634,38 +695,44 @@ was a change from using xmlrpclib directly to using it indirectly via
 rhn.rpclib. The latter appears to give more control over how RPC is done
 (GET v. POST) and could be used to allow Red Hat to change the RPC protocol
 altogether.
-
-RPC for rhn-applet is sent to https://some.server.here/APPLET via XMLRPC.
-
+                                                                                
+RPC for rhn-applet is sent to https://some.server.here/APPLET via xml-rpc.
+                                                                                
 applet.poll_status()
     versions: 1.0, 2.0
     params: empty
     returns: a dict with:
-        'checkin_interval': (int) number of seconds until next checkin -- RHN
-                            doesn't appear to have any particular number it
-                            returns for this value, nor does it target a
+        'checkin_interval': (int) number of seconds until next checkin --
+                            RHN doesn't appear to have any particular number
+                            it returns for this value, nor does it target a
                             particular time. My values have been, in order:
-                            15194 (no cache), 15541 (cache), 12634 (no cache)
-                            with the same mtime returned for each.
-        'server_status':    (string) the rpc code drops this value. I've only
+                            15194 (no cache), 15541 (cache), 12634 (no
+                            cache) with the same mtime returned for each. 
+           'server_status': (string) the rpc code drops this value. I've only
                             seen 'normal' so far.
-    faultCodes: none specified. Just return a string.
 
+    faultCodes: none specified. Just return a string.
+                                                                                
 applet.poll_packages()
     versions: 1.0, 2.0
     params: (release, arch, latest_package_mtime, uuid)
-            latest_package_mtime is an int timestamp in the
-                            format YYYYMMDDHHMMSS, 0 if this is the first time
-            uuid is some kind of UUID number which seems to have no relation
-                 to the system id nor user id
+            latest_package_mtime: is an int timestamp in the
+                                  format YYYYMMDDHHMMSS, 0 if this is the
+                                  first time 
+            uuid: is some kind of UUID number which seems to have
+                  no relation to the system id nor user id
+
     returns a dictionary depending on the result:
         if there are no packages at all there is only one key:
             'no_packages': value ignored
-        if there has been no change since the timestamp there is only one key:
+
+        if there has been no change since the timestamp there is only one
+        key:
             'use_cached_copy': rhn sets this to 1, but the value is ignored
+
         if there are new packages:
-            'last_modified': int timestamp in the format YYYYMMDDHHMMSS of the
-                             last modification
+            'last_modified': int timestamp in the format YYYYMMDDHHMMSS of
+                             the last modification
             'contents':      a list of dicts with:
                 'name':            name of the latest package
                 'version':         version of the latest package
@@ -677,14 +744,16 @@ applet.poll_packages()
                 'errata_advisory': the Red Hat errata number, which iirc is
                                    numbered by the time they were made aware
                                    of the issue
-                'errata_id':       some other errata id number, which appears
-                                   to be monotonically increasing by the date
-                                   of advisory release
+                'errata_id':       some other errata id number, which
+                                   appears to be monotonically increasing by
+                                   the date of advisory release
                 'errata_synopsis': short 1-line description of the errata
+
             There is only one entry in the list per package, with the latest
             errata given. This includes every package in the channel, since
             the cache is replaced entirely by the list given.
-    faultCodes: same as for applet.poll_status()
 
-That lot should be enough to cook your noodle. Its done a number on me.
+    faultCodes: same as for applet.poll_status()
+                                                                                
+
     

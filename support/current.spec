@@ -8,7 +8,7 @@
 # the file looks _sort_of_ sane.
 %if %{rhl8x}
 %define release 1.8x
-%define additional_requires httpd librpm404 rpm404-python postgresql-server postgresql-python
+%define additional_requires httpd postgresql-server postgresql-python
 %else
 %define release 1.7x
 %define additional_requires apache python-xmlrpc postgresql-server postgresql-python
@@ -16,7 +16,7 @@
 
 Summary: A server for Red Hat's up2date tools.
 Name: current
-Version: 1.5.6
+Version: 0.20030719
 Release: %{release}
 License: GPL
 Group: System Environment/Daemons

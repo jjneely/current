@@ -461,6 +461,7 @@ class PostgresDB(CurrentDB):
                             values
                             ( %d, '%s', '%s', '%s')""" % 
                             (rpm_id, prov[0], prov[1], prov[2]) )
+
         # We also "provide" all the "files"- should this be a separate table?
         # I'm answering "no" provisionally to avoid a schema update.
         plst = ()

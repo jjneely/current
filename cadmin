@@ -28,26 +28,18 @@ sys.path.append('/usr/share/rhn')
 # Grab the network code from up2date itself.
 from up2date_client import rpcServer
 
-# don't import config - might not be running on a machine with current.conf
+# don't import current config - might not be running on a machine
+#                               with current.conf
 # don't import logger - same reasoning
-
-# Just hard code this monkey
-# Its the one for current anyway...
-rhns_ca_cert = '/usr/share/rhn/RHNS-CA-CERT'
 
 def getServer():
     server = rpcServer.getServer()
-    server.add_trusted_cert(rhns_ca_cert)
+    server.add_trusted_cert(rpcServer.rhns_ca_cert)
     return server
 
 def test():
-    server = rpcServer.getServer()
-    # the use_CA_chain() method is deprecated and raises an exception.
-    #server.use_CA_chain(rhns_ca_cert)
-    server.add_trusted_cert(rhns_ca_cert)
-
+    server = getServer()
     result = rpcServer.doCall(server.cadmin.status)
-
     pprint.pprint(result)
 
 def scan_channels(args):

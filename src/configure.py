@@ -10,6 +10,7 @@ import exceptions
 import getopt
 import os
 import re
+import ConfigParser
 
 ## Program wide config object
 ## Created by current/cadmin/cinstall main()
@@ -21,9 +22,6 @@ MODULES_DIR="/usr/share/current"
 CONFIG_DIR="/etc/current"
 LOG_DIR="/var/log/httpd"
 PID_DIR="/var/run"
-
-#sys.path.append(MODULES_DIR)
-import configfile
 
 
 ## Program wide defaults
@@ -181,7 +179,7 @@ class Config:
         if not os.path.isfile(filename):
             return tmp
 
-        parser = configfile.ConfigParser()
+        parser = ConfigParser.ConfigParser()
         parser.read(filename)
         
         for opt in parser.options('current'):
@@ -204,7 +202,7 @@ class Config:
             try:
                 tmp['channels'][label] = {'label': label}
                 options = parser.options(label)
-            except configfile.NoSectionError:
+            except ConfigParser.NoSectionError:
                 raise MissingError("Section %s not found - perhaps this is an older config file?" % label)
 
             for opt in options:

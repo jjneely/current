@@ -1,5 +1,11 @@
                         Current Project Changelog
 
+* Fri Aug  1 2003 Hunter Matthews <thm@duke.edu>
+- Code cleanups: took excess whitespace out of ('s and )'s 
+- Code cleanups: changed all the sql from "blah '%s' blah blah" % value to
+  "blah %s blah blah", value
+  This has the backend module doing the quoting for us.
+
 * Fri Jul 25 2003 Hunter Matthews <thm@duke.edu>
 - Took out "on(COLUMN)" syntax from SQL queries - this should make all but 
   the initdb sql compatible between postgres and mysql.

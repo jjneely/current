@@ -17,7 +17,7 @@ import ConfigParser
 config = None
 
 ## These are replaced by make, so beware
-VERSION="0.20030719"
+VERSION="0.20030731"
 MODULES_DIR="/usr/share/current"
 CONFIG_DIR="/etc/current"
 LOG_DIR="/var/log/httpd"

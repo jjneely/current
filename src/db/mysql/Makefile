@@ -2,14 +2,13 @@
 # Makefile for installing the database package for current
 #
 
-MODULES			= currentdb __init__
+MODULES			= __init__ mysql schema
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 
-INSTALL_DIRS	= $(DATA_DIR)/db
+INSTALL_DIRS	= $(DATA_DIR)/db/mysql
 
-SUBDIRS 		=  postgres pysqlite mysql
-
+SUBDIRS = 
 
 # default python rules:
 %.pyc: %.py
@@ -20,9 +19,9 @@ all:: $(OBJECTS)
 files: $(PYFILES)
 
 install:: $(OBJECTS)
-	$(INSTALL_DIR) $(INSTALL_ROOT)$(DATA_DIR)/db
+	$(INSTALL_DIR) $(INSTALL_ROOT)$(DATA_DIR)/db/mysql
 
-	$(INSTALL_DATA) $(PYFILES) $(OBJECTS) $(INSTALL_ROOT)$(DATA_DIR)/db
+	$(INSTALL_DATA) $(PYFILES) $(OBJECTS) $(INSTALL_ROOT)$(DATA_DIR)/db/mysql
 
 clean::
 	@rm -fv *.pyc *.pyo *~

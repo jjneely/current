@@ -454,7 +454,7 @@ class PostgresDB(CurrentDB):
                 newest_ids.append(id)
 
         self.cursor.execute("""select channel_id from channel 
-                    where channel.name = '%s'""" %
+                    where channel.label = '%s'""" %
                     (channel,) )
         chqry = self.cursor.fetchall()
         assert (len(chqry) == 1 )

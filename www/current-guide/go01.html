@@ -1,0 +1,65 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Current Configuration Guide - Glossary</title><meta name="generator" content="DocBook XSL Stylesheets V1.65.1"><link rel="home" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="up" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="previous" href="ch05.html" title="Chapter 5. Maintaining Your Server Trees"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Current Configuration Guide - Glossary</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch05.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> </td></tr></table><hr></div><div class="glossary"><div class="titlepage"><div><div><h2 class="title"><a name="id3036109"></a>Current Configuration Guide - Glossary</h2></div></div><div></div></div><div class="glossdiv"><h3 class="title">Server Configuration</h3><dl><dt><a name="logfile"></a>log_file</dt><dd><p><span class="emphasis"><em>OPTIONAL</em></span>
+This specifies the log file Current should attempt to use
+if the apache_log_file file is not writable.  In versions prior to 1.3, was the
+only log file used by Current.</p></dd><dt><a name="loglevel"></a>log_level</dt><dd><p>This tells the server what level of detail to log at; the
+default level is VERBOSE (1).  This entry in the config file should be an
+integer between zero (0) and ten (10) inclusive.</p></dd><dt><a name="serversecret"></a>server_secret</dt><dd><p>This entry contains a “<span class="quote">secret</span>” string which is
+used to generate system IDs for client machines.  If this string is changed,
+all clients will have to re-register with the Current server before they will
+be recognized as authorized clients.  This value must be changed, and should
+be kept confidential for your site.</p></dd><dt><a name="serverid"></a>server_id</dt><dd><p>This is a string that denotes the identity of the Current
+server; it is not necessarily related to the hostname of the machine or to
+anything else, but is simply a random string.  It is used in determining
+if a given client is authorized to access this server, along with the
+server_secret entry.</p></dd><dt><a name="privacystatement"></a>privacy_statement</dt><dd><p>This is a message sent to the client when
+<span><b class="command">rhn_register</b></span> is run on the client against the Current
+server.  It is free-text, and can be multiple lines long.  It should be
+enclosed in quotes to ensure proper parsing of the configuration file.
+</p></dd><dt><a name="welcomemessage"></a>welcome_message</dt><dd><p>This is a free-form string which is a brief message sent to the
+clients when <span><b class="command">rhn_register</b></span> is run on the client against the
+Current server.  It can be multiple lines long.
+</p></dd><dt><a name="validchannels"></a>valid_channels</dt><dd><p><span class="emphasis"><em>DEPRECATED</em></span>
+This is a list if channel labels for valid channels served by
+this instance of Current.  Please note:  this is not a list of channel section
+names; it is a list of the labels of each section, found within the channel
+section of the configuration file.  As of versions after 1.5.0, Current no
+longer tracks channel information in the configuration file.
+</p></dd><dt><a name="currentdir"></a>current_dir</dt><dd><p>This is the location where all the database files, RPM headers,
+and RPM symlinks will be kept.  This directory tree needs to be readable by
+the user under which Apache normally runs.
+</p></dd><dt><a name="apacheconfigfile"></a>apache_config_file</dt><dd><p>This is the file to create with the Apache configuration bits
+that enable the Current server.  This file should be included in Apache's main
+configuration file with the line:
+</p><pre class="screen">
+Include &lt;filename&gt;
+</pre><p>
+</p></dd><dt><a name="accesstype"></a>access_type</dt><dd><p>This parameter determines if permissions should be checked on
+a user, group, or world basis.  Permission checking will be added to later
+versions; this parameter is not yet used.  Valid values are “<span class="quote">user</span>”
+“<span class="quote">group</span>”, and “<span class="quote">world</span>”.</p></dd><dt><a name="accessarg"></a>access_arg</dt><dd><p>This parameter is used when access_type is either user or
+group; it specifies the name of the user / group to use for permission
+checking.</p></dd><dt><a name="dbtype"></a>db_type</dt><dd><p>
+This designates the specific database backend that the server should use.  As
+of recent 1.5.x releases and snapshots, the only valid value is "postgres".
+In future versions, we hope to allow a minimum of "postgres" and "sqlite" for
+PostgreSQL and SQLite backends respectively, and perhaps other contributed
+database backends.
+</p></dd><dt><a name="dbuser"></a>db_user</dt><dd><p>This is the name of the database user that the server should
+connect to the backend with.  This user must be created within the database,
+and does not necessarily have any relationship to system users.
+</p></dd><dt><a name="dbpass"></a>db_pass</dt><dd><p>
+This is the password to use when initiating the database connection.  The
+password (or pass phrase) cannot contain any escaped characters or
+whitespace characters.  This is not due to restrictions by the databasse
+backends but to the way the options within the Current server are parsed.  Yes,
+having this password in cleartext in a configuration file can be dangerous;
+hopefully we'll be able to cone up with a way to make it less dangerous.
+Suggestions welcome.</p></dd><dt><a name="dbname"></a>db_name</dt><dd><p>This is the database name to connect to.  In the Oracle world,
+this is referred to a SID.  This database must be created by the user; it will
+be populated with tables by the <span><b class="command">cinstall initdb</b></span> command and
+with data by <span><b class="command">cadmin</b></span> commands.
+</p></dd><dt><a name="dbhost"></a>db_host</dt><dd><p>This is the hostname on which the database backend is running.
+We highly recommend that the server and database be running on the same host
+and that the value "localhost" be used here; we have not yes tested running
+the server and database on separate hosts.
+</p></dd></dl></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch05.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td><td width="40%" align="right"> </td></tr><tr><td width="40%" align="left" valign="top">Chapter 5. Maintaining Your Server Trees </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> </td></tr></table></div></body></html>

@@ -1,0 +1,65 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Chapter 2. Configuration Guide</title><meta name="generator" content="DocBook XSL Stylesheets V1.65.1"><link rel="home" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="up" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="previous" href="ch01s03.html" title="Installing Current"><link rel="next" href="ch02s02.html" title="Setting up your database"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 2. Configuration Guide</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch01s03.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="ch02s02.html">Next</a></td></tr></table><hr></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="configure"></a>Chapter 2. Configuration Guide</h2></div></div><div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="ch02.html#server-common">Common Server Configuration</a></span></dt><dd><dl><dt><span class="section"><a href="ch02.html#id2970676">Database Configuration</a></span></dt><dt><span class="section"><a href="ch02.html#id3032310">Logging</a></span></dt><dt><span class="section"><a href="ch02.html#id3032346">Apache Configuration</a></span></dt><dt><span class="section"><a href="ch02.html#id3032422">Current Specific Configuration</a></span></dt></dl></dd><dt><span class="section"><a href="ch02s02.html">Setting up your database</a></span></dt><dd><dl><dt><span class="section"><a href="ch02s02.html#postgres">The PostgreSQL Backend</a></span></dt><dt><span class="section"><a href="ch02s02.html#pysqlite">The SQLite Backend</a></span></dt><dt><span class="section"><a href="ch02s02.html#id3033369">The MySQL Backend</a></span></dt></dl></dd><dt><span class="section"><a href="ch02s03.html">Apache Configuration</a></span></dt><dt><span class="section"><a href="ch02s04.html">SSL Configuration</a></span></dt><dt><span class="section"><a href="ch02s05.html">Using CADMIN</a></span></dt></dl></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="server-common"></a>Common Server Configuration</h2></div></div><div></div></div><p>
+The first task in configuring Current is to configure to common (or global)
+area of the server; this is the main section of the <tt class="filename">current.conf</tt> 
+configuration file.  This configuration is fairly straightforward; you can start
+with the example configuration file, and modify it to suit your needs.
+</p><p>
+The new configuration file in versions 1.5 and greater is significantly shorter than in previous versions.
+There are no longer individual channel entries.  Instead, there are
+database parameters which must be correct, and a few essential constants
+needed by the Current server.
+</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id2970676"></a>Database Configuration</h3></div></div><div></div></div><p>
+Configuring Current for a specific database is covered in the next
+section called <a href="ch02s02.html" title="Setting up your database">Setting Up Your Database</a>.
+This includes all configuration variables that begin with “<span class="quote">db</span>”.
+</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id3032310"></a>Logging</h3></div></div><div></div></div><p>
+Logging is very important for Current.  This log file will have important
+information in it about what the server is doing for each client.  It will
+also have important information regarding any problems and errors that
+the Current server may experiance.  There are two variables that affect
+logging.
+</p><p>The “<span class="quote">log_file</span>” variable should be set to the absolute
+path of a file where all logs will be written.  The default is
+<tt class="filename">/var/log/current.log</tt>.  The “<span class="quote">log_level</span>”
+variable indicates the verbosity of the logs.  The lowest value is 0
+where only death or life proplems are logged.  10 is the highest.  I
+would recommend a setting of 1.  I normally develop with a setting of
+4.  Settings greater than 5 are not currently used.
+</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id3032346"></a>Apache Configuration</h3></div></div><div></div></div><p>
+The “<span class="quote">apache_config_file&gt;</span>” variable defines where the
+<span><b class="command">cinstall</b></span> command will put Current's Apache configurations.
+The default value of <tt class="filename">/etc/httpd/conf.d/current.httpd.conf</tt>
+is the proper location for Red Hat style distributions.
+</p><p>
+The “<span class="quote">access_type</span>” variable defines how <span><b class="command">cinstall
+</b></span> sets the permissions on the Current log file and the
+directories that Apache will serve Current's data from.  This
+can be set to “<span class="quote">user</span>” for the Apache user to own these
+files.  The variable can be set to “<span class="quote">group</span>” which will
+put all these files in the Apache group on your system.  The
+value “<span class="quote">all</span>” can be used set world writable permissions.
+This is a security risk and is not recommended.  Finally, you may
+use “<span class="quote">none</span>” to do nothing.  Setting the proper permissions
+in this case must be done manually.
+</p><p>
+The “<span class="quote">access_arg</span>” is the user or group that permissions will
+be given to as described above.  This should normally be “<span class="quote">apache
+</span>”
+</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id3032422"></a>Current Specific Configuration</h3></div></div><div></div></div><p>
+The following configuration variables and values affect the internal
+operation of Current or control aspects of the Current/Up2date interaction.
+The “<span class="quote">current_dir</span>” variable is very important.  This defines
+a location in your file system that Current can use for serving out
+channels, and packages.  The default value is <tt class="filename">/export/current
+</tt>.  The <span><b class="command">cinstall</b></span> program will create these
+directories if they do not yet exist.
+</p><p>
+The remaining variables need to be defined, however the value associated 
+with them is less important.  The “<span class="quote">welcome_message</span>” and
+“<span class="quote">privacy_statement</span>” are strings sent to the Up2date client.
+You may wish to define these to reflect your organization's policies.
+The “<span class="quote">server_id</span>” and “<span class="quote">server_secret</span>” variables
+aid in the security of the interaction between Current and Up2date.
+Both should be set to some arbitrary text and the latter should never
+be made public.  I would suggest a random MD5 sum for the secret.
+</p></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch01s03.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ch02s02.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Installing Current </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Setting up your database</td></tr></table></div></body></html>

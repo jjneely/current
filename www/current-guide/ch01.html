@@ -1,0 +1,33 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Chapter 1. Installation Guide</title><meta name="generator" content="DocBook XSL Stylesheets V1.65.1"><link rel="home" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="up" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="previous" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="next" href="ch01s02.html" title="Hardware and Software Prerequisites"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 1. Installation Guide</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="index.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="ch01s02.html">Next</a></td></tr></table><hr></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="id3019410"></a>Chapter 1. Installation Guide</h2></div></div><div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="ch01.html#intro">Introduction</a></span></dt><dt><span class="section"><a href="ch01s02.html">Hardware and Software Prerequisites</a></span></dt><dt><span class="section"><a href="ch01s03.html">Installing Current</a></span></dt></dl></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="intro"></a>Introduction</h2></div></div><div></div></div><p>
+This document will guide you through the steps required to install a
+functioning 1.6-series Current Server.  Regular maintenance of the server will
+be covered later; the beginning portions of this document will only cover the 
+steps required to get to a point where you have a valid Current server instance
+responding to client registration and update requests.
+</p><p>
+Please note that Current (and up2date itself) are moderately advanced systems
+administration topics.  If you aren't comfortable with tar, RPM, general
+systems administration, and similar topics, you probably shouldn't be using
+this software.  Although we want as large a user base as possible, and we hate 
+discouraging people, this software can very easily destroy data and disable 
+systems if it is not set up and used correctly.
+</p><p>
+You should also note that Current is still in very active development, most
+especially with the 1.7 series; the 1.6 series has proven relatively stable, so
+if you require stability, you should probably use a 1.6.x release.  If you
+elect to proceed with the development version, you should be prepared to
+encounter bugs, and willing to report them to the mailing list.
+</p><p>
+Bug reports should include any and all tracebacks, the version of up2date (or
+rhn_register) and Current you are experiencing the problems with, and wherever
+possible log extracts showing the failure.  You may also be asked
+to submit your config file for the server and details on what packages are in
+your database(s).
+</p><p>
+Between full releases (1.4 to 1.6 or similar), the release notes or README will
+include any changes or minor incompatibilities.  You should definitely review
+the example config file (<tt class="filename">current.conf</tt>) between
+snapshots for changes, and you will almost certainly need to recreate your 
+databases.  As of 1.0, Current records database versions, and will complain if
+you attempt to run the server with an out-of-date database.
+</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="index.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ch01s02.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Current: An Open Source Server for Red Hat's up2date Updater </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Hardware and Software Prerequisites</td></tr></table></div></body></html>

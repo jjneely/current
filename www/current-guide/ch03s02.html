@@ -1,0 +1,89 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Channel Creation and Population</title><meta name="generator" content="DocBook XSL Stylesheets V1.65.1"><link rel="home" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="up" href="ch03.html" title="Chapter 3. Managing your Current Server"><link rel="previous" href="ch03.html" title="Chapter 3. Managing your Current Server"><link rel="next" href="ch04.html" title="Chapter 4. Client Configuration"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Channel Creation and Population</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch03.html">Prev</a> </td><th width="60%" align="center">Chapter 3. Managing your Current Server</th><td width="20%" align="right"> <a accesskey="n" href="ch04.html">Next</a></td></tr></table><hr></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="channelcreate"></a>Channel Creation and Population</h2></div></div><div></div></div><p>
+The way you manage and control your channels has also changed significantly -
+as mentioned previously, there is no channel configuration information in the
+<tt class="filename">current.conf</tt> config file anymore.  Any information that is
+there is ignored.  So now you're probably asking me, "If it's ignored, how the
+heck to I create a channel?"  This section is going to answer that question
+for you, so read on.
+</p><p>We'll assume you've gone thorugh the database creation process above and
+that there were no errors reported.  The first thing to do is to start the 
+Apache httpd daemon.  The management interface talks to the server the same way
+up2date does; this is a major departure from the way server management was
+done in 1.4.x and previous releases.  The developers believe that this change
+will greatly enhance the usability and future expandability of Current; we'd
+really like to hear feedback from users about the usability of this new
+management method.
+</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="createchan"></a>Creating the Channel</h3></div></div><div></div></div><p>
+There are three commands you will need to use to set up a channel in Current.
+The first, <span><b class="command">cadmin create_channel</b></span>, is what actually creates
+the channel definition.  There are six options available for this command:
+</p><div class="glosslist"><dl><dt><a name="name"></a>--name (-n)</dt><dd><p>This option specifies the "name" of the channel; the name is used
+only for human consumption and is not critical for server operations.  
+Each channel is required to have a name attribute associated with it.
+</p></dd><dt><a name="label"></a>--label (-l)</dt><dd><p>The label is the internal name of the channel used by the server and the
+clients that communicate with it.  You will need to remember the channel label
+as it is required for other management commands.  The label of a channel
+must be a valid directory name for the server operating system, and as such,
+cannot contain any characters except alphanumerics, “<span class="quote">-</span>”, and
+“<span class="quote">.</span>”.  Each channel is required to have a label attribute 
+associated with it.
+</p></dd><dt><a name="arch"></a>--arch (-a)</dt><dd><p>The arch is the architecture that this channel will serve.  It is usually
+the lowest level compatible architecture; i.e. i386 versus i686.  This is a
+required option.
+</p></dd><dt><a name="release"></a>--release (-r)</dt><dd><p>The release attribute is the release level of the channel being served;
+for a Red Hat Linux 7.2 tree, the release would be "7.2".  This is a required
+option.
+</p></dd><dt><a name="description"></a>--description (-d)</dt><dd><p>This is a description of the channel that is presented to the user in
+the client GUI; it is purely for human consumption and is not used in any way
+in the actual management of the server.  This option is not required.
+</p></dd><dt><a name="parent"></a>--parent (-p)</dt><dd><p>
+This denotes the label of the parent channel of the channel you are creating.  
+As of versions 1.5.x and 1.6.x, this option is ignored in operations as we 
+do not yet support sub-channels.  Use of this option may cause unexpected 
+behavior of the server; it is here for future compatibility purposes only.
+In future versions, use of this option will override the arch and release
+options (if they are provided).
+</p></dd></dl></div><p>
+An example channel definition command would be:
+</p><pre class="screen">
+# cadmin create_channel --name "Red Hat 7.2" --label rhl7.2 --arch i386 \
+    --release 7.2 --description "Red Hat Linux version 7.2"
+</pre><p>
+The command will output a message telling you if it succeeded or failed, and 
+if the latter, why (we hope).  If the command fails for unobvious reasons,
+please submit a bug report.  In the production (1.6.x) releases, this output will be supressed
+on success unless specifically asked for with a future --verbose (-v) flag.
+</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="chanadddir"></a>Adding a Directory</h3></div></div><div></div></div><p>
+The second command you will need is <span><b class="command">cadmin add_dir</b></span>.  This
+command takes two options:
+</p><div class="glosslist"><dl><dt><a name="addlabel"></a>--label (-l)</dt><dd><p>
+This is the channel label, as above.  A label is required.
+</p></dd><dt><a name="bindir"></a>--dir (-d)</dt><dd><p>
+  This option must be followed by the absolute path to a directory of
+  RPMs or SRPMs.  The packages in this directory will become part
+  of the channel specified by the channel label.
+</p></dd></dl></div><p>
+The <span><b class="command">cadmin add_dir</b></span> command can be issued multiple times
+with one directory specified per command, one with all channel directories
+specified at the same time, or any combination thereof.  Please note: the
+<span><b class="command">cadmin</b></span> suite of commands can be run on a machine 
+different from the actual Apache / PostgreSQL / Current server machine,
+but all directory paths must be valid on that server machine.
+</p><p>
+This cannot be emphasized emough: all directories must be 
+<span class="bold"><b>server</b></span> directories, not necessarily
+directories on the machine <span><b class="command">cadmin</b></span> is being run on.
+</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="scanchan"></a>Scan Channel</h3></div></div><div></div></div><p>
+The third command you will need to become familiar with is the
+<span><b class="command">cadmin scan_channel</b></span> command.  This command only takes a
+single option, the <tt class="option">--label</tt> option as above.  You can specify
+multiple <tt class="option">--label</tt> options with this command.  This command is what tells the
+server to do the bulk of the setup work; it looks at the channel configuration,
+reads through the RPMS in the directories specified by the <span><b class="command">cadmin
+add_dir</b></span> command, and imports the required information into the 
+database.  This is analogous to the old (1.4.2 and previous)
+<span><b class="command">cadmin create</b></span> command.  Please note that this command may
+take some time to return; author testing of this command has shown it can take
+up to 7 or 10 minutes to scan an entire Red Hat Linux 7.3 tree with source and
+binary RPMs.
+</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch03.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="ch03.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ch04.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 3. Managing your Current Server </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 4. Client Configuration</td></tr></table></div></body></html>

@@ -28,8 +28,8 @@ several hundred machines without driving the sysadmins mad.</p>
 
 <h3>Features</h3>
 <ul>
-    <li>Production quality for 2.7 to 4.3 clients with a Fedora Core 1, 2, 3, or Red Hat Enterprise Linux 3 server.</li>
-    <li>Full database backend in development (and working).</li>
+    <li>Production quality for 2.7 to 4.3 clients with a Fedora Core 1, 2, 3, or Red Hat Enterprise Linux 3, or 4 server.</li>
+    <li>Full SQL database backend.</li>
     <li>As easy to setup for the admin as we can make it.</li>
 </ul>
 
@@ -37,6 +37,11 @@ several hundred machines without driving the sysadmins mad.</p>
 <h3>Recent News</h3>
 <ul>
 
+    <li><b>[21 Mar 2005] Current 1.6.0 Final</b>
+    <p>Its here!  Current 1.6.0 Final.  Only some documentation
+    tweeks when compared to 1.5.91.  Y'all let me know how it
+    breaks.</p></li>
+    
     <li><b>[27 Feb 2005] Current 1.6.0 Release Canidate 1</b>
     <p>Also known as version 1.5.91.  This is the first release canidate
     for 1.6.0.  Please beat on this.  The 1.6.x line is considered frozen
@@ -45,15 +50,6 @@ several hundred machines without driving the sysadmins mad.</p>
     <li><b>[20 Feb 2005] Current Version 1.5.11</b>
     <p>MySQL support and lots of bug fixes.  Updated <a href="faq.html">FAQ</a>
     too.  Last 1.5.x version!  On to 1.6!</p></li>
-
-    <li><b>[05 Jan 2005] Current Version 1.5.10</b>
-    <p>This is the brown paper bag release of 1.5.9.  In .10 you
-    can add directories.  Oooo...</p></li>
-    
-    <li><b>[02 Jan 2005] Current Version 1.5.9</b>
-    <p>New development version of Current.  This incorperates the
-    last major schema change for 1.6.  Please test!  1.6.0 is VERY
-    close.</p></li>
 
     <li><b>[04 Oct 2004] New Maintainer, New Development Version</b>
     <p>Jack Neely is the new maintainer for the Current project.  Hunter
@@ -76,9 +72,16 @@ Red Hat (both server and client)
 
 
 <a name="download"></a>
-<h3>Downloads</h3>
+<h3>Downloads and Documentation</h3>
 
 <ul>
+
+    <li><p><b><a href="current-guid/">Current Manual</a> - </b>This is the
+    manual as shipped with 1.6.0.  This should contain full blown
+    instructions for everything in Current.  Of course it doesn't, but
+    you are welcome to patch the DocBook source in the Current tar balls,
+    cvs, or svn.</p></li>
+    
     <li>
     <p><b>Releases -</b> All source code and RPM packages of Current 
     releases can be downloaded from the <a href="http://current.tigris.org/servlets/ProjectDocumentList">Documents and Files</a> section.</p></li>
@@ -105,7 +108,7 @@ Jack's Current ftp repository is
 </ul>
 
 
-<h3>Requirements</h3>
+<h3>Dependancies</h3>
 
 <p>Current does require a few things to run.  Fortunately, any of the Red 
 Hat or Fedora Core distributions have everything you need to get Current
@@ -152,10 +155,11 @@ on newer releases of Red Hat Linux are a priority. Other areas we look
 forward to:</p>
 
 <ul>
-    <li> <p>Full SQL backend database: <br />
-Development is ongoing on the trunk. The 1.5.x series will simply
-reimplement the features we have now, but with a much saner SQL based
-backend (and enough changes to sanely support it).</p></li>
+    <li> <p>Client Monitoring: <br />
+    Before we move into client management features, lets get a website 
+    working with Current and display of information and statistics of
+    all the clients we know about.
+    </p></li>
 
 <li><p> Basic client management: <br />
 Once we have the basics complete in the SQL backend (to support the same

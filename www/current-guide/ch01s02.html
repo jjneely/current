@@ -1,0 +1,26 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Hardware and Software Prerequisites</title><meta name="generator" content="DocBook XSL Stylesheets V1.65.1"><link rel="home" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="up" href="ch01.html" title="Chapter 1. Installation Guide"><link rel="previous" href="ch01.html" title="Chapter 1. Installation Guide"><link rel="next" href="ch01s03.html" title="Installing Current"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Hardware and Software Prerequisites</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch01.html">Prev</a> </td><th width="60%" align="center">Chapter 1. Installation Guide</th><td width="20%" align="right"> <a accesskey="n" href="ch01s03.html">Next</a></td></tr></table><hr></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="requirements"></a>Hardware and Software Prerequisites</h2></div></div><div></div></div><p>
+Your first concern is server hardware robustness.  The machines currently used
+by the developers for testing minor and major releases are P4's running
+between 1 and 3 GHz with 256 MB to 1 GB of RAM.  You will also 
+need sufficient disk space to contain full trees of all the packages you wish
+to update automatically, with an additional 50 - 100 MB for database overhead
+per tree.  The full Red Hat 7.2 tree is roughly 2.5 GB and the updates for
+7.2 are an additional 2.1 GB.  Red Hat Linux 7.1 is slightly smaller, but you
+should probably plan on about 5 - 7 GB per tree (which includes the space for
+the updates) for full Red Hat Linux trees, or trees of comparable size.  In
+general, a good quality midrange server will provide you with the horsepower
+you need for an average Current installation.
+</p><p>
+Secondly, you will need clients on the network; having an update server is sort
+of pointless if you don't have anything to update.  :)  For Current, you will
+need any version of Red Hat Linux, Red Hat Enterprise Linux or Fedora Core 
+with up2date between versions 2.7 and 4.3 and all of up2date's
+dependencies.
+</p><p>
+For version 1.6 you will also need the Apache web server, and one of the 
+supported databases.  For 1.6 these are PostgreSQL, SQLite, and MySQL.
+According to very 
+preliminary test results, you should still be able to server normal web pages
+from this Apache server after installing Current, but please don't try this on
+a production server, as we can't guarantee that.
+</p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch01.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="ch01.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ch01s03.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 1. Installation Guide </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Installing Current</td></tr></table></div></body></html>

@@ -1,0 +1,40 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Installing Current</title><meta name="generator" content="DocBook XSL Stylesheets V1.65.1"><link rel="home" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="up" href="ch01.html" title="Chapter 1. Installation Guide"><link rel="previous" href="ch01s02.html" title="Hardware and Software Prerequisites"><link rel="next" href="ch02.html" title="Chapter 2. Configuration Guide"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Installing Current</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch01s02.html">Prev</a> </td><th width="60%" align="center">Chapter 1. Installation Guide</th><td width="20%" align="right"> <a accesskey="n" href="ch02.html">Next</a></td></tr></table><hr></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="installing"></a>Installing Current</h2></div></div><div></div></div><p>
+There are two methods for installing the Current package; the method you choose
+will depend on how you downloaded Current and how comfortable you are with
+third-party RPM packages.  The developers, of course, highly recommend
+downloading and installing with RPMs, as it's much easier than dealing with
+the tarball.
+</p><p>
+The recommended method, again, is installing with the provided RPM packages.
+To install Current with this method, simply download the RPM to your hard
+drive, and issue an <span><b class="command">rpm -ihv &lt;<tt class="filename">filename</tt>&gt;</b></span>
+and watch the package get installed for you.  Make sure you get all of 
+Current's requirements installed.  Next, you also need to use RPM, Up2date, or Yum to install a database Current can use.  Red Hat products come
+with PostgreSQL and MySQL.  SQLite and the SQLite python bindings can be found
+as RPMS from the Current web site.  See the documentation for each database
+to get it installed and configured.  You can now skip down to the
+section entitled “<span class="quote">Configuring Current</span>”.
+</p><p>
+To install using the tarball, download the tarball and unpack it.  This will
+(should) create a directory called <tt class="filename">current-${version}/</tt> (e.g. <tt class="filename">
+current-1.5.3/</tt>) in the
+directory you unrolled the tarball from.  Inside this directory are several
+<tt class="filename">.py</tt> files, an example configuration file, and the 
+control executables <tt class="filename">cadmin</tt> and <tt class="filename">cinstall</tt>.  
+First, copy all the <tt class="filename">.py</tt> files to 
+<tt class="filename">/usr/share/current</tt>.  
+The <tt class="filename">cadmin</tt> and <tt class="filename">cinstall</tt>
+files should be copied to somewhere in root's path, probably 
+<tt class="filename">/usr/sbin</tt> or <tt class="filename">/sbin</tt>.  Finally, you'll
+need to create an <tt class="filename">/etc/current</tt> directory, and copy the
+example configuration file (<tt class="filename">current.conf</tt>) there.
+</p><p>
+At this point, you need to install other requirements for Current.  If you 
+can handle installing Current from a tarball then installing these should be
+fairly simple.  Current requires the Apache web server, the mod_ssl module, 
+the mod_python module, Red Hat's <tt class="filename">rpm-python</tt> package,
+and a database.  Supported databases are PostgreSQL, SQLite, and MySQL.
+</p><p>
+Current is now installed in your system, but is not 
+configured or otherwise usable.  On to configuration!
+</p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch01s02.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="ch01.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ch02.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Hardware and Software Prerequisites </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 2. Configuration Guide</td></tr></table></div></body></html>

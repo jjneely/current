@@ -1,0 +1,40 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>SSL Configuration</title><meta name="generator" content="DocBook XSL Stylesheets V1.65.1"><link rel="home" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="up" href="ch02.html" title="Chapter 2. Configuration Guide"><link rel="previous" href="ch02s03.html" title="Apache Configuration"><link rel="next" href="ch02s05.html" title="Using CADMIN"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">SSL Configuration</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch02s03.html">Prev</a> </td><th width="60%" align="center">Chapter 2. Configuration Guide</th><td width="20%" align="right"> <a accesskey="n" href="ch02s05.html">Next</a></td></tr></table><hr></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="postconfig"></a>SSL Configuration</h2></div></div><div></div></div><p>
+The most critical part of Current's configuration is creating the SSL key file and 
+certificate file which will be used to encrypt communications between the
+clients and the Current server.  To do this, first issue a <span><b class="command">cinstall
+create_certificate</b></span> command after installing Current.  This will
+create several files in <tt class="filename">/etc/current</tt>, among them
+<tt class="filename">RHNS-CA-CERT</tt>,
+<tt class="filename">server.key</tt>, and <tt class="filename">server.crt</tt>.
+</p><p>
+The <tt class="filename">server.key</tt> and <tt class="filename">server.crt</tt>
+must be copied to the <tt class="filename">/etc/httpd/conf/ssl.key</tt> and
+<tt class="filename">/etc/httpd/conf/ssl.crt</tt> directories, respectively. 
+If you name these files differently then
+the entries concerning these files in <tt class="filename">ssl.conf</tt> 
+must be edited.  The <tt class="filename">ssl.conf</tt> is part of the
+<tt class="filename">mod_ssl</tt> package and is normally located at
+<tt class="filename">/etc/httpd/conf.d/ssl.conf</tt>.
+</p><div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Warning</h3><p>
+This procedure will affect the SSL setup for your entire Apache
+server, not just for Current.  
+</p></div><p>
+If you already have an existing SSL configuration working with your Apache
+server, you can use that configuration to generate a CA-CERT file for use with
+Current.  Simply copy the <tt class="filename">server.crt</tt> file from the
+<tt class="filename">/etc/httpd/conf/ssl.crt</tt> directory to your current
+working directory and issue the following two commands:
+</p><pre class="screen">
+# openssl x509 -noout -text -in server.crt &gt; RHNS-CA-CERT
+# cat server.crt &gt;&gt; RHNS-CA-CERT
+</pre><p>
+</p><p>
+The <tt class="filename">RHNS-CA-CERT</tt>
+must be copied to your clients prior to
+using Current; this will be discussed in the client section of this guide.
+</p><p>
+Also critical to operating a Current server is to issue a <span><b class="command">cinstall
+create_apache_config</b></span> command in order to create the Apache 
+configuration snippet mentioned above; without this configuration snippet,
+the Apache server will not know to invoke Current.
+</p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch02s03.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="ch02.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ch02s05.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Apache Configuration </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Using CADMIN</td></tr></table></div></body></html>

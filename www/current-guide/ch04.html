@@ -1,0 +1,18 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Chapter 4. Client Configuration</title><meta name="generator" content="DocBook XSL Stylesheets V1.65.1"><link rel="home" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="up" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="previous" href="ch03s02.html" title="Channel Creation and Population"><link rel="next" href="ch04s02.html" title="Certificate File"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 4. Client Configuration</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch03s02.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="ch04s02.html">Next</a></td></tr></table><hr></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="clients"></a>Chapter 4. Client Configuration</h2></div></div><div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="ch04.html#clientintro">Introduction to the Client</a></span></dt><dt><span class="section"><a href="ch04s02.html">Certificate File</a></span></dt><dt><span class="section"><a href="ch04s03.html">Configuring Up2date</a></span></dt><dt><span class="section"><a href="ch04s04.html">Registering Your Clients</a></span></dt></dl></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="clientintro"></a>Introduction to the Client</h2></div></div><div></div></div><p>
+When you install a stock Red Hat Linux system, it comes pre-configured to talk
+to Red Hat's corporate servers for any registration or update requests.  This
+makes perfect sense, since the Red Hat servers are the only official place to
+obtain system updates for your Red Hat Linux system.  With the advent of
+Current, however, this configuration becomes a limitation, since there now
+exists a way to provide an alternate source of package updates; a way that
+works seamlessly with Red Hat's <span><b class="command">up2date</b></span> client.
+</p><p>
+A functioning Current server, however, is somewhat useless without clients that
+use it to obtain and install package updates.  The clients must then be
+told about the new Current server by changing their configuration; there does
+not yet exist an intuitive graphical interface for this, so we have to modify
+the <span><b class="command">rhn_register</b></span> and <span><b class="command">up2date</b></span>
+configuration files by hand.  Fortunately, this is fairly easy, thanks mostly
+to the foresight of Red Hat in developing a sane and easy to understand
+configuration file for these utilities.
+</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch03s02.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ch04s02.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Channel Creation and Population </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Certificate File</td></tr></table></div></body></html>

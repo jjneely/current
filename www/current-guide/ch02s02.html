@@ -1,0 +1,157 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Setting up your database</title><meta name="generator" content="DocBook XSL Stylesheets V1.65.1"><link rel="home" href="index.html" title="Current: An Open Source Server for Red Hat's up2date Updater"><link rel="up" href="ch02.html" title="Chapter 2. Configuration Guide"><link rel="previous" href="ch02.html" title="Chapter 2. Configuration Guide"><link rel="next" href="ch02s03.html" title="Apache Configuration"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Setting up your database</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch02.html">Prev</a> </td><th width="60%" align="center">Chapter 2. Configuration Guide</th><td width="20%" align="right"> <a accesskey="n" href="ch02s03.html">Next</a></td></tr></table><hr></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="database"></a>Setting up your database</h2></div></div><div></div></div><p>
+The database backend is now a critical part of a functioning Current server.
+Setting up the database is not difficult, but care
+must be taken to not only ensure it's done correctly, but that it's done in a
+way which won't compromise security.  In any and all cases please consult
+the documentation for the database that you choose to use to make sure
+that you are running it in a secure fashion.  
+</p><p>
+A common question is what database to use.  This very much depends on how
+much work you are willing to do to set up and maintain your Current server
+and what your specific needs are.  Each database has pros and cons.
+The PostgreSQL database is the recommeded database for a large number of
+clients.  It handles transactions and locking very well.  The SQLite database
+is easy to set up and works well for a small number of clients and can
+be quite fast.  MySQL is supported as well but a 4.x or 5.x version is
+recommended.
+</p><p>
+Now that you have decided what database to use it is important
+to tell Current to use that database.  Edit the Current configuration file
+which, in the default setup, is <tt class="filename">/etc/current/current.conf</tt>.
+Set the “<span class="quote">db_type</span>” to the proper database.  Valid values are
+“<span class="quote">postgres</span>”, “<span class="quote">pysqlite</span>”, and “<span class="quote">mysql</span>”.
+The “<span class="quote">db_user</span>”, “<span class="quote">db_pass</span>”, “<span class="quote">db_name</span>”,
+and the “<span class="quote">db_host</span>” values also need to be configured for your
+database.
+</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="postgres"></a>The PostgreSQL Backend</h3></div></div><div></div></div><p>
+There are two parts to setting up the PostgreSQL backend; first you have to
+set up the PostgreSQL server itself to accept connections properly, then
+you have to set up the actual database instance your Current server will use.
+We'll address them in that order.
+</p><p>
+In order to set up the daemon, you have to first have an established
+<tt class="filename">/var/lib/pgsql/data</tt> directory.  This is done by simply
+starting the PostgreSQL daemon and immediately stopping it.  Then, you
+have to configure the daemon to accept network (TCP/IP) connections.  This is
+done by editing two files in the <tt class="filename">/var/lib/pgsql/data</tt>
+directory, <tt class="filename">pg_hba.conf</tt> and
+<tt class="filename">postmaster.opts.default</tt>.
+</p><p>
+The <tt class="filename">pg_hba.conf</tt> file configures the method(s) used
+to authenticate connections to the PostgreSQL service; for Current to work,
+we must allow host-based authentication, which is what is used for TCP/IP
+connections.  The simplest way of doing this is to add a line to the
+end of this file that reads:
+</p><pre class="screen">
+host    all     127.0.0.1   255.255.255.255     password
+</pre><p>
+This allows host-based connections over TCP/IP from the local host only
+(the loopback adapter, specifically) to all databases with a valid password
+supplied.
+</p><p>
+The host-based authentication method is mainly for cases when the database
+server is not the same machine as the Current server.  For security conserns
+you should only allow the IP address that need to connect to your
+database server.  If you are running the database on the same machine as
+Current you can also set up local, socket based authentication.  Connections
+are then handled through an on-disk socket rather than the network.  Local
+authentication can be enabled by using a line that reads:
+</p><pre class="screen">
+local   all         all           password
+</pre><p>
+This allows socket based connections using a password.  In any case, the 
+default IDENT based authentication will not work without a local IDENT
+server.  For more details about configuring these access methods and
+permissions, please see the <a href="http://www.postgresql.org/" target="_top">PostgreSQL Documentation</a>.
+</p><p>
+The next file, <tt class="filename">postmaster.opts.default</tt>, simply tells the
+startup script what options to pass to the postmaster daemon when the
+PostgreSQL service is started.  Please be very careful to modify the
+<tt class="filename">postmaster.opts.default</tt> file, even if there isn't one in
+existence already - the <tt class="filename">postmaster.opts</tt> file simply
+records what options the daemon was started with the last time it was started,
+it does not control the options.
+</p><p>
+If you have any preexisting options in this file, you should keep them.  You
+will have to add a “<span class="quote">-i</span>” to this file if it's not already there if
+you decide to
+allow TCP/IP connections to the server.
+</p><p>
+Once you've modified those files, you can re-start the PosrgreSQL service and
+create the user that the Current server will use to connect to the database.
+This user and password must be the same username and password that appear in
+your <tt class="filename">current.conf</tt> file.  The easiest way to create this
+user account is to run the <span><b class="command">createuser</b></span> script with the
+“<span class="quote">-P</span>” option.  Please note that you must use a capital "P" -
+the lowercase "p" is a different option and will cause unexpected behavior.
+For more information on creating PostgreSQL users, please see the 
+<a href="http://www.postgresql.org/" target="_top">PostgreSQL Documentation</a>.
+</p><p>Now that we've allowed TCP/IP connections and created our user, we need
+to create the database and tables that Current will use.  First, you need to
+create and empty database with the “<span class="quote">createdb</span>” command provided
+by the PostgreSQL package.  Once the empty database has been created, you will
+create the actual tables that Current will use.  This step has been
+simplified for you; all you need to do is run the <span><b class="command">cinstall initdb</b></span>
+command and the tables will be created automatically.  If you receive any error
+messages, they should be somewhat explicit about what went wrong.  If you're
+unable to correct the error, please ask on the mailing list.
+</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="pysqlite"></a>The SQLite Backend</h3></div></div><div></div></div><p>
+The SQLite backend is the easiest to set up and run with Current.  It 
+supports transactions well but will not work well with more than
+a handful of clients.  As of this writing SQLite 2.8 and Python-SQLite 
+0.5.0 are the versions used for testing.  SQLite 3 should work better
+for handling more clients.  Also, SQLite is what I do most of my development
+with.
+</p><p>
+Make sure that you have the RPMs for SQLite and Python-SQLite (the python
+bindings) installed.  Links to RPMs can be found from the Current
+website.  After they are installed set the Current configuration file to
+use the “<span class="quote">pysqlite</span>” database.  The “<span class="quote">db_type</span>”
+value in the configuration file is the only database parameter used for SQLite.
+You may leave the rest blank.  Finally, run the command
+as root <span><b class="command">cinstall initdb</b></span>.  You database should now
+be setup and ready to use.  The actual file Current will keep at
+<tt class="filename">/export/current/db/current.sqlite</tt>.
+</p><p>
+That's it.  Your are done setting up the SQLite database.
+</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="id3033369"></a>The MySQL Backend</h3></div></div><div></div></div><p>
+The MySQL database will preform better the newer your version of the 
+database code is.  I'm testing with the versions that come with Fedora
+Core and Red Hat Enterprise Linux, currently 3.23.58.  Although this
+version does work and should work for a large number of clients it
+does not support transactions.  It is recommended that you run a version
+(4.x or greater) that supports transactions.
+</p><p>
+Install MySQL from the RPMs of the version of your choice and start up
+the database.  Run the <span><b class="command">mysql</b></span> as the MySQL root user.
+We will manually create a database and create a user that has read/write
+access.  Please check out the MySQL documentation for security concerns.
+</p><pre class="screen">
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 157 to server version: 3.23.58
+
+Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
+
+mysql&gt; create database up2date;
+Query OK, 1 row affected (0.01 sec)
+
+mysql&gt; GRANT ALL PRIVILEGES  on *.* to 'bob'@'localhost' ;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql&gt;
+</pre><p>
+
+You should now be able to configure Current to connect to this MySQL
+server with these parameters in your configuration file.
+</p><pre class="screen">
+db_type = mysql
+db_user = bob
+db_pass =
+db_name = up2date
+db_host = localhost
+</pre><p>
+
+If your MySQL server runs on a different host than your Current server
+you will have to update the GRANT statement to reflect the host that
+Current will be connecting from.
+</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch02.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="ch02.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="ch02s03.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 2. Configuration Guide </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Apache Configuration</td></tr></table></div></body></html>

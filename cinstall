@@ -21,6 +21,7 @@ sys.path.append(MODULES_DIR)
 
 import configure
 import db
+import sys
 from logger import *
 
 
@@ -75,7 +76,8 @@ def main():
         configure.config = configure.Config(configure.defaults)
         configure.config.load()
         config = configure.config
-        args = config['args']
+        # cinstall is a special case, we just look at the cmd line args.
+        args = sys.argv
     except (configure.FormatError, configure.MissingError), ex:
         print 'Error:', ex
         sys.exit(1)
@@ -159,7 +161,7 @@ def main():
         config.dump(sys.stdout)
 
     else:
-        print """cinstall [options] COMMAND args
+        print """cinstall COMMAND
 Where COMMANDS are:
 create_apache_config -- create the apache config
 create_certificate -- create new ssl key and RHNS-CA-CERT

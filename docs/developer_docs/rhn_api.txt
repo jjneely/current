@@ -625,6 +625,66 @@ queue.get()
     
     An empty dict can be used to represent no actions for this client.
 
+Applet
+------
+The rhn-applet first appeared in Red Hat Linux 7.3 as version 1.0.6. In Red
+Hat Linux 8.0, rhn-applet was released at version 2.0.0. No other versions
+exist at this time. The only changes in the rpc interface between the two
+was a change from using xmlrpclib directly to using it indirectly via
+rhn.rpclib. The latter appears to give more control over how RPC is done
+(GET v. POST) and could be used to allow Red Hat to change the RPC protocol
+altogether.
+
+RPC for rhn-applet is sent to https://some.server.here/APPLET via XMLRPC.
+
+applet.poll_status()
+    versions: 1.0, 2.0
+    params: empty
+    returns: a dict with:
+        'checkin_interval': (int) number of seconds until next checkin -- RHN
+                            doesn't appear to have any particular number it
+                            returns for this value, nor does it target a
+                            particular time. My values have been, in order:
+                            15194 (no cache), 15541 (cache), 12634 (no cache)
+                            with the same mtime returned for each.
+        'server_status':    (string) the rpc code drops this value. I've only
+                            seen 'normal' so far.
+    faultCodes: none specified. Just return a string.
+
+applet.poll_packages()
+    versions: 1.0, 2.0
+    params: (release, arch, latest_package_mtime, uuid)
+            latest_package_mtime is an int timestamp in the
+                            format YYYYMMDDHHMMSS, 0 if this is the first time
+            uuid is some kind of UUID number which seems to have no relation
+                 to the system id nor user id
+    returns a dictionary depending on the result:
+        if there are no packages at all there is only one key:
+            'no_packages': value ignored
+        if there has been no change since the timestamp there is only one key:
+            'use_cached_copy': rhn sets this to 1, but the value is ignored
+        if there are new packages:
+            'last_modified': int timestamp in the format YYYYMMDDHHMMSS of the
+                             last modification
+            'contents':      a list of dicts with:
+                'name':            name of the latest package
+                'version':         version of the latest package
+                'release':         release of the latest package
+                'epoch':           epoch of the latest package
+                'nvr':             '%s-%s-%s' % (name, version, release)
+                'nevr':            '%s-%s-%s:%s' % (name, version, release,
+                                                    epoch)
+                'errata_advisory': the Red Hat errata number, which iirc is
+                                   numbered by the time they were made aware
+                                   of the issue
+                'errata_id':       some other errata id number, which appears
+                                   to be monotonically increasing by the date
+                                   of advisory release
+                'errata_synopsis': short 1-line description of the errata
+            There is only one entry in the list per package, with the latest
+            errata given. This includes every package in the channel, since
+            the cache is replaced entirely by the list given.
+    faultCodes: same as for applet.poll_status()
 
 That lot should be enough to cook your noodle. Its done a number on me.
     

@@ -15,7 +15,7 @@ from logger import *
 db = None
 
 
-def selectBackend(db_type):
+def selectBackend(config):
     """ Factory function to start the db type specified. """
 
     # We could do something fancy here, like 
@@ -23,12 +23,12 @@ def selectBackend(db_type):
     # but for now, we keep it simple and stupid
 
     global db
-    if db_type == 'postgres':
+    if config['db_type'] == 'postgres':
         import postgres
-        db = postgres.PostgresDB()
-    elif db_type == 'pysqlite':
+        db = postgres.PostgresDB(config)
+    elif config['db_type'] == 'pysqlite':
         import pysqlite
-        db = pysqlite.PySqliteDB()
+        db = pysqlite.PySqliteDB(config)
     else:
         raise Exception("unknown backend type")
 

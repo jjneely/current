@@ -76,7 +76,7 @@ def populateChannel(channel):
 #         # Likewise
 #         result[dir] = db.db.addDir(channel['label'], dir, 0)
 
-     result['status'] = "ok"
+    result['status'] = "ok"
     return result
 
 

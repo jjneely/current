@@ -18,7 +18,6 @@ Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
 import pprint
 import sys
 import optik
-sys.path.append(MODULES_DIR)
 sys.path.append('/usr/share/rhn')
 
 # Grab the network code from up2date itself.

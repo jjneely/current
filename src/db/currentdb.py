@@ -18,45 +18,9 @@ class CurrentDB:
 
 ## API ##
 
-    def __init__(self):
+    def __init__(self, config):
         """ Create a database object. """
-        __api__ = 1
-
-        pass
-
-
-    def initdb(self, config):
-        """ Create a new database.
-    
-        Called by the cinstall program, ONCE, per database.
-
-        Config should be a dictionary of required keys (or something
-        that acts like a dictionary).
-        """
-        
-        # create the web dir, which is used by ALL the backends 
-        # side effect is to create the current dir if it doesn't exist
-        web_dir = os.path.join(config['current_dir'], 'www')
-        os.system("mkdir -p %s" % web_dir)
-
-
-    def addRpmDir(self, dirname):
-        """ Add an entire directory of rpms all at once """
-    
-        if not os.path.isdir(dirname):
-            print "Warning: %s was not a valid dir" % dirname
-            return
-    
-        for file in os.listdir(dirname):
-            pathname = os.path.join(dirname, file)
-            addRpmPackage(pathname)
-    
-    
-    def addRpmPackage(self, pathname):
-        """ Add a single Rpm to the channel. """  
-        
-        # I thought this would be generic, but its not...     
-        pass
+        self.config = config
 
 
 ## HELPER FUNCTIONS - NOT PART OF THE CURRENTDB API ##

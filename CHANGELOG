@@ -1,5 +1,15 @@
                         Current Project Changelog
 
+* Mon Aug 25 2003 Hunter Matthews <thm@duke.edu>
+- Removed all the duplicate indexes from the postgres schema.
+  Postgres at least creates an implicit index on any field marked unique.
+  They are named 'table', underscore, 'column name'
+- Cleaned up the backend object creation code. IE, where config gets passed.
+- Took out all the old currentdb.py code.
+- Mashed makeChannel() into a pulp. 
+  Simplified the code as much as I could, set lastupdate to None, because
+  we haven't updated yet...
+
 * Sat Aug 23 2003 Hunter Matthews <thm@duke.edu>
 - Lots of redesign (on paper) has occured - I've not been idle.
 - Took out all of the source/binary distinction code from cadmin and the api.

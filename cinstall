@@ -92,8 +92,6 @@ def main():
         print 'Error:', ex
         sys.exit(1)
 
-	db.selectBackend(config['db_type'])
-
     # Check that the user actually setup a proper config file.
     if config['current_dir'] == 'YOUR_CURRENT_DIR_HERE':
         sys.exit('ERROR: You must edit the config file to start')
@@ -141,8 +139,8 @@ def main():
         # Now init the database
         # we can just pass in the config object, since it looks like a 
         # a dictionary.
-        db.selectBackend(config['db_type'])
-        db.db.initdb(config)
+        db.selectBackend(config)
+        db.db.initdb()
 
         # Then change the perms
         if config['access_type'] == 'user':

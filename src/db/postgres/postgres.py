@@ -35,9 +35,6 @@ class PostgresDB(CurrentDB):
 
 
     def initdb(self):
-        CurrentDB.initdb(self)
-
-        # FIXME: This is backwards, the parent should connnect
         self.connect()
         self.cursor.execute(schema.INITDB)
         self.conn.commit()
@@ -83,80 +80,59 @@ class PostgresDB(CurrentDB):
 
         if (channel.has_key('parent')):
             log("Creating a child channel", TRACE)
-            # First, grab the id of the parent channel specified.
-            self.cursor.execute('''select channel_id from CHANNEL where
-                label = %s''', (channel['parent'],))
-            res = self.cursor.fetchall()
-            if (len(res) != 1):
-                return "Better check your database...  you have duplicate labels..."
-            chid = res[0][0]
-            # Then, grab the parent channel's arch and release
-            self.cursor.execute('''select arch, osrelease from CHANNEL where
-                channel_id = %s''', (chid,))
-            res = self.cursor.fetchall()
-            if (len(res) != 1):
-                return "You have real problems - duplicate channel id's."
-            arch = res[0][0]
-            rel = res[0][1]
-            # Last, add the info to the DB.
-            self.cursor.execute('''insert into CHANNEL
-                    (name, label, arch, osrelease, description, lastupdate, parentchannel_id)
-                    values (%s, %s, %s, %s, %s, %s, %s)''', 
-                        (channel['name'],
-                         channel['label'],
-                         arch,
-                         rel,
-                         channel['desc'],
-                         time.strftime("%Y%m%d%H%M%S", time.gmtime()),
-                         chid))
-
+            # First, grab some of the information from the parent
+            self.cursor.execute('''select channel_id, arch, osrelease
+                                   from CHANNEL 
+                                   where label = %s''', 
+                                (channel['parent'],))
+            (parentchannel_id, arch, osrelease = self.cursor.fetchone()
         else:
-            # Check for duplicate top-level channel creations here?
-            # Yes, but later.
-            log("Creating new top channel", TRACE)
-            self.cursor.execute('''insert into CHANNEL
-                    (name, label, arch, osrelease, description, lastupdate)
-                    values (%s, %s, %s, %s, %s, %s)''', 
-                        (channel['name'],
-                         channel['label'],
-                         channel['arch'],
-                         channel['release'],
-                         channel['desc'],
-                         time.strftime("%Y%m%d%H%M%S", time.gmtime())))
+            parentchannel_id = None
+            arch = channel['arch']
+            osrelease = channel['release']
+
+        self.cursor.execute('''insert into CHANNEL
+                               (name, label, arch, osrelease, description, 
+                               lastupdate, parentchannel_id)
+                               values (%s, %s, %s, %s, %s, %s, %s)''', 
+                            (channel['name'],
+                             channel['label'],
+                             arch,
+                             rel,
+                             channel['desc'],
+                             None,    # we haven't done our first update ...
+                             parentchannel_id))
         self.conn.commit()
         log("New channel created and committed.", TRIVIA)
 
-        # Now create the directories and such and so.
+        # Now create the directories on disk for this channel
         webdir = os.path.join(self.config['current_dir'], 'www')
         chan_dir = os.path.join(webdir, channel['label'])
         if (not os.access(chan_dir, os.W_OK)):
             os.mkdir(chan_dir)
-            os.mkdir(os.path.join(chan_dir, 'getObsoletes'))
-            os.mkdir(os.path.join(chan_dir, 'getPackage'))
-            os.mkdir(os.path.join(chan_dir, 'getPackageHeader'))
-            os.mkdir(os.path.join(chan_dir, 'getPackageSource'))
-            os.mkdir(os.path.join(chan_dir, 'listPackages'))
+            for dir in ['getObsoletes', 'getPackage', 'getPackageHeader',
+                        'getPackageSource', 'listPackages']:
+                os.mkdir(os.path.join(chan_dir, dir))
 
         log("New channel and dirs created.", DEBUG2)
 
         return "ok"
 
 
-    def addDir(self, channame, dirname, binary=1):
+    def addDir(self, label, dirname, binary=1):
         logfunc(locals(), TRACE)
 
-        self.cursor.execute('''select channel_id from CHANNEL where label = %s''',
-                (channame,))
-        result = self.cursor.fetchall()
-        if (len(result) != 1):
-            return "No channel or too many channels with given name!"
-        chanid = int(reslt[0][0])
+        self.cursor.execute('''select channel_id 
+                               from CHANNEL 
+                               where label = %s''',
+                            (label,))
+        channel_id  = self.cursor.fetchone()
 
         # FIXME: doesn't check for duplicates.
         self.cursor.execute('''insert into CHANNEL_DIR 
-                (channel_id, dirpathname, is_bin_dir) 
-                values
-                (%d, %s, %s)''', (chanid, dirname, str(binary)))
+                               (channel_id, dirpathname, is_bin_dir) 
+                               values (%d, %s, %s)''', 
+                            (channel_id, dirname, str(binary)))
         self.conn.commit()
         log("Directory added to channel", DEBUG2)
         return "ok"

@@ -50,14 +50,33 @@ create table RPM (
     srpm_id         int,
     pathname        varchar(1024) not null,
     arch            varchar(32) not null,
-    size            int not null,
-    original_channel_id     int not null,
-    active_channel_id       int
+    size            int not null
     );
 create index RPM_ID_IDX on RPM(rpm_id);
 create index RPM_PACKAGE_ID_IDX on RPM(package_id);
-create index RPM_ACTIVE_CHANNEL_ID_IDX on RPM(active_channel_id);
 create index RPM_SRPM_ID_IDX on RPM(srpm_id);
+
+-- ! OK.  Major bug here.  We can have the same package in more than one
+-- ! channel, so we need a new pair of join tables.
+create sequence chan_rpm_orig_seq;
+create table CHAN_RPM_ORIG (
+    orig_id     int default nextval('chan_rpm_orig_seq') unique not null,
+    rpm_id      int not null,
+    chan_id     int not null
+    );
+create index OCHAN_RPM_ID_IDX on CHAN_RPM_ORIG(rpm_id);
+create index OCHAN_CHAN_ID_IDX on CHAN_RPM_ORIG(chan_id);
+
+create sequence chan_rpm_act_seq;
+create table CHAN_RPM_ACT (
+    act_id     int default nextval('chan_rpm_act_seq') unique not null,
+    rpm_id      int not null,
+    chan_id     int not null
+    );
+create index ACHAN_RPM_ID_IDX on CHAN_RPM_ACT(rpm_id);
+create index ACHAN_CHAN_ID_IDX on CHAN_RPM_ACT(chan_id);
+
+-- ! End new tables for package<->channel bug
 
 --  Create the SRPMS table
 -- ! This is a problem...  one SRPM can have multiple RPMS...  Need to remove
@@ -82,6 +101,15 @@ create table RPMPROVIDE (
     );
 create index RPMPROVIDE_ID_IDX on RPMPROVIDE(rpmprovide_id);
 create index RPMPROVIDE_RPM_ID_IDX on RPMPROVIDE(rpm_id);
+
+-- ! Create separate table for file payload
+create sequence rpmpayload_seq;
+create table RPMPAYLOAD (
+    rpmpayload_id   int default nextval('rpmpayload_seq') unique not null,
+    rpm_id          int not null,
+    name            varchar(4096)
+    );
+create index RPMPAYLOAD_RPM_ID_IDX on RPMPAYLOAD(rpm_id);
 
 -- Create the table of obsoletes information
 create sequence rpmobsolete_id_seq;

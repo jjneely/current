@@ -8,7 +8,7 @@ OBJECTS         = $(addsuffix .pyc, $(MODULES))
 
 INSTALL_DIRS	= $(DATA_DIR)/db
 
-SUBDIRS 		= pysqlite shelf postgres
+SUBDIRS 		= pysqlite postgres
 
 
 # default python rules:

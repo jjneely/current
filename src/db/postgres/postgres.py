@@ -43,12 +43,16 @@ class PostgresDB(CurrentDB):
             log("Connection already exists!", TRACE)
             return
 
-        if 'db_dsn' in config:
+        try:
             self.conn = pgdb.connect(config['db_dsn'])
-            log("Connection obtained via DSN", TRACE)
-        else:
-            self.conn = pgdb.connect(user=config['db_user'], host=config['db_host'], password=config['db_pass'], database=config['db_name'])
-            log("Connection via user/password", TRACE)
+            log ("Connection obtained via DSN", TRACE)
+        except:
+            try:
+                self.conn = pgdb.connect(user=config['db_user'], host=config['db_host'], password=config['db_pass'], database=config['db_name'])
+                log ("Connection via user/password", TRACE)
+            except Exception, e:
+                log ("No connection obtained!", TRACE)
+                sys.exit(0)
 
 
     def disconnect(self):
@@ -213,7 +217,7 @@ class PostgresDB(CurrentDB):
             pathname = os.path.join(dir, file)
 
             rpm = RPM.Header(pathname)
-            if (rpm == None or not rpm['SOURCEPACKAGE']):
+            if (rpm == None or not rpm[RPM.SOURCEPACKAGE]):
                 log("Not a src rpm.", TRACE)
                 continue
             srpm_id = self._getSrpmId(file)
@@ -240,8 +244,18 @@ class PostgresDB(CurrentDB):
         # IMHO:  *shrug*  I dunno...
         logfunc(locals(), TRIVIA)
         result = {}
-        # first, select the binary dirs
+        # reset the orig_chan table for this channel
         self.cursor = self.conn.cursor()
+        self.cursor.execute("""select channel_id from channel
+                        where channel.label = '%s'""" % (channel,) )
+        qry = self.cursor.fetchall()
+        assert (len(qry) == 1)
+        chan_id = int(qry[0][0])
+
+        self.cursor.execute("""delete from chan_rpm_orig
+                        where chan_id = %d""" % (chan_id,) )
+        self.conn.commit()
+        # first, select the binary dirs
         self.cursor.execute("""select dirpathname from CHANNEL_DIR
             inner join CHANNEL on (channel.channel_id = channel_dir.channel_id)
             where channel.label = '%s' 
@@ -274,6 +288,9 @@ class PostgresDB(CurrentDB):
     def _addRpmPackage(self, config, path, channel):
         self.cursor = self.conn.cursor()
         filename = os.path.basename(path)
+        if ( not filename.endswith(".rpm") ):
+            # not a real RPM
+            return 1
         rpm = RPM.Header(path)
         
         if (self.cursor == None):
@@ -281,13 +298,11 @@ class PostgresDB(CurrentDB):
         elif (self.cursor.description == None):
             self.cursor = self.conn.cursor()
 
-        # Check to see if the package is already in the DB before we do something stupid.
-        if ( self._packageInDB(rpm) ):
-            log ("Package already in DB - not scanning.", TRIVIA)
+        if ( rpm.hdr == None ):
             return 1
  
         # Anorther sanity check
-        if ( rpm['SOURCEPACKAGE'] == 1 ):
+        if ( rpm[RPM.SOURCEPACKAGE] == 1 ):
             return 1
              
         log("Adding RPM %s to channel %s" % (path, channel), TRIVIA)
@@ -301,17 +316,30 @@ class PostgresDB(CurrentDB):
             return 0
         ch_id = chreslts[0][0]
 
-        log("Inserting package information.", TRACE)
-        package_id = self._insertPackageTable(rpm)
-        if ( package_id == 0 ):
-            # we have a problem.  return it.
-            log("package_id problem")
+        # Check for the package already in DB
+        pkg_id = self._getPackageId(rpm[RPM.NAME], rpm[RPM.VERSION], 
+                                    rpm[RPM.RELEASE], rpm[RPM.EPOCH])
+        if pkg_id == None:
+            pkg_id = self._insertPackageTable(rpm)
+
+        if pkg_id == None or pkg_id == 0:
+            log ("Package_Id problem...")
             return 0
-        # the next call returns 0 on failure, otherwise positive non-zero
-        log("Inserting RPM information.", TRACE)
-        rpm_id = self._insertRpmTable(rpm, package_id, ch_id)
+
+
+        rpm_id = self._insertRpmTable(rpm, pkg_id, ch_id)
         if not rpm_id:
             log("RPM %s failed." % (path,) )
+
+        log ("Adding RPM to channel", TRACE)
+        if ( rpm_id == None ):
+            raise Exception, "Oh shit....  RPM supposed to be here, but isn't."
+
+        self.cursor.execute("""insert into CHAN_RPM_ORIG (rpm_id, chan_id)
+                            values (%d, %d) """ % (rpm_id, ch_id) )
+
+        log ("RPM added to channel", TRACE)
+
 
         # Put the header file into place
         log("Creating header file.", TRACE)
@@ -324,6 +352,7 @@ class PostgresDB(CurrentDB):
         return rpm_id
 
     def _getPackageId(self, name, version, release, epoch):
+        logfunc (locals())
         sql = """ select package_id from package
                 where package.pkgname = %s
                 and package.version = %s
@@ -340,12 +369,12 @@ class PostgresDB(CurrentDB):
             return int(row[0][0])
 
     def _packageInDB(self, rpm):
-        pid = self._getPackageId(rpm['NAME'], rpm['VERSION'],
-                                rpm['RELEASE'], rpm['EPOCH'])
+        pid = self._getPackageId(rpm[RPM.NAME], rpm[RPM.VERSION],
+                                 rpm[RPM.RELEASE], rpm[RPM.EPOCH])
         if ( pid != None and pid != 0 ):
             self.cursor = self.conn.cursor()
             sql = """ select rpm_id from rpm where rpm.package_id = '%d'
-                      and rpm.arch = '%s'""" % (pid, rpm['ARCH'])
+                      and rpm.arch = '%s'""" % (pid, rpm[RPM.ARCH])
             self.cursor.execute(sql)
             results=  self.cursor.fetchall()
             if (len(results) > 1):
@@ -357,19 +386,19 @@ class PostgresDB(CurrentDB):
         return pid
         
     def _insertPackageTable(self, rpm):
-        package_id = self._getPackageId(rpm['NAME'], rpm['VERSION'],
-                                rpm['RELEASE'], rpm['EPOCH'])
+        package_id = self._getPackageId(rpm[RPM.NAME], rpm[RPM.VERSION],
+                                        rpm[RPM.RELEASE], rpm[RPM.EPOCH])
 
         if not package_id:
             self.cursor.execute("""insert into package
                         (pkgname, version, release, epoch)
                         values
                         ('%s', '%s', '%s', '%s')""" %
-                        (rpm['NAME'], rpm['VERSION'],
-                         rpm['RELEASE'], rpm['EPOCH']) )
+                        (rpm[RPM.NAME], rpm[RPM.VERSION],
+                         rpm[RPM.RELEASE], rpm[RPM.EPOCH]) )
 
-        package_id = self._getPackageId(rpm['NAME'], rpm['VERSION'],
-                                rpm['RELEASE'], rpm['EPOCH'])
+        package_id = self._getPackageId(rpm[RPM.NAME], rpm[RPM.VERSION],
+                                rpm[RPM.RELEASE], rpm[RPM.EPOCH])
 
         assert package_id
 
@@ -397,20 +426,18 @@ class PostgresDB(CurrentDB):
 
 
     def _insertRpmTable(self, rpm, package_id, ch_id):
-        rpm_id = self._getRpmId(rpm['CT_PATHNAME'])
-        srpm_id = self._getSrpmId(rpm['SOURCERPM']) or 0
+        rpm_id = self._getRpmId(rpm[RPM.CT_PATHNAME])
+        srpm_id = self._getSrpmId(rpm[RPM.SOURCERPM]) or 0
 
         if not rpm_id:
             self.cursor.execute("""insert into rpm
-                                (package_id, srpm_id, pathname, arch, size,
-                                 original_channel_id, active_channel_id)
+                                (package_id, srpm_id, pathname, arch, size)
                                 values
-                                (%d, %d, '%s', '%s', %d, %d, %d)""" %
-                                (package_id, srpm_id, rpm['CT_PATHNAME'],
-                                 rpm['ARCH'], int(rpm['CT_FILESIZE']),
-                                 ch_id, 0) )
+                                (%d, %d, '%s', '%s', %d)""" %
+                                (package_id, srpm_id, rpm[RPM.CT_PATHNAME],
+                                 rpm[RPM.ARCH], int(rpm[RPM.CT_FILESIZE]) ) )
 
-        rpm_id = self._getRpmId(rpm['CT_PATHNAME'])
+        rpm_id = self._getRpmId(rpm[RPM.CT_PATHNAME])
         assert rpm_id
         # We'll need to update the provides and obsoletes tables here...
 
@@ -420,7 +447,7 @@ class PostgresDB(CurrentDB):
         return rpm_id
 
     def _insertObsoletes(self, rpm_id, rpm):
-        for obs in rpm['CT_OBSOLETES']:
+        for obs in rpm[RPM.CT_OBSOLETES]:
             self.cursor.execute("""insert into rpmobsolete
                             (rpm_id, name, flags, vers)
                             values
@@ -428,7 +455,7 @@ class PostgresDB(CurrentDB):
                             (rpm_id, obs[0], obs[1], obs[2]) )
  
     def _insertProvides(self, rpm_id, rpm):
-        for prov in rpm['CT_PROVIDES']:
+        for prov in rpm[RPM.CT_PROVIDES]:
             self.cursor.execute("""insert into rpmprovide
                             (rpm_id, name, flags, vers)
                             values
@@ -437,7 +464,7 @@ class PostgresDB(CurrentDB):
         # We also "provide" all the "files"- should this be a separate table?
         # I'm answering "no" provisionally to avoid a schema update.
         plst = ()
-        for prov in rpm['FILENAMES']:
+        for prov in rpm[RPM.FILENAMES]:
             # OK, we're having issues here.  The DB-API seems to contradict
             # itself on whether the client (that's us) or the module (pgdb)
             # does quoting to escape single quotes and backslashes.
@@ -447,7 +474,7 @@ class PostgresDB(CurrentDB):
             # to the actual database value"
             # So, we're going to escape here, because not doing so seems to
             # break things.
-            self.cursor.execute("""insert into rpmprovide
+            self.cursor.execute("""insert into rpmpayload
                             (rpm_id, name)
                             values
                             ( %d, '%s')""" %
@@ -458,7 +485,8 @@ class PostgresDB(CurrentDB):
     def _scanForFiles(self, channel):
         result = 1
         self.cursor.execute("""select pathname from RPM
-                inner join channel on (channel.channel_id = rpm.original_channel_id)
+                inner join chan_rpm_orig on (rpm.rpm_id = chan_rpm_orig.rpm_id)
+                inner join channel on (channel.channel_id = chan_rpm_orig.chan_id)
                 where (channel.label = '%s')""" % (channel,) )
         query = self.cursor.fetchall()
         for row in query:
@@ -468,11 +496,23 @@ class PostgresDB(CurrentDB):
 
     def _setActiveElems(self, channel):
         # This is what sets which RPMS are active.  I'tll be fun to diagnose...
-        # First, get a list of unique pkg names:
         self.cursor = self.conn.cursor()
+        # Ok, zeroth, clear out the existing active RPMS
+        # I know this can be optimized.  Work with me.
+        self.cursor.execute("""select channel_id from channel
+                            where label = '%s'""" % (channel,) )
+        res = self.cursor.fetchall()
+        assert (len(res) == 1)
+        chan_id = int(res[0][0])
+        self.cursor.execute("""delete from chan_rpm_act 
+                            where chan_id = %d""" % (chan_id,) )
+
+        # First, get a list of unique pkg names:
+
         self.cursor.execute(""" select distinct on (pkgname) pkgname from package
                     inner join rpm on (package.package_id = rpm.package_id)
-                    inner join channel on (channel.channel_id = rpm.original_channel_id)
+                    inner join chan_rpm_orig on (rpm.rpm_id = chan_rpm_orig.rpm_id)
+                    inner join channel on (channel.channel_id = chan_rpm_orig.chan_id)
                     where channel.label = '%s'""" % (channel,) )
         pkgs = []
         newest_ids = []
@@ -484,22 +524,13 @@ class PostgresDB(CurrentDB):
             for id in self._findNewest(channel, pkg):
                 newest_ids.append(id)
 
-        self.cursor.execute("""select channel_id from channel 
-                    where channel.label = '%s'""" %
-                    (channel,) )
-        chqry = self.cursor.fetchall()
-        assert (len(chqry) == 1 )
-        chid = int(chqry[0][0])
-        # Set everything in this channel inactive to amke sure we don't have
-        # any stale active records:
-        self.cursor.execute("""update rpm set active_channel_id = 0
-                where rpm.original_channel_id = %d""" % (chid,) )
-        self.conn.commit()
         self.cursor = self.conn.cursor()
         for id in newest_ids:
             log('setting rpmid %s active' % id)
-            self.cursor.execute("""update rpm set active_channel_id = %d
-                    where rpm.rpm_id = %d""" % (chid, id) )
+            self.cursor.execute("""insert into chan_rpm_act
+                                (rpm_id, chan_id)
+                                values
+                                (%d, %d)""" % (id, chan_id) )
 
         self.conn.commit()
         return "done"
@@ -507,7 +538,8 @@ class PostgresDB(CurrentDB):
     def _findNewest(self, channel, pkg):
         self.cursor.execute("""select pkgname, version, release, epoch from PACKAGE
                     inner join rpm on (package.package_id = rpm.package_id)
-                    inner join channel on (rpm.original_channel_id = channel.channel_id)
+                    inner join chan_rpm_orig on (chan_rpm_orig.rpm_id = rpm.rpm_id)
+                    inner join channel on (chan_rpm_orig.chan_id = channel.channel_id)
                     where package.pkgname = '%s' and channel.label = '%s'""" %
                     (pkg, channel) )
         query = self.cursor.fetchall()
@@ -518,9 +550,10 @@ class PostgresDB(CurrentDB):
         query.sort(lambda x,y: RPM.versionCompare( (y[3], y[1], y[2]), (x[3], x[1], x[2]) ) )
 
         # Now update the RPM table appropriately.
-        self.cursor.execute("""select rpm_id from RPM
+        self.cursor.execute("""select rpm.rpm_id from RPM
                     inner join package on (package.package_id = rpm.package_id)
-                    inner join channel on (rpm.original_channel_id = channel.channel_id)
+                    inner join chan_rpm_orig on (rpm.rpm_id = chan_rpm_orig.rpm_id)
+                    inner join channel on (chan_rpm_orig.chan_id = channel.channel_id)
                     where package.pkgname = '%s'
                         and package.version = '%s'
                         and package.release = '%s'
@@ -549,7 +582,8 @@ class PostgresDB(CurrentDB):
         self.cursor.execute("""select package.pkgname, package.version,
                 package.release, package.epoch, rpm.arch, rpm.size from
                 package, rpm
-                inner join channel on (rpm.active_channel_id = channel.channel_id)
+                inner join chan_rpm_act on (rpm.rpm_id = chan_rpm_act.rpm_id)
+                inner join channel on (chan_rpm_act.chan_id = channel.channel_id)
                 where channel.label = '%s'
                 and package.package_id = rpm.package_id
                 order by package.pkgname""" % (channel,) )
@@ -577,7 +611,8 @@ class PostgresDB(CurrentDB):
                 package.release, package.epoch, rpm.arch,
                 rpmobsolete.name, rpmobsolete.vers, rpmobsolete.flags
                 from package, rpmobsolete, rpm
-                inner join channel on (rpm.active_channel_id = channel.channel_id)
+                inner join chan_rpm_act on (rpm.rpm_id = chan_rpm_act.rpm_id )
+                inner join channel on (chan_rpm_act.chan_id = channel.channel_id)
                 where channel.label = '%s'
                 and package.package_id = rpm.package_id
                 and rpm.rpm_id = rpmobsolete.rpm_id 
@@ -605,7 +640,8 @@ class PostgresDB(CurrentDB):
         log("grabbing getPackageSource information", TRIVIA)
         self.cursor.execute("""select distinct on (srpm.filename) srpm.filename, srpm.pathname from srpm
                 inner join rpm on (srpm.srpm_id = rpm.srpm_id)
-                inner join channel on (rpm.active_channel_id = channel.channel_id)
+                inner join chan_rpm_act on (rpm.rpm_id = chan_rpm_act.rpm_id )
+                inner join channel on (chan_rpm_act.chan_id = channel.channel_id)
                 where channel.label = '%s'""" % (channel,) )
         query = self.cursor.fetchall()
         dpath = os.path.join( config['current_dir'], 'www', channel, 'getPackageSource')
@@ -623,7 +659,8 @@ class PostgresDB(CurrentDB):
         # now populate getPackage
         log("grabbing getPackage information", TRIVIA)
         self.cursor.execute("""select rpm.pathname from rpm
-                    inner join channel on (rpm.active_channel_id = channel.channel_id)
+                    inner join chan_rpm_act on (rpm.rpm_id = chan_rpm_act.rpm_id )
+                    inner join channel on (chan_rpm_act.chan_id = channel.channel_id)
                     where channel.label = '%s'""" % (channel,) )
         query = self.cursor.fetchall()
         dpath = os.path.join ( config['current_dir'], 'www', channel, 'getPackage')
@@ -664,7 +701,7 @@ class PostgresDB(CurrentDB):
         # FIXME: get parent channel info in there.
         for row in query:
             chan = {}
-            chan['NAME'] = row[0]
+            chan['name'] = row[0]
             chan['label'] = row[1]
             chan['arch'] = row[2]
             chan['description'] = row[3]
@@ -690,7 +727,8 @@ class PostgresDB(CurrentDB):
         self.cursor.execute("""select distinct on (rpmprovide.rpm_id) 
                     rpmprovide.rpm_id from rpmprovide
                     inner join RPM on (rpmprovide.rpm_id = rpm.rpm_id)
-                    where rpm.active_channel_id = '%s'
+                    inner join chan_rpm_act on (rpm.rpm_id = chan_rpm_act.rpm_id )
+                    where chan_rpm_act.chan_id = '%s'
                     and name = '%s'
                     """ % (act_ch_id, unknown) )
         rpms = self.cursor.fetchall()
@@ -755,7 +793,8 @@ class PostgresDB(CurrentDB):
         self.cursor.execute(""" select pkgname, version, release, epoch
                 from package
                 inner join rpm on (rpm.package_id = package.package_id)
-                inner join channel on (channel.channel_id = rpm.active_channel_id)
+                inner join chan_rpm_act on (rpm.rpm_id = chan_rpm_act.rpm_id )
+                inner join channel on (channel.channel_id = chan_rpm_act.chan_id)
                 where channel.arch = '%s' and channel.osrelease = '%s'
                 order by pkgname"""
                 % (arch, release) )

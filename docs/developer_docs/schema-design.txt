@@ -122,3 +122,42 @@ PkgChannels (
 
 Obviously, this is a first run only, isn't SQL code, and doesn't have any sort
 if indices or anything...  comments?
+
+---- NEW STUFF ----
+This is where I'm going to start dropping hints of what I'm thinking about
+for client tracking in the 1.7 series.  As of this writing, the 1.5 series
+is pretty much ready for a 1.6.0 release, with only some code cleanups left
+(although there are quite a few of those...).
+
+My main goal for 1.7 is to enable tracking of specific clients.  I'm not 
+planning on adding any sort of connection to users (admins?) at this point,
+nor am I planning on doing any sort of interface coding for controlling the
+client / channel memberships.  Initially, that will all be handled by issuing
+SQL statements yourself - 1.7 is after all a development series.
+
+We desperately need someone who's good with interfaces to help out with a
+"client management" type thing - even if it's just a rough sketch at first.
+I'm willing to work with you as much as I need to to get you up to speed on
+what's in the DB and what you need to make available as far as functionality
+to the user/admin/monkey on the other end of the HTTP/HTTPS connection.
+
+So, with that said, here we go.
+
+Items we need to track per client:
+(I'm being as thorough as possible - if we don't need to track a certain item,
+we can remove it later.)
+Hardware profile (more details later)
+Package list (will be join table)
+sysauth_dict (i.e. the "system user id" - not actual user, just user ID)
+user (actual users)
+orgstuff (in register_product())
+serial, OEMID
+
+This is where it starts to get messy again.
+
+The major important key that will appear throughout all the tables is the
+sysid - yes, the same one passed back to the client, so be ready for
+fun. (This is actually the system_id member of the sysid structure.)
+
+
+

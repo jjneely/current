@@ -56,7 +56,6 @@ class Header(object):
 
         (self.hdr, self.is_source) = self._getHeaderFromFilename(pathname)
 
-
     def __getitem__(self, item):
         assert item in tagvalues, "Invalid attribute requested"
 
@@ -106,6 +105,11 @@ class Header(object):
             return ''
         else:
             return str(self.hdr[rpm.RPMTAG_EPOCH])
+
+    def _get_SERIAL(self):
+        # RPMTAG_SERIAL == RPMTAG_EPOCH.  SERIAL is found first.
+        # this causes problems.
+        return self._get_EPOCH()
 
 
     def _get_PROVIDEVERSION(self):

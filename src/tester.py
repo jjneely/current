@@ -7,9 +7,7 @@ import sys
 import types
 import pprint
 
-#os.chdir('/scratch/RedHat/RPMS')
-os.chdir('/home/thm/projects/RPMS/i386')
-for file in ['/home/thm/projects/RPMS/i386/sqlite-2.7.6-2.i386.rpm']:
+for file in ['/export/redhat-7.3/RPMS/Canna-devel-3.5b2-62.i386.rpm']:
     h = Header(file)
 
 #    pprint.pprint(dir(h))

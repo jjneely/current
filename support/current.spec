@@ -16,7 +16,7 @@
 
 Summary: A server for Red Hat's up2date tools.
 Name: current
-Version: 1.5.5rc1
+Version: 1.5.6
 Release: %{release}
 License: GPL
 Group: System Environment/Daemons

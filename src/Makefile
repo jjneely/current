@@ -4,7 +4,7 @@
 
 MODULES			= archtab auth configure \
                   ConstructParser current_apache \
-                  logger rpm_wrapper
+                  logger RPM
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 

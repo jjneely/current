@@ -1,0 +1,122 @@
+Current Development                                         H. Matthews       
+Request for Comments: 10                                           Duke 
+Category: Design                                          February 2003
+
+
+                            Sub-channel Operation
+                            
+1. Status of this Memo 
+
+   This RFC specifies one possible design for sub-channels in current.
+   After review and editing, this 'Design' will be designated a
+   "Specification". Assuming current gains enough of these RFCs to 
+   justify the work, RFC 1 will become the rolling catalog of RFCs and
+   their status.
+    
+2. Abstract 
+
+   Current is an open source reimplementation of a server to work with 
+   Red Hat's up2date client. One of the more powerful features of up2date
+   is the concept of channels and sub-channels.
+
+   This RFC specifies one possible design for handling channels and 
+   sub-channels in the server side of current. Issues of defining, 
+   relating, managing, updating, and storage of sub-channels are 
+   needed before all current backends and current users will be 
+   consistent.
+
+3. Definitions
+   
+   A release is a numeric version or revision of an entire distribution from
+   one of the Linux distributions. For example, recent Red Hat releases are
+   7.2, 7.3, 8.0, and 8.0.91. While Red Hat also names their distributions,
+   ("Phoebe", "Valhalla", "Psyche") these names have no relation to what
+   current calls a release.
+   
+   An arch (shortened form of architecture) is a text string that designates
+   the lowest common denominator for a family of related chips. Examples
+   best explain - "i386" is the arch for all x86/ia32 class chips, which
+   include everything from the original 80386 to the latest Pentium 4 Xeon.
+   
+   A channel is a single collection of related rpms for a given release-arch
+   combination. Current versions to at least 1.4 will only allow 1 
+   release-arch channel per server. To be clear "7.3-i386", "8.0-i386" and 
+   "7.3-alpha" would all be valid channels served by a single current 
+   server. A second channel, possibly one of locally customized packages,
+   would not be allowed if the release were 7.3 and the arch i386.
+   
+   A sub-channel is the answer to this need. A given sub-channel
+   is "tied" to a single channel, so a sub-channel always has the release
+   and arch designations of its "base" channel. The packages in the 
+   sub-channel channel may either extend (add) packages to the base, 
+   or replace them.
+   
+4. Configuration
+
+4.1 Configuring a channel
+
+4.2 Configuring a sub-channel
+
+5. Package selection between the base and sub-channels
+
+5.1 Greatest version wins
+
+5.2 Concept of "ordering"
+
+5.3 we pick "ordering"
+
+6. Administration Tasks
+
+6.1 admin per (sub-)channel. Admin for server itself.
+
+6.2 Admin tasks.
+
+7. Security concerns 
+
+   
+9. References
+
+Appendix 1: Tale of Operation
+
+Alice is an overworked sysadmin at Widgets, Inc. Among other duties, Alice
+maintains the corporate current server setup for the Red Hat linux machines.
+
+Alice ran the server, but had turned control of the 7.3 tree over to Bob,
+and the newer 8.0 tree to Bill. Most departments relied on Alice's defaults
+to manage internal mail and web servers. A few larger departments had their
+own people who were granted control over various groups of servers or 
+workstations. (Finance was particularly fond of being in complete control 
+over their own "secure" Red Hat database server.)
+
+Then engineering got involved.
+
+Engineering used Red Hat 7.3 and 8.0 themselves, but had packages or even
+groups of packages that nobody else wanted. Alice refused to alter the 
+entire corporation's setup. Whoever heard of accounting needing a CAD
+package?
+
+It wasn't just the extra packages - everyone could just have not installed
+them. The real problem is that occasionally these custom packages had 
+special dependancies, which could easily cause problems with the 
+production systems in the other groups.
+
+The solution was to let the engineering IT group, headed up by Cathy, manage
+their own sub-channels. Consulting with Cathy on what engineering would
+need, Alice created two sets, one set for the few 7.3 remaining servers, the
+other set for the more recent 8.0 based workstations. She then assigned 
+ownership of these new sub-channels to Cathy, so that Alice wouldn't have
+to be involved anymore.
+
+The most common need was a complex materials prediction application. It came 
+from the vendor in an rpm that had its quirks, but worked. All the
+engineering systems got this package. The CAD application wasn't
+prepackaged, so engineering had created one with the local configs in it.
+
+Cathy had taken all of this and added these custom engineering packages to
+the departments new sub-channels, and then subscribed different groups of
+machines to those sub-channels.
+
+With Cathy in charge of the engineering sub-channels, and everyone else in 
+the company not having to deal with CAD packages, order was restored.
+
+Alice went out to lunch.

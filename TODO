@@ -1,11 +1,15 @@
                        Current Server TODO List
 
+* The cadmin and cinstall programs need to be reworked.  I'd like to do
+  a modular approch similar to realmconfig where "cadmin foo" loads the
+  foo module from a python package or random directory.  A defined
+  base class is needed.  But this will make both programs nice, neat,
+  cvs-ish, and easy to add functionality to.
+
 * Exception handling throught code
 
 * How should SRPMS be handed.  Just the latest versions on disk or all of them
 
-* redo the logging to match what is outlined in the developer docs
- 
 * we ignore channel versions during create/delete/listpackage. Fix that.
   Old channel versions might need to live for up to an hour, to give
   "logged in" clients a chance to expire.

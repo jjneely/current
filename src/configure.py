@@ -17,7 +17,7 @@ import ConfigParser
 config = None
 
 ## These are replaced by make, so beware
-VERSION="1.5.7"
+VERSION="1.5.9"
 MODULES_DIR="/usr/share/current"
 CONFIG_DIR="/etc/current"
 LOG_DIR="/var/log/httpd"
@@ -100,55 +100,13 @@ class Config:
         parser.read(filename)
         
         for opt in parser.options('current'):
-            if opt == 'valid_channels':
-                tmp[opt] = string.split(parser.get('current', opt))
-            elif opt == '__name__':
+            if opt == '__name__':
                 continue
             else:
                 value = parser.get('current', opt)
                 tmp[opt] = value
 
         # Quick fix
-        return tmp
-
-        tmp['channels'] = {}
-
-        # A little hackery 
-        # Our output is a dict with the keys being the channel labels.
-        for label in tmp['valid_channels']:
-            try:
-                tmp['channels'][label] = {'label': label}
-                options = parser.options(label)
-            except ConfigParser.NoSectionError:
-                raise MissingError("Section %s not found - perhaps this is an older config file?" % label)
-
-            for opt in options:
-                if opt == '__name__':
-                    continue
-                elif opt == 'rpm_dirs' or opt == 'src_dirs':
-                    tmp['channels'][label][opt] = \
-                        string.split(parser.get(label, opt))
-                else:
-                    tmp['channels'][label][opt] = parser.get(label, opt)
-
-            # Add the "calculated" db_dir and web_dir values to each
-            # channel dict.
-            # We need two: web_dir parts are available to apache/mod_python
-            # and I don't think the db_dir parts should be.
-            try:
-                tmp['channels'][label]['db_dir'] = \
-                    os.path.join(tmp['current_dir'], 'db', label)
-                tmp['channels'][label]['web_dir'] = \
-                    os.path.join(tmp['current_dir'], 'www', label)
-            except KeyError:
-                raise MissingError("db_dir or web_dir not found - perhaps this is an older config file?")
-            
-            # Make sure the user included the srpm_check value - it was
-            # optional, now its required.
-            if not tmp['channels'][label].has_key('srpm_check'):
-                raise MissingError("You must include the srpm_check value\n "+\
-                    "'srpm_check = 0' is the old default")
-
         return tmp
 
 

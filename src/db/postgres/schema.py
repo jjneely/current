@@ -42,33 +42,19 @@ create table CHANNEL_RPM_ACTIVE (
     );
 create index CHANNEL_RPM_ACTIVE_CHANNEL_ID_IDX on CHANNEL_RPM_ACTIVE(channel_id);
 
-create sequence rpmprovide_id_seq;
-create table RPMPROVIDE (
-    rpmprovide_id   int default nextval('rpmprovide_id_seq') unique not null,
-    rpm_id          int not null,
-    name            varchar(4096),
-    flags           varchar(64),
-    vers            varchar(64)
+create sequence dependancies_id_seq;
+create table DEPENDANCIES (
+    dep_id      int default nextval('dependancies_id_seq') unique not null,
+    dep         varchar(4096) not null,
+    rpm_id      int not null,
+    type        int not null,
+    flags       varchar(64),
+    vers        varchar(64)
     );
-create index RPMPROVIDE_RPM_ID_IDX on RPMPROVIDE(rpm_id);
+create index DEPENDANCIES_RPM_IDX on DEPENDANCIES(rpm_id);
+create index DEPENDANCIES_TYPE_IDX on DEPENDANCIES(type);
+create index DEPENDANCIES_DEP_IDX on DEPENDANCIES(dep);
 
-create sequence rpmpayload_seq;
-create table RPMPAYLOAD (
-    rpmpayload_id   int default nextval('rpmpayload_seq') unique not null,
-    rpm_id          int not null,
-    name            varchar(4096)
-    );
-
-create sequence rpmobsolete_id_seq;
-create table RPMOBSOLETE (
-    rpmobsolete_id  int default nextval('rpmobsolete_id_seq') unique not null,
-    rpm_id          int not null,
-    name            varchar(64),
-    flags           varchar(64),
-    vers            varchar(64)
-    );
-create index RPMOBSOLETE_RPM_ID_IDX on RPMOBSOLETE(rpm_id);
-                    
 create sequence channel_id_seq;
 create table CHANNEL (
     channel_id      int default nextval('channel_id_seq') unique not null,

@@ -13,12 +13,22 @@
 5a. If eve-dot-zero release:
 		cvs -q tag -b release-FOO-branch
 
-6. make archive
+# CHANGES for SVN/CVS sync'ing
 
-7. rpm -ta current-WHATEVER.tar.gz
+5.5. svn commit
+     svn cp   # make tag
+     if dot-0 svn cp to make branch
+
+6. make release
+
+7. rpmbuild -ta current-WHATEVER.tar.gz
+
+7.3. rpm --addsign <packages>
+
+7.6  gpg -a -b current-<foo>.tar.gz
 
 8. scp current-WHATEVER and the rpms in step 7 to 
-   ftp:/local/ftp/pub/admin/current
+   FTP repository
 
 9. publish release tarball / rpms on tigris
 

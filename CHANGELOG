@@ -1,5 +1,27 @@
                         Current Project Changelog
 
+* Sun Jan 02 2005 Jack Neely <jjneely@gmail.com>
+- Current 1.5.9
+- Major schema change to incorperate all RPM dependancy information
+  into one table called DEPENDANCIES
+- Code cleanup especially since the schema change allowed me to make
+  certain things simpler
+- Lots of logging tweaks to make logging sane.  
+- Removed all assert statements from the DB layer.  Using proper
+  exceptions/if/then/else error checking
+- Support for multiple channels containing an overlapping set of
+  directories.  When one channel is scanned it will detect and re-scan
+  any possibly stale channels
+- Code that removes entries from the DB checks for possible referrences
+  to rows that are not required to be unqiue.  Fixes database corruption.
+- solveDependancies() now checks for file dependancies instead of only
+  provides.
+- Fixed support for the throbber.  Note that the throbber is configured
+  seprately from up2date and you'll need to add the "use_ca_cert"
+  option.
+- Ripped out a large chunk of the code that handles the configuration in
+  /etc/current/current.conf as it was no longer used in Current.
+
 * Tue Dec 14 2004 Jack Neely <jjneely@gmail.com>
 - Current 1.5.8
 - Brown paper bag time.  Fix the bad XML my new XMLRPC module was

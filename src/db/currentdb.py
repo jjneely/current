@@ -25,6 +25,10 @@ import RPM
 import sets
 import xmlrpc
 
+# Constants used in data base schema
+PROVIDES  = 0
+OBSOLETES = 1
+FILES     = 2
 
 class specificDB(object):
     """An Abstract class.  For each database we whish to support that
@@ -82,7 +86,7 @@ class CurrentDB(object):
         # from this scheme...  cool.
 
         if (channel.has_key('parent')):
-            log("Creating a child channel", TRACE)
+            log("Creating a child channel", DEBUG)
             # First, grab some of the information from the parent
             self.cursor.execute('''select channel_id, arch, osrelease
                                    from CHANNEL 
@@ -106,7 +110,7 @@ class CurrentDB(object):
                              None,    # we haven't done our first update ...
                              parentchannel_id))
         self.conn.commit()
-        log("New channel created and committed.", TRIVIA)
+        log("New channel created and committed.", DEBUG)
 
         # Now create the directories on disk for this channel
         webdir = os.path.join(self.config['current_dir'], 'www')
@@ -118,7 +122,7 @@ class CurrentDB(object):
                 os.mkdir(os.path.join(chan_dir, dir))
         # FIXME: need an else here for error handling
 
-        log("New channel and dirs created.", DEBUG2)
+        log("New channel and dirs created.", DEBUG)
 
         return 0
 
@@ -128,7 +132,7 @@ class CurrentDB(object):
         logfunc(locals(), TRACE)
 
         channel_id  = self._getChanID(label)
-        assert channel_id
+        raise exception.CurrentDB("Bad channel label.")
 
         # FIXME: doesn't check for duplicates.
         self.cursor.execute('''insert into CHANNEL_DIR 
@@ -136,7 +140,7 @@ class CurrentDB(object):
                                values (%d, %s)''', 
                             (channel_id, dirname))
         self.conn.commit()
-        log("Directory added to channel", DEBUG2)
+        log("Directory added to channel", DEBUG)
         return 0
 
 
@@ -159,12 +163,19 @@ class CurrentDB(object):
 
             result['populatedirs'] = self._populateChannelDirs(channel)
 
-            # This happens when RPMs are deleted
+            # Run setActive and populateChannel on any channels
+            # which may now be stale.  Other channels may include
+            # RPMs that were removed.
             staleChans = result['deletedrpms']['staleChans']
             for chan in staleChans:
-                if not chan == channel:
-                    # Don't re-run on already populated channel
-                    result[chan] = self._populateChannelDirs(chan)
+                log("Running setActiveChannelsRrpms and populateChannelDirs "
+                    "on channel %s." % chan, DEBUG)
+                self._updateChannelTimeStamp(chan)
+                retActive = self._setActiveChannelRpms(chan)
+                retPop = self._populateChannelDirs(chan)
+                result[chan+"_setactive"] = retActive
+                result[chan+"_populatedirs"] = retPop
+                
 
         self.conn.commit()
 
@@ -198,10 +209,10 @@ class CurrentDB(object):
 
         # Get the set of all rpms/files in the filesystem
         self.cursor.execute('''select dirpathname
-                               from CHANNEL, CHANNEL_DIR
-                               where CHANNEL.channel_id = CHANNEL_DIR.channel_id and
-                                     CHANNEL.label = %s''',
-                            (channel,))
+                    from CHANNEL, CHANNEL_DIR
+                    where CHANNEL.channel_id = CHANNEL_DIR.channel_id and
+                    CHANNEL.label = %s''',
+                    (channel,))
         query = self.cursor.fetchall() 
 
         fs_set = sets.Set()
@@ -235,20 +246,11 @@ class CurrentDB(object):
     
         """
 
-        # the full pathname is in CHANNEL_RPM.
-        # grab the rpm_id from that row 
-        # delete that item
-        # if thats the last row in CHANNEL_RPM with that rpm_id,
-        # delete that rpm_id from RPM
-        #     if thats the last row in RPM with that package_id
-        #        delete that package_id from PACKAGE
-        # delete that rpm_id from all the other tables with rpm_id
-        # Then do the disk cleanup. See what _addRpms puts down...
-
         staleChans = []
         c = 0
 
         for file in delete_set:
+            log("Removing: %s" % file, DEBUG2)
             self.cursor.execute("""select rpm_id, package_id from RPM
                                    where filename = %s""", (file,))
             r = resultSet(self.cursor)
@@ -257,14 +259,17 @@ class CurrentDB(object):
 
             self.cursor.execute("""delete from RPM where rpm_id = %s""",
                                 (rpm_id,))
-            self.cursor.execute("""delete from PACKAGE where 
-                                   package_id = %s""", (package_id,))
-            self.cursor.execute("""delete from RPMPROVIDE where rpm_id = %s""",
+            self.cursor.execute("""delete from DEPENDANCIES 
+                                   where rpm_id = %s""",
                                 (rpm_id,))
-            self.cursor.execute("""delete from RPMPAYLOAD where rpm_id = %s""",
-                                (rpm_id,))
-            self.cursor.execute("""delete from RPMOBSOLETE where rpm_id = %s""",
-                                (rpm_id,))
+            
+            self.cursor.execute("""select count(*) from RPM where
+                                   package_id = %s""", (package_id))
+            r = resultSet(self.cursor)
+            if r['count(*)'] == 0:
+                # We know there are no more refferences to this PACKAGE
+                self.cursor.execute("""delete from PACKAGE where 
+                                       package_id = %s""", (package_id,))
             
             # Now the fun part...detect possibly stale channels
             self.cursor.execute("""select distinct CHANNEL.label from 
@@ -275,8 +280,9 @@ class CurrentDB(object):
             
             r = resultSet(self.cursor)
             for row in r:
-                if row['label'] not in staleChans:
+                if row['label'] not in staleChans and row['label'] != channel:
                     staleChans.append(row['label'])
+            log("staleChans = %s" % str(staleChans), DEBUG2)
 
             # Now hope populateChannel gets re-run on those
             self.cursor.execute("""delete from CHANNEL_RPM where rpm_id = %s""",
@@ -297,21 +303,25 @@ class CurrentDB(object):
     def _addRpms(self, channel, add_set):
         """ Given a set of full pathnames, add them to a channel. """
 
-        logfunc(locals())
+        logfunc(locals(), TRACE)
 
         chanID = self._getChanID(channel)
         c = 0
 
         for rpm in add_set:
             log("Adding %s to channel %s" % (rpm, channel), TRIVIA)
+            rpm_id = self._getRpmId(rpm)
             header = RPM.Header(rpm)
-            pkg_id = self._insertPackageTable(header)
-            rpm_id = self._insertRpmTable(header, pkg_id, chanID)
-
-            self._insertChannelTable(chanID, rpm_id)
-            self._insertProvides(rpm_id, header)
-            self._insertObsoletes(rpm_id, header)
             
+            if not rpm_id:
+                # Need to load RPM info
+                pkg_id = self._insertPackageTable(header)
+                rpm_id = self._insertRpmTable(header, pkg_id, chanID)
+
+                self._insertProvides(rpm_id, header)
+                self._insertObsoletes(rpm_id, header)
+            
+            self._insertChannelTable(chanID, rpm_id)
             self._createHeader(channel, header)
 
             c = c + 1
@@ -328,7 +338,8 @@ class CurrentDB(object):
         r = resultSet(self.cursor)
 
         if r.rowcount() == 0:
-            log("Tried to get channel ID for %s which doesn't exist" % channel)
+            log("Tried to get channel ID for %s which doesn't exist" % channel,
+                VERBOSE)
             return None
         
         return r['channel_id']
@@ -359,7 +370,7 @@ class CurrentDB(object):
 
 
     def _getPackageId(self, name, version, release, epoch, issource):
-        logfunc (locals())
+        #logfunc(locals(), TRACE)
         self.cursor.execute(''' select package_id from PACKAGE
                 where name = %s
                 and version = %s
@@ -392,7 +403,9 @@ class CurrentDB(object):
         package_id = self._getPackageId(header[RPM.NAME], header[RPM.VERSION],
                                 header[RPM.RELEASE], header[RPM.EPOCH],
                                 header[RPM.SOURCEPACKAGE])
-        assert package_id
+        if not package_id:
+            log("Inserted package but could not lookup package_id", VERBOSE)
+            
         return package_id
 
                 
@@ -400,7 +413,6 @@ class CurrentDB(object):
         self.cursor.execute('''select rpm_id from RPM
                         where filename = %s''', (path,))
         result = self.cursor.fetchall()
-        assert (len(result) <= 1)
         if (len(result) == 0):
             return None
         else:
@@ -409,46 +421,53 @@ class CurrentDB(object):
 
     def _insertRpmTable(self, header, package_id, ch_id):
         rpm_id = self._getRpmId(header[RPM.CT_PATHNAME])
-
-        if not rpm_id:
-            self.cursor.execute('''insert into RPM
-                                (package_id, filename, arch, size)
-                                values
-                                (%d, %s, %s, %s)''',
-                                (package_id, header[RPM.CT_PATHNAME],
-                                 header[RPM.ARCH], header[RPM.CT_FILESIZE]))
+        if rpm_id:
+            # RPM Already in DB
+            return rpm_id
+        
+        self.cursor.execute('''insert into RPM
+                               (package_id, filename, arch, size)
+                               values
+                               (%d, %s, %s, %s)''',
+                            (package_id, header[RPM.CT_PATHNAME],
+                             header[RPM.ARCH], header[RPM.CT_FILESIZE]))
 
         rpm_id = self._getRpmId(header[RPM.CT_PATHNAME])
-        assert rpm_id
+        if not rpm_id:
+            log("Inserted RPM but could not lookup rpm_id.", VERBOSE)
+            return None
 
         return rpm_id
 
 
+    def _setDependancy(self, dep, rpm_id, type, flags = None, vers = None):
+        if flags != None and vers != None:
+            query = """insert into DEPENDANCIES 
+                       (rpm_id, dep, vers, flags, type) values
+                       (%d, %s, %s, %s, %d)"""
+            t = (rpm_id, dep, vers, flags, type)
+        else:
+            query = """insert into DEPENDANCIES (rpm_id, dep, type)
+                       values (%d, %s, %d)"""
+            t = (rpm_id, dep, type)
+
+        self.cursor.execute(query, t)
+
+        
     def _insertObsoletes(self, rpm_id, header):
         for obs in header[RPM.CT_OBSOLETES]:
-            self.cursor.execute('''insert into RPMOBSOLETE
-                            (rpm_id, name, vers, flags)
-                            values
-                            (%d, %s, %s, %s)''', 
-                            (rpm_id, obs[0], obs[1], obs[2]))
+            self._setDependancy(obs[0], rpm_id, OBSOLETES,
+                                obs[2], obs[1])
  
 
     def _insertProvides(self, rpm_id, header):
         for prov in header[RPM.CT_PROVIDES]:
-            self.cursor.execute('''insert into RPMPROVIDE
-                            (rpm_id, name, vers, flags)
-                            values
-                            (%d, %s, %s, %s)''', 
-                            (rpm_id, prov[0], prov[1], prov[2]))
-
-        # We also "provide" all the "files"- should this be a separate table?
-        # I'm answering "no" provisionally to avoid a schema update.
-        plst = ()
+            self._setDependancy(prov[0], rpm_id, PROVIDES, 
+                                prov[2], prov[1])
+                
+        # We also "provide" all the "files"
         for prov in header[RPM.FILENAMES]:
-            self.cursor.execute('''insert into RPMPAYLOAD
-                            (rpm_id, name)
-                            values
-                            (%d, %s)''', (rpm_id, prov))
+            self._setDependancy(prov, rpm_id, FILES)
 
 
     def _setActiveChannelRpms(self, channel):
@@ -458,29 +477,25 @@ class CurrentDB(object):
         # Would version compare in PL/SQL do us any good?
 
         # Clear out this channels entries from the CHANNEL_RPM_ACTIVE table
-        self.cursor.execute('''select channel_id from CHANNEL
-                               where label = %s''', (channel,))
-        result = self.cursor.fetchone()
-        chan_id = result[0]
+        chan_id = self._getChanID(channel)
         self.cursor.execute('''delete from CHANNEL_RPM_ACTIVE
                                where channel_id = %d''', (chan_id,))
 
         # First, get a list of unique pkg names:
         self.cursor.execute('''select distinct PACKAGE.name 
-                               from PACKAGE, RPM, CHANNEL_RPM, CHANNEL
+                               from PACKAGE, RPM, CHANNEL_RPM
                                where PACKAGE.package_id = RPM.package_id and
                                      RPM.rpm_id = CHANNEL_RPM.rpm_id and
-                                     CHANNEL_RPM.channel_id = CHANNEL.channel_id
-                                     and CHANNEL.label = %s
-                                     and PACKAGE.issource = 0''', (channel,))
+                                     CHANNEL_RPM.channel_id = %d
+                                     and PACKAGE.issource = 0''', (chan_id,))
         newest_ids = []
         query = self.cursor.fetchall()
         for row in query:
-            for id in self._findNewest(channel, row[0]):
+            for id in self._findNewest(chan_id, row[0]):
                 newest_ids.append(id)
 
         for id in newest_ids:
-            log('setting rpmid %s active' % id)
+            log('setting rpmid %s active' % id, DEBUG2)
             self.cursor.execute('''insert into CHANNEL_RPM_ACTIVE
                                    (rpm_id, channel_id)
                                    values (%d, %d)''', (id, chan_id))
@@ -489,16 +504,15 @@ class CurrentDB(object):
         return 0
 
 
-    def _findNewest(self, channel, pkg):
+    def _findNewest(self, chanID, pkg):
         self.cursor.execute('''select PACKAGE.name, PACKAGE.version, 
                                       PACKAGE.release, PACKAGE.epoch 
-                               from PACKAGE, RPM, CHANNEL_RPM, CHANNEL
+                               from PACKAGE, RPM, CHANNEL_RPM
                                where PACKAGE.package_id = RPM.package_id and
                                RPM.rpm_id = CHANNEL_RPM.rpm_id and 
-                               CHANNEL_RPM.channel_id = CHANNEL.channel_id and
+                               CHANNEL_RPM.channel_id = %d and
                                PACKAGE.issource = 0 and
-                               PACKAGE.name = %s and 
-                               CHANNEL.label = %s''', (pkg, channel))
+                               PACKAGE.name = %s''', (chanID, pkg))
         query = self.cursor.fetchall()
 
         # Sort the list according to RPM.versionCompare() results
@@ -508,22 +522,25 @@ class CurrentDB(object):
         query = list(query)
         query.sort(lambda x,y: RPM.versionCompare((y[3], y[1], y[2]), (x[3], x[1], x[2])))
 
-        # From the first of that reverse list, grab the RPM.rpm_id of the _NEWEST_ rpm available
+        # From the first of that reverse list, grab the RPM.rpm_id 
+        # of the _NEWEST_ rpm available
+        # XXX: Why can't we do this in the above query?
         self.cursor.execute('''select RPM.rpm_id 
-                               from RPM, PACKAGE, CHANNEL_RPM, CHANNEL
+                               from RPM, PACKAGE, CHANNEL_RPM
                                where PACKAGE.package_id = RPM.package_id and 
                                      RPM.rpm_id = CHANNEL_RPM.rpm_id and 
-                                     CHANNEL_RPM.channel_id = CHANNEL.channel_id and 
+                                     CHANNEL_RPM.channel_id = %d and 
                                      PACKAGE.name = %s and 
                                      PACKAGE.version = %s and 
                                      PACKAGE.release = %s and 
                                      PACKAGE.epoch = %s  and
-                                     PACKAGE.issource = 0 and
-                                     CHANNEL.label = %s''',
-                    (query[0][0], query[0][1], query[0][2], query[0][3], channel))
+                                     PACKAGE.issource = 0''',
+                    (chanID, query[0][0], query[0][1], 
+                     query[0][2], query[0][3]))
 
         # We really are going to get a list here on occasion - 
-        # we'll get the i386, i486, etc varients of the kernel package of the newest version
+        # we'll get the i386, i486, etc varients of the kernel 
+        # package of the newest version
         query = self.cursor.fetchall()
         tmp = []
         for row in query:
@@ -552,18 +569,19 @@ class CurrentDB(object):
     def _doObsoletesList(self, channel, filename):
         """Return a list suitable for xmlrpclib of obsoletes for 
            this channel."""
-           
+
         self.cursor.execute('''select PACKAGE.name, PACKAGE.version,
                 PACKAGE.release, PACKAGE.epoch, RPM.arch,
-                RPMOBSOLETE.name, RPMOBSOLETE.vers, RPMOBSOLETE.flags
-                from PACKAGE, RPMOBSOLETE, RPM
+                DEPENDANCIES.dep, DEPENDANCIES.vers, DEPENDANCIES.flags
+                from PACKAGE, DEPENDANCIES, RPM
                 inner join CHANNEL_RPM_ACTIVE on (RPM.rpm_id = CHANNEL_RPM_ACTIVE.rpm_id)
                 inner join CHANNEL on (CHANNEL_RPM_ACTIVE.channel_id = CHANNEL.channel_id)
                 where CHANNEL.label = %s
                 and PACKAGE.package_id = RPM.package_id
-                and RPM.rpm_id = RPMOBSOLETE.rpm_id 
+                and RPM.rpm_id = DEPENDANCIES.rpm_id 
                 and PACKAGE.issource = 0
-                order by PACKAGE.name''', (channel,))
+                and DEPENDANCIES.type = %d
+                order by PACKAGE.name''', (channel, OBSOLETES))
         
         xmlrpc.fileDump(self.cursor, filename, gz=1)
 
@@ -598,14 +616,17 @@ class CurrentDB(object):
 
         
     def _populateChannelDirs(self, channel):
-        logfunc(locals(), DEBUG2)
+        logfunc(locals(), TRACE)
         results = {}
 
         self.cursor.execute('''select lastupdate from CHANNEL where
                     CHANNEL.label = %s''', (channel,))
         result = resultSet(self.cursor)
         updatefilename = result['lastupdate']
-        assert updatefilename
+        if updatefilename == None:
+            log("DB did not give us a lastupdate on channel %s" % channel,
+                VERBOSE)
+            return {"ERROR": "DB did not give us a lastupdate value"}
 
         # First, populate the listPackages directory.
         log("Creating listPackages information", DEBUG)
@@ -657,7 +678,7 @@ class CurrentDB(object):
             try:
                 os.symlink(row[0], dir)
             except OSError, error:
-                log("OS Error number %s occurred - why?" % error, DEBUG)
+                log("OS Error number %s occurred - why?" % error, MANDATORY)
                 logException()
         log("getPackage symlinks created", DEBUG)
         results['getPackage'] = "ok"
@@ -666,7 +687,6 @@ class CurrentDB(object):
         return results
 
 
-    # Here starts up2date API calls.
     def getCompatibleChannels(self, arch, release):
         # Need to return a dict with label and last modified of all compatible
         # channels (other information okay but not necessary)
@@ -674,13 +694,13 @@ class CurrentDB(object):
         # get the canonical architecture.
         carch = archtab.getCannonArch(arch)
 
-        log("arch: %s, rel: %s" % (carch, release))
+        log("arch: %s, rel: %s" % (carch, release), DEBUG2)
         self.cursor.execute('''select name, label, arch, description, 
                     lastupdate from CHANNEL
                     where arch = %s
                     and osrelease = %s''', (carch, release))
         query = self.cursor.fetchall()
-        log("found: %s" % str(query))
+        log("found: %s" % str(query), DEBUG2)
         chanList = []
         # FIXME: get parent channel info in there.
         for row in query:
@@ -698,24 +718,35 @@ class CurrentDB(object):
 
     def solveDependancy(self, label, arch, unknown):
         # We only solve for a single dependency at a time.
-        logfunc(locals())
+        logfunc(locals(), TRACE)
         act_ch_id = self._getChanID(label)
         
         # Find the RPM ID of the package in the active channel
-        self.cursor.execute('''select distinct  
-                    RPMPROVIDE.rpm_id from RPMPROVIDE
-                    inner join RPM on (RPMPROVIDE.rpm_id = RPM.rpm_id)
-                    inner join CHANNEL_RPM_ACTIVE on (RPM.rpm_id = CHANNEL_RPM_ACTIVE.rpm_id)
-                    where CHANNEL_RPM_ACTIVE.channel_id = %s
-                    and name = %s''', (act_ch_id, unknown))
-        rpms = self.cursor.fetchall()
-        if (len(rpms) == 0):
-            log("Could not find active RPM solving for unknown %s" % (unknown), DEBUG2)
-            return None
-        if (len(rpms) > 1):
-            log('More than one possible solution for dep %s - potential problem.' % (unknown,))
+        query =  '''select distinct  
+                    DEPENDANCIES.rpm_id 
+                    from DEPENDANCIES, RPM, CHANNEL_RPM_ACTIVE
+                    where DEPENDANCIES.rpm_id = RPM.rpm_id
+                    and RPM.rpm_id = CHANNEL_RPM_ACTIVE.rpm_id
+                    and CHANNEL_RPM_ACTIVE.channel_id = %s
+                    and DEPENDANCIES.type = %d
+                    and DEPENDANCIES.dep = %s''' 
+        self.cursor.execute(query, (act_ch_id, PROVIDES, unknown))
+        r = resultSet(self.cursor)
+        
+        if (r.rowcount() == 0):
+            # No PROVIDES satisfied the dependancy.  Look for files.
+            self.cursor.execute(query, (act_ch_id, FILES, unknown))
+            r = resultSet(self.cursor)
+            if r.rowcount() == 0:
+                log("Cound not resolve dependancy on %s" % unknown, DEBUG)
+                return None
+            
+        if r.rowcount() > 1:
+            log('More than one possible solution for dep %s' % 
+                (unknown,), VERBOSE)
+            
         # Just take the first one, in case there's more than one.
-        id = rpms[0][0]
+        id = r['rpm_id']
 
         # Grab the active package
         self.cursor.execute('''select p.name, p.version, p.release,
@@ -724,11 +755,13 @@ class CurrentDB(object):
                 where p.package_id = r.package_id
                 and r.rpm_id = %s''', (id,))
         result = self.cursor.fetchall()
-        if (len(result) != 1):
-            log('Fix me: %d results returned from package table' 
-                    % (len(results),))
-            return None
         
+        # Force list type as pysqlite uses a propriatary list/tuple type
+        fixedResult = []
+        for row in result:
+            fixedResult.append(list(row))
+        result = fixedResult
+
         log("up2date.solveDependency is returning %s" % result, DEBUG)
         if (type(result[0]) != type([])):
             result = [result]
@@ -753,7 +786,7 @@ class CurrentDB(object):
         result = resultSet(self.cursor)
         if (result.rowcount() != 1):
             log("No channel found in getLastUpdate with arch = %s and"
-                " osrelease = %s" % (carch, release))    
+                " osrelease = %s" % (carch, release), VERBOSE)    
             raise exception.CurrentDB("No channel found in getLastUpdate")
         
         else:
@@ -767,15 +800,17 @@ class CurrentDB(object):
         # client is subscribed to at a later point...  how to do this, if
         # uuid is unrelated to anything?  dunno...
 
-        self.cursor.execute(''' select name, version, release, epoch
-                from PACKAGE
-                inner join RPM on (RPM.package_id = PACKAGE.package_id)
-                inner join CHANNEL_RPM_ACTIVE on (RPM.rpm_id = CHANNEL_RPM_ACTIVE.rpm_id)
-                inner join CHANNEL on (CHANNEL.channel_id = CHANNEL_RPM_ACTIVE.channel_id)
-                where CHANNEL.arch = %s and CHANNEL.osrelease = %s
-                order by name''', (arch, release))
+        self.cursor.execute('''select PACKAGE.name, PACKAGE.version, 
+                               PACKAGE.release, PACKAGE.epoch
+                               from PACKAGE, RPM, CHANNEL_RPM_ACTIVE, CHANNEL
+                               where
+                               RPM.package_id = PACKAGE.package_id and
+                               RPM.rpm_id = CHANNEL_RPM_ACTIVE.rpm_id and 
+                        CHANNEL.channel_id = CHANNEL_RPM_ACTIVE.channel_id and
+                        CHANNEL.arch = %s and CHANNEL.osrelease = %s
+                        order by PACKAGE.name''', (arch, release))
         result = self.cursor.fetchall()
-        log('grabbed %s packages' % len(result))
+        log('grabbed %s packages in listAppletPackages' % len(result), DEBUG2)
         return result
 
 

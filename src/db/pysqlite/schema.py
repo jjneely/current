@@ -38,30 +38,18 @@ create table CHANNEL_RPM_ACTIVE (
     );
 create index CHANNEL_RPM_ACTIVE_CHANNEL_ID_IDX on CHANNEL_RPM_ACTIVE(channel_id);
 
-create table RPMPROVIDE (
-    rpmprovide_id   INTEGER PRIMARY KEY,
+create table DEPENDANCIES (
+    dep_id          INTEGER PRIMARY KEY,
+    dep             varchar(4096) not null,
     rpm_id          int not null,
-    name            varchar(4096),
+    type            int not null,
     flags           varchar(64),
     vers            varchar(64)
     );
-create index RPMPROVIDE_RPM_ID_IDX on RPMPROVIDE(rpm_id);
+create index DEPENDANCIES_RPM_IDX on DEPENDANCIES(rpm_id);
+create index DEPENDANCIES_TYPE_IDX on DEPENDANCIES(type);
+create index DEPENDANCIES_DEP_IDX on DEPENDANCIES(dep);
 
-create table RPMPAYLOAD (
-    rpmpayload_id   INTEGER PRIMARY KEY,
-    rpm_id          int not null,
-    name            varchar(4096)
-    );
-
-create table RPMOBSOLETE (
-    rpmobsolete_id  INTEGER PRIMARY KEY,
-    rpm_id          int not null,
-    name            varchar(64),
-    flags           varchar(64),
-    vers            varchar(64)
-    );
-create index RPMOBSOLETE_RPM_ID_IDX on RPMOBSOLETE(rpm_id);
-                    
 create table CHANNEL (
     channel_id      INTEGER PRIMARY KEY,
     parentchannel_id     int,

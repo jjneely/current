@@ -111,10 +111,10 @@ def accesshandler(req):
             return apache.HTTP_INTERNAL_SERVER_ERROR
 
     # debugging code - leave this here
-    log("Inside Current accesshandler", DEBUG)
+    log("Inside Current accesshandler", TRIVIA)
     log(req.uri, DEBUG2)
-    for key in req.headers_in.keys():
-        log("headers_in[%s] == %s" %(key, req.headers_in[key]), DEBUG2)
+    #for key in req.headers_in.keys():
+    #    log("headers_in[%s] == %s" %(key, req.headers_in[key]), TRACE)
  
     # Now we can actually check on the  clients authorizations
     hi = auth.SysHeaders(req.headers_in)

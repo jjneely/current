@@ -7,7 +7,6 @@ backends and other code see a single, sane, consistent interface.
 Current has also had several rpm related bugs, so bug fixes here will 
 automatically fix all the backends.
 
-FIXME: Right now this is hopelessly python 2.2 code - should we back port?
 """
 
 import os
@@ -17,87 +16,128 @@ import types
 import rpm
 
 # namespace silliness
-# python 1.5 = rd = {}; for k,v in d.items(): rd[v] = k
-tags = {}
+# RPM is specific to current. All current is interested in is various 
+# fields, the RPMTAG_* fields. tagnames are just the RPMTAG_'s.
+tagnames = {}
 for key in dir(rpm):
     if key.startswith('RPMTAG_'): 
-        tags[key[7:]] = eval('rpm.' + key)
+        tagnames[key[7:]] = eval('rpm.' + key)
 
 # Now we add in current specific tags.
-assert 10000 not in tags.values()
-assert 10001 not in tags.values()
-tags['CT_FILESIZE'] = 10000
-tags['CT_PATHNAME'] = 10001
+ct_tags = {
+    'CT_FILESIZE': 10000, 'CT_PATHNAME': 10001,
+    'CT_PROVIDES': 10002, 'CT_OBSOLETES': 10003,
+}
+
+for nr in ct_tags.values():
+    assert nr not in tagnames.values(), "CT key conflicts with rpm key"
+tagnames.update(ct_tags)
+
+# Now reverse it:
+tagvalues = {}
+for (key,value) in tagnames.items():
+    tagvalues[value] = key
 
 # Make this part of our modules namespace
-locals().update(tags)
+locals().update(tagnames)
 
 # Make sure clients get as clean an import as we can make it
-__all__ = tags.keys()
+__all__ = tagnames.keys()
 __all__.append('Header')
 
 
-class Header:
+class Header(object):
     def __init__(self, pathname):
         """ Note that a client is free to reach inside and grab any of 
             the pathname, file_size, hdr or is_source attributes. """
 
         self.pathname = pathname
-        self.file_size = str(os.stat(pathname)[stat.ST_SIZE])
+        self.file_size = os.stat(pathname).st_size
 
         (self.hdr, self.is_source) = self._getHeaderFromFilename(pathname)
 
 
-    def __getitem__(self, key):
-        assert key in tags.values()
+    def __getitem__(self, item):
+        assert item in tagvalues, "Invalid attribute requested"
 
-        if key == tags['SOURCEPACKAGE']:
-            # This is insane for 4.1, but required for 4.0 and earlier    
-            return not not self.is_source
+        funcname = '_get_' + tagvalues[item]        
+        meth = getattr(self, funcname, None)
+        if meth is None: 
+            return self.hdr[item] 
+        else: 
+            return meth()
 
-        elif key == tags['CT_FILESIZE']:
-            # fake our own header entries
-            return self.file_size
 
-        elif key == tags['CT_PATHNAME']:
-            return self.pathname
+    def _get_SOURCEPACKAGE(self):
+        # This is insane for 4.1, but required for 4.0 and earlier    
+        return not not self.is_source
+
+
+    def _get_CT_FILESIZE(self):
+        # fake our own header entries
+        return self.file_size
+
+
+    def _get_CT_PATHNAME(self):
+        return self.pathname
         
-        elif key == tags['EPOCH']:
-            # Library return None or an int - we always want string.
-            if self.hdr[rpm.RPMTAG_EPOCH] == None:
-                return ''
-            else:
-                return str(self.hdr[rpm.RPMTAG_EPOCH])
 
+    def _get_CT_PROVIDES(self):
+        if self.hdr[rpm.RPMTAG_PROVIDENAME] == None:
+            return []
+        else:
+            return zip(self.hdr[rpm.RPMTAG_PROVIDENAME],
+                       self._get_PROVIDEVERSION(),
+                       self._get_PROVIDEFLAGS())
+
+     
+    def _get_CT_OBSOLETES(self):
+        if self.hdr[rpm.RPMTAG_OBSOLETENAME] == None:
+            return []
+        else:
+            return zip(self.hdr[rpm.RPMTAG_OBSOLETENAME],
+                       self._get_OBSOLETEVERSION(),
+                       self._get_OBSOLETEFLAGS())
+
+     
+    def _get_EPOCH(self):
+        # Library return None or an int 
+        if self.hdr[rpm.RPMTAG_EPOCH] == None:
+            return ''
+        else:
+            return str(self.hdr[rpm.RPMTAG_EPOCH])
+
+
+    def _get_PROVIDEVERSION(self):
         # Rpmlib screws up PROVIDEVERSION and PROVIDEFLAGS when there is 
         # only one. It gets NAME correct (list of length 1), but is broken
         # for these values.
-        elif key == tags['PROVIDEVERSION']:
-            if type(self.hdr[rpm.RPMTAG_PROVIDEVERSION]) != types.ListType:
-                return [self.hdr[rpm.RPMTAG_PROVIDEVERSION]]
-            else:
-                return self.hdr[rpm.RPMTAG_PROVIDEVERSION]
-        elif key == tags['PROVIDEFLAGS']:
-            if type(self.hdr[rpm.RPMTAG_PROVIDEFLAGS]) != types.ListType:
-                return [self.hdr[rpm.RPMTAG_PROVIDEFLAGS]]
-            else: 
-                return self.hdr[rpm.RPMTAG_PROVIDEFLAGS]
-
-        # Obsoletes suffers the same trouble as above for PROVIDES
-        elif key == tags['OBSOLETEVERSION']:
-            if type(self.hdr[rpm.RPMTAG_OBSOLETEVERSION]) != types.ListType:
-                return [self.hdr[rpm.RPMTAG_OBSOLETEVERSION]]
-            else:
-                return self.hdr[rpm.RPMTAG_OBSOLETEVERSION]
-        elif key == tags['OBSOLETEFLAGS']:
-            if type(self.hdr[rpm.RPMTAG_OBSOLETEFLAGS]) != types.ListType:
-                return [self.hdr[rpm.RPMTAG_OBSOLETEFLAGS]]
-            else:
-                return self.hdr[rpm.RPMTAG_OBSOLETEFLAGS]
-
-        # Its normal, and we just return it.
+        if type(self.hdr[rpm.RPMTAG_PROVIDEVERSION]) != types.ListType:
+            return [self.hdr[rpm.RPMTAG_PROVIDEVERSION]]
         else:
-            return self.hdr[key]
+            return self.hdr[rpm.RPMTAG_PROVIDEVERSION]
+
+
+    def _get_PROVIDEFLAGS(self):
+        if type(self.hdr[rpm.RPMTAG_PROVIDEFLAGS]) != types.ListType:
+            return [self.hdr[rpm.RPMTAG_PROVIDEFLAGS]]
+        else: 
+            return self.hdr[rpm.RPMTAG_PROVIDEFLAGS]
+
+
+    def _get_OBSOLETEVERSION(self):
+        # Obsoletes suffers the same trouble as above for PROVIDES
+        if type(self.hdr[rpm.RPMTAG_OBSOLETEVERSION]) != types.ListType:
+            return [self.hdr[rpm.RPMTAG_OBSOLETEVERSION]]
+        else:
+            return self.hdr[rpm.RPMTAG_OBSOLETEVERSION]
+
+
+    def _get_OBSOLETEFLAGS(self):
+        if type(self.hdr[rpm.RPMTAG_OBSOLETEFLAGS]) != types.ListType:
+            return [self.hdr[rpm.RPMTAG_OBSOLETEFLAGS]]
+        else:
+            return self.hdr[rpm.RPMTAG_OBSOLETEFLAGS]
 
 
     def unload(self, dirname):
@@ -109,13 +149,14 @@ class Header:
         """
 
         hdr_name = "%s-%s-%s.%s.hdr" % (self.hdr[rpm.RPMTAG_NAME],
-          self.hdr[rpm.RPMTAG_VERSION], self.hdr[rpm.RPMTAG_RELEASE],
-          self.hdr[rpm.RPMTAG_ARCH])
+                                        self.hdr[rpm.RPMTAG_VERSION], 
+                                        self.hdr[rpm.RPMTAG_RELEASE],
+                                        self.hdr[rpm.RPMTAG_ARCH])
 
         pathname = os.path.join(dirname, hdr_name)
         if (os.path.exists(pathname)):
             os.unlink(pathname)
-        h_file = open(pathname, 'wb')
+        h_file = file(pathname, 'wb')
         h_file.write(self.hdr.unload())
         h_file.close()
 
@@ -175,7 +216,7 @@ def versionCompare(evr1, evr2):
     result = rpm.labelCompare(evr1, evr2)
     if (result < 0 ):
         return -1
-    elif ( result == 0 ):
+    elif (result == 0):
         return 0
     else:
         return 1

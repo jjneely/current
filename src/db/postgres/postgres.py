@@ -7,7 +7,7 @@ import schema
 from db.currentdb import CurrentDB
 import sys
 from logger import *
-import rpm_wrapper
+import RPM
 import string 
 import os
 import os.path
@@ -22,7 +22,6 @@ class PostgresDB(CurrentDB):
         # What to put here?
         self.conn = None
         self.cursor = None   # not sure if this is ideal...
-        self.rpmWrapper = rpm_wrapper.rpmWrapper()
 
     def __del__(self):
         self.cursor.close()
@@ -237,9 +236,9 @@ class PostgresDB(CurrentDB):
         for file in os.listdir(dir):
             log("Scanning file %s" % (file,), TRACE)
             pathname = os.path.join(dir, file)
-            self.rpmWrapper.getRpmInfo(pathname)
-            rpm = self.rpmWrapper
-            if (rpm == None or not rpm['issrc']):
+
+            rpm = RPM.Header(pathname)
+            if (rpm == None or not rpm['SOURCEPACKAGE']):
                 log("Not a src rpm.", TRACE)
                 continue
             srpm_id = self._getSrpmId(file)
@@ -300,24 +299,20 @@ class PostgresDB(CurrentDB):
     def _addRpmPackage(self, config, path, channel):
         self.cursor = self.conn.cursor()
         filename = os.path.basename(path)
-        self.rpmWrapper.getRpmInfo(path)
-        rpm = self.rpmWrapper
+        rpm = RPM.Header(path)
         
         if (self.cursor == None):
             self.cursor = self.conn.cursor()
         elif (self.cursor.description == None):
             self.cursor = self.conn.cursor()
 
-        # sanity check:
-        if (rpm.error == 1):
-            return 1
         # Check to see if the package is already in the DB before we do something stupid.
         if ( self._packageInDB(rpm) ):
             log ("Package already in DB - not scanning.", TRIVIA)
             return 1
  
         # Anorther sanity check
-        if ( rpm['issrc'] == 1 ):
+        if ( rpm['SOURCEPACKAGE'] == 1 ):
             return 1
              
         log("Adding RPM %s to channel %s" % (path, channel), TRIVIA)
@@ -345,7 +340,9 @@ class PostgresDB(CurrentDB):
 
         # Put the header file into place
         log("Creating header file.", TRACE)
-        self._createHeaderFile(config, channel, filename, rpm['hdr'])
+        # FIXME: Abstracting this away might be nice...
+        dirname = os.path.join(config['current_dir'], 'www', channel, 'getPackageHeader')
+        rpm.unload(dirname)
 
         # We return the success of the rpm table insert - pos non-0 is good
         self.conn.commit()
@@ -367,13 +364,13 @@ class PostgresDB(CurrentDB):
         else:
             return int(row[0][0])
 
-    def _packageInDB(self, rpm_info):
-        pid = self._getPackageId(rpm_info['name'], rpm_info['version'],
-                                rpm_info['release'], rpm_info['epoch'])
+    def _packageInDB(self, rpm):
+        pid = self._getPackageId(rpm['NAME'], rpm['VERSION'],
+                                rpm['RELEASE'], rpm['EPOCH'])
         if ( pid != None and pid != 0 ):
             self.cursor = self.conn.cursor()
             sql = """ select rpm_id from rpm where rpm.package_id = '%d'
-                                    and rpm.arch = '%s'""" % (pid, rpm_info['arch'])
+                      and rpm.arch = '%s'""" % (pid, rpm['ARCH'])
             self.cursor.execute(sql)
             results=  self.cursor.fetchall()
             if (len(results) > 1):
@@ -385,19 +382,19 @@ class PostgresDB(CurrentDB):
         return pid
         
     def _insertPackageTable(self, rpm):
-        package_id = self._getPackageId(rpm['name'], rpm['version'],
-                                rpm['release'], rpm['epoch'])
+        package_id = self._getPackageId(rpm['NAME'], rpm['VERSION'],
+                                rpm['RELEASE'], rpm['EPOCH'])
 
         if not package_id:
             self.cursor.execute("""insert into package
                         (pkgname, version, release, epoch)
                         values
                         ('%s', '%s', '%s', '%s')""" %
-                        (rpm['name'], rpm['version'],
-                         rpm['release'], rpm['epoch']) )
+                        (rpm['NAME'], rpm['VERSION'],
+                         rpm['RELEASE'], rpm['EPOCH']) )
 
-        package_id = self._getPackageId(rpm['name'], rpm['version'],
-                                rpm['release'], rpm['epoch'])
+        package_id = self._getPackageId(rpm['NAME'], rpm['VERSION'],
+                                rpm['RELEASE'], rpm['EPOCH'])
 
         assert package_id
 
@@ -424,9 +421,9 @@ class PostgresDB(CurrentDB):
             return int(result[0][0])
 
 
-    def _insertRpmTable(self, rpm_info, package_id, ch_id):
-        rpm_id = self._getRpmId(rpm_info['pathname'])
-        srpm_id = self._getSrpmId(rpm_info['srpm']) or 0
+    def _insertRpmTable(self, rpm, package_id, ch_id):
+        rpm_id = self._getRpmId(rpm['CT_PATHNAME'])
+        srpm_id = self._getSrpmId(rpm['SOURCERPM']) or 0
 
         if not rpm_id:
             self.cursor.execute("""insert into rpm
@@ -434,29 +431,29 @@ class PostgresDB(CurrentDB):
                                  original_channel_id, active_channel_id)
                                 values
                                 (%d, %d, '%s', '%s', %d, %d, %d)""" %
-                                (package_id, srpm_id, rpm_info['pathname'],
-                                 rpm_info['arch'], int(rpm_info['size']),
+                                (package_id, srpm_id, rpm['CT_PATHNAME'],
+                                 rpm['ARCH'], int(rpm['CT_FILESIZE']),
                                  ch_id, 0) )
 
-        rpm_id = self._getRpmId(rpm_info['pathname'])
+        rpm_id = self._getRpmId(rpm['CT_PATHNAME'])
         assert rpm_id
         # We'll need to update the provides and obsoletes tables here...
 
-        self._insertObsoletes(rpm_id, rpm_info)
-        self._insertProvides(rpm_id, rpm_info)
+        self._insertObsoletes(rpm_id, rpm)
+        self._insertProvides(rpm_id, rpm)
 
         return rpm_id
 
-    def _insertObsoletes(self, rpm_id, rpm_info):
-        for obs in rpm_info['dep_obsoletes']:
+    def _insertObsoletes(self, rpm_id, rpm):
+        for obs in rpm['CT_OBSOLETES']:
             self.cursor.execute("""insert into rpmobsolete
                             (rpm_id, name, flags, vers)
                             values
                             ( %d, '%s', '%s', '%s')""" % 
                             (rpm_id, obs[0], obs[1], obs[2]) )
  
-    def _insertProvides(self, rpm_id, rpm_info):
-        for prov in rpm_info['dep_provides']:
+    def _insertProvides(self, rpm_id, rpm):
+        for prov in rpm['CT_PROVIDES']:
             self.cursor.execute("""insert into rpmprovide
                             (rpm_id, name, flags, vers)
                             values
@@ -465,7 +462,7 @@ class PostgresDB(CurrentDB):
         # We also "provide" all the "files"- should this be a separate table?
         # I'm answering "no" provisionally to avoid a schema update.
         plst = ()
-        for prov in rpm_info['dep_files']:
+        for prov in rpm['FILENAMES']:
             # OK, we're having issues here.  The DB-API seems to contradict
             # itself on whether the client (that's us) or the module (pgdb)
             # does quoting to escape single quotes and backslashes.
@@ -543,7 +540,7 @@ class PostgresDB(CurrentDB):
         # Sort the list
         # We construct the lambda evilly so that it's actually sorted in 
         # reverse order...
-        query.sort(lambda x,y: rpm_wrapper.rpmVerCmp( (y[3], y[1], y[2]), (x[3], x[1], x[2]) ) )
+        query.sort(lambda x,y: RPM.versionCompare( (y[3], y[1], y[2]), (x[3], x[1], x[2]) ) )
 
         # Now update the RPM table appropriately.
         self.cursor.execute("""select rpm_id from RPM
@@ -561,24 +558,6 @@ class PostgresDB(CurrentDB):
             retval.append(row[0])
         return retval
 
-
-
-    def _createHeaderFile(self, config, channel, filename, headerBlob):
-        # This routine just creates the header file in the www tree
-        # FIXME: I forward ported this from 1.4.2, but it had much easier
-        # access to the header information  
-        import rpm
-        hdr_name = "%s-%s-%s.%s.hdr" % (headerBlob[rpm.RPMTAG_NAME], 
-                                        headerBlob[rpm.RPMTAG_VERSION],
-                                        headerBlob[rpm.RPMTAG_RELEASE], 
-                                        headerBlob[rpm.RPMTAG_ARCH])
- 
-        pathname = os.path.join(config['current_dir'], 'www', channel, 'getPackageHeader', hdr_name)
-        if (os.path.exists(pathname)):
-            os.unlink(pathname)
-        h_file = open(pathname, 'wb')
-        h_file.write(headerBlob.unload())
-        h_file.close()
 
     def _populateChannelDirs(self, config, channel):
         logfunc(locals(), DEBUG2)
@@ -710,7 +689,7 @@ class PostgresDB(CurrentDB):
         # FIXME: get parent channel info in there.
         for row in query:
             chan = {}
-            chan['name'] = row[0]
+            chan['NAME'] = row[0]
             chan['label'] = row[1]
             chan['arch'] = row[2]
             chan['description'] = row[3]

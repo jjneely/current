@@ -18,7 +18,6 @@ import stat
 import string
 import sys
 
-import misc
 import db
 import configure
 import auth

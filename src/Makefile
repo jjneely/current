@@ -2,9 +2,9 @@
 # Makefile for installing the python modules for current
 #
 
-MODULES			= arch auth configfile configure \
+MODULES			= archtab auth configfile configure \
                   ConstructParser current_apache \
-                  logger misc rpm_wrapper
+                  logger rpm_wrapper
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 

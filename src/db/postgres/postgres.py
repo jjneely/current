@@ -14,7 +14,7 @@ import os.path
 import time
 import gzip
 import xmlrpclib
-import misc
+import archtab
 import pprint
 
 class PostgresDB(CurrentDB):
@@ -619,7 +619,7 @@ class PostgresDB(CurrentDB):
         # channels (other information okay but not necessary)
 
         # get the canonical architecture.
-        carch = misc._getCannonArch(arch)
+        carch = archtab.getCannonArch(arch)
 
         log ("arch: %s, rel: %s" % (carch, release) )
         self.cursor = self.conn.cursor()
@@ -690,8 +690,9 @@ class PostgresDB(CurrentDB):
         # given release / arch combination.
         # Get a connection
         self.cursor = self.conn.cursor()
+
         # First, get the base arch, since arch may not be a canonical.
-        carch = misc._getCannonArch(arch)
+        carch = archtab.getCannonArch(arch)
 
         # Now, get all the channels of given carch / release, sorted by
         # update time.

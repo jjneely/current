@@ -10,7 +10,7 @@ For details on this (admittedly short) API, please see the rhn_api.txt file.
 
 import db
 import configure
-import misc
+import archtab
 from logger import *
 
 __current_api__ = [
@@ -30,8 +30,8 @@ def poll_packages(release, arch, last_checkin, uuid):
     # last_checkin is the last time this client got an updated list.
     # uuid seems to be totally unimportant at this stage.
 
-    carch = misc._getCannonArch(arch)
-    channel_update_time = db.db.getLastUpdate(release, arch)
+    carch = archtab.getCannonArch(arch)
+    channel_update_time = db.db.getLastUpdate(release, carch)
     
     # If our last_checkin is 0, we need to send a cache regardless of the
     # outcome of the two 'short circuit' if's.
@@ -64,6 +64,3 @@ def poll_packages(release, arch, last_checkin, uuid):
         rval['contents'].append(dict)
 
     return rval 
-
-
-    return {'use_cached_copy':1}

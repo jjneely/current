@@ -28,8 +28,6 @@ from mod_python import apache
 
 from logger import *
 import configure
-import misc
-#import packagedb
 import auth
 import db
 

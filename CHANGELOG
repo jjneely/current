@@ -1,6 +1,17 @@
                         Current Project Changelog
 
 * Thu Apr 10 2003 Hunter Matthews <thm@duke.edu>
+- Removed the obsolete misc.py file
+- Renamed arch.py to archtab.py to prevent annoying conflicts.
+- JOHN: applet.py had a bug where the original naked arch was used instead of carch
+- JOHN: applet.py had an extra return statment at the bottom that would never
+  be reached.
+- Pulled the unused functions out of archtab - they havent been needed since 
+  1.0.x
+- Added some of the missing archs and bizzare varients to the archtab.
+  What others do we need? Why can't we pull this from rpm itself? PLEASE?
+
+* Thu Apr 10 2003 Hunter Matthews <thm@duke.edu>
 - Removed configfile.py
   This was a back port of the python 2.2 ConfigParser.py, and is no longer
   needed.

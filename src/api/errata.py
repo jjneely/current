@@ -13,7 +13,6 @@ import xmlrpclib
 import rpm 
 import pprint
 
-import misc
 import auth
 from logger import *
 

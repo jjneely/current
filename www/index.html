@@ -7,9 +7,9 @@
 </head>
 <body>
 
-<hr noshade/>
-<img src="current-2.jpg" alt="Current" height="100" width="300"/>
-<p/>
+<hr noshade />
+<img src="current-2.jpg" alt="Current" height="100" width="300" />
+<p></p>
 
 <!-- Leaving this in for later.
 <a href="screenshots.html">Screenshots</a> | 
@@ -20,10 +20,10 @@
 
 <h3>Mission</h3>
 
-To completely implement a correct server for all of Red Hat's excellent
+<p>To completely implement a correct server for all of Red Hat's excellent
 up2date tools. Current is not expected to scale to the same mammoth
 proportions, but it should be fast enough and capable enough to support
-several hundred machines without driving the sysadmins mad.
+several hundred machines without driving the sysadmins mad.</p>
 
 
 <h3>Features</h3>
@@ -79,7 +79,7 @@ will still be committed to Tigris's CVS system.</p>
 
 <li><p><b>FTP -</b>
 Hunter's Current ftp repository 
-<a href="ftp://ftp.biology.duke.edu/pub/admin/current">here</a>.
+<a href="ftp://ftp.biology.duke.edu/admin/current">here</a>.
 Jack's Current ftp repository is 
 <a href="ftp://ftp.quackmaster.net/current">here</a>.
 </p></li>
@@ -87,64 +87,84 @@ Jack's Current ftp repository is
 </ul>
 
 
+<h3>Requirements</h3>
+
+<p>Current does require a few things to run.  Fortunately, any of the Red 
+Hat or Fedora Core distributions have everything you need to get Current
+working in some form or another.  The above distributions all include
+Python, mod_python, RPM, Apache, and a database Current knows how to use.
+However, Current intends to support several different databases. 
+Below are the names of the databases that we intend to make
+Current work with.  Hyperlinks are used if these packages are missing
+from some distributions.  Also, Current only uses SQL databases
+in version 1.5.x and above.</p>
+
+<ul>
+    <li>PostgreSQL</li>
+    <li>MySQL</li>
+    <li><a href="http://dag.wieers.com/packages/sqlite/">SQLite</a> and
+    <a href="http://dag.wieers.com/packages/python-sqlite/">pySQLite</a></li>
+</ul>
+    
+
 <h3>Contributing</h3>
-To discuss ideas, bug fixes, or submit patches then join the development 
+<p>To discuss ideas, bug fixes, or submit patches then join the development 
 <a href="http://current.tigris.org/servlets/ProjectMailingListList">
 mailing list</a>. If your patch implements an existing RFE or fixes a known
 BUG, you can also/instead attach it to our 
 <a href="http://current.tigris.org/servlets/ProjectIssues">
-Issue Tracker</a>.
+    Issue Tracker</a>.</p>
 
-<p/>
+<p>
 You can usually find one of us on IRC on irc.freenode.net in #current. 
+</p>
 
-<p/>
+<p>
 If you want to add a bug/rfe/whatever to the 
 <a href="http://current.tigris.org/servlets/ProjectIssues">Issue Tracker</a> 
 without registering with tigris.org, just send them to the dev or users list. 
 (If you are registered, you do not have to join current.)
-We'll add it.
+We'll add it.</p>
 
 
 <h3>Future Directions</h3>
 <p>
 Naturally, supporting new versions of the client and making current work
 on newer releases of Red Hat Linux are a priority. Other areas we look 
-forward to:
+forward to:</p>
 
 <ul>
-<li> Full SQL backend database: <br/>
+    <li> <p>Full SQL backend database: <br />
 Development is ongoing on the trunk. The 1.5.x series will simply
 reimplement the features we have now, but with a much saner SQL based
-backend (and enough changes to sanely support it). John's spearheading this
-campaign.
+backend (and enough changes to sanely support it).</p></li>
 
-<p/>
-<li> Basic client management: <br/>
+<li><p> Basic client management: <br />
 Once we have the basics complete in the SQL backend (to support the same
 modes of use we have now) we naturally want to start supporting at least
 the basic client management features available in up2date. This includes 
 full push (rhnsd/rhn_check) and being able to "group" clients together.
-Naturally, this has to follow the 1.5.x/1.6.x release.
+Naturally, this has to follow the 1.5.x/1.6.x release.</p></li>
 
-<p/>
-<li> To infinity, and beyond: <br/>
+<li><p> To infinity, and beyond: <br />
 Applet support, full HTML driven management interfaces, full errata
 annoucements, "proxy" server like support, there are literally dozens of
 really useful features in up2date that we can support, if only we write
-enough python. :)
+enough python. :)</p></li>
 
 </ul>
-<p/>
+<p></p>
 
 
 <h3>Related Resources</h3>
 <ul>
 <li><a href="http://rhn.redhat.com">Red Hat Network website</a> - If current doesn't meet your needs, go here. This WILL. Thanks to Red Hat for an excellent client.
-<li><a href="http://www.python.org">The Python home page</a>
-<li><a href="http://httpd.apache.org">The apache web server</a>
-<li><a href="http://www.modpython.org">The mod_python apache module</a>
-<li><a href="http://www.modssl.org">The mod_ssl apache module</a>
+<li><a href="http://www.python.org">The Python home page</a></li>
+<li><a href="http://httpd.apache.org">The apache web server</a></li>
+<li><a href="http://www.modpython.org">The mod_python apache module</a></li>
+<li><a href="http://www.modssl.org">The mod_ssl apache module</a></li>
+<li><a href="http://pysqlite.sourceforge.net/">The PySQLite Python Module</a></li>
+<li><a href="http://www.sqlite.org/">The SQLite Home Page</a></li>
 </ul>
 
 <hr noshade/>

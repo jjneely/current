@@ -17,7 +17,7 @@ import ConfigParser
 config = None
 
 ## These are replaced by make, so beware
-VERSION="1.5.4"
+VERSION="1.5.5"
 MODULES_DIR="/usr/share/current"
 CONFIG_DIR="/etc/current"
 LOG_DIR="/var/log/httpd"
@@ -71,7 +71,7 @@ class Config:
 
 
     def load(self):
-        self._data = self.readConfigFile(file)
+        self._data = self.readConfigFile(self._defaults['config_file'])
 
         # merge the defaults in
         for (key, value) in self._defaults.items():   

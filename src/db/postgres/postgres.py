@@ -202,7 +202,6 @@ class PostgresDB(CurrentDB):
         log("Active elements (RPMS) set", DEBUG2)
         result['populatedirs'] = self._populateChannelDirs(config, channel)
         log("Channel dirs populated", DEBUG2)
-        self.conn.commit()
         return result
 
     def _scanChannelSrc(self, channel):
@@ -234,6 +233,7 @@ class PostgresDB(CurrentDB):
     def _scanSrcDir(self, channel, dir):
         result = 1
 
+        self.cursor = self.conn.cursor()
         for file in os.listdir(dir):
             log("Scanning file %s" % (file,), TRACE)
             pathname = os.path.join(dir, file)
@@ -250,6 +250,7 @@ class PostgresDB(CurrentDB):
             srpm_id = self._getSrpmId(file)
             result = result and ( 0 != srpm_id )
             log("File scan result: %s" % (result,), TRACE)
+        self.conn.commit()
         return result
 
 
@@ -294,20 +295,19 @@ class PostgresDB(CurrentDB):
 
     def _addRpmPackage(self, config, path, channel):
         log("Adding RPM %s to channel %s" % (path, channel), TRIVIA)
+        self.cursor = self.conn.cursor()
         filename = os.path.basename(path)
         rpm_info = self.rpmWrapper.getRpmInfo(path)
-		# Make sure we read in a valid RPM
-		if ( rpm_info == None ):
-			# We can't return 0, because 0 indicates an error, but we don't
-			# do anything other than check for return value != 0, so we
-			# can safely return 1
-			return 1
-        
+
         if (self.cursor == None):
             self.cursor = self.conn.cursor()
         elif (self.cursor.description == None):
             self.cursor = self.conn.cursor()
 
+        # sanity check:
+        if (None == rpm_info):
+            return 1
+ 
         # Get the channel ID:
         self.cursor.execute("""select channel_id from CHANNEL
                 where label = '%s' """ % (channel,))
@@ -333,6 +333,7 @@ class PostgresDB(CurrentDB):
         self._createHeaderFile(config, channel, filename, rpm_info['hdr'])
 
         # We return the success of the rpm table insert - pos non-0 is good
+        self.conn.commit()
         return rpm_id
 
     def _getPackageId(self, name, version, release, epoch):
@@ -445,6 +446,7 @@ class PostgresDB(CurrentDB):
     def _setActiveElems(self, channel):
         # This is what sets which RPMS are active.  I'tll be fun to diagnose...
         # First, get a list of unique pkg names:
+        self.cursor = self.conn.cursor()
         self.cursor.execute(""" select distinct on (pkgname) pkgname from package
                     inner join rpm on (package.package_id = rpm.package_id)
                     inner join channel on (channel.channel_id = rpm.original_channel_id)
@@ -465,11 +467,18 @@ class PostgresDB(CurrentDB):
         chqry = self.cursor.fetchall()
         assert (len(chqry) == 1 )
         chid = int(chqry[0][0])
+        # Set everything in this channel inactive to amke sure we don't have
+        # any stale active records:
+        self.cursor.execute("""update rpm set active_channel_id = 0
+                where rpm.original_channel_id = %d""" % (chid,) )
+        self.conn.commit()
+        self.cursor = self.conn.cursor()
         for id in newest_ids:
             log('setting rpmid %s active' % id)
             self.cursor.execute("""update rpm set active_channel_id = %d
                     where rpm.rpm_id = %d""" % (chid, id) )
 
+        self.conn.commit()
         return "done"
 
     def _findNewest(self, channel, pkg):
@@ -659,17 +668,19 @@ class PostgresDB(CurrentDB):
                 % ( label, ) )
         channels = self.cursor.fetchall()
         if ( len(channels) != 1 ):
-            log ("crap...  no active channels found in solveDependencies...")
+            log ("crap...  no active channels found in solveDependencies...", DEBUG2)
             return None 
         act_ch_id = channels[0][0]
         # Find the RPM ID of the package in the active channel
-        self.cursor.execute("""select rpmprovide.rpm_id from rpmprovide
+        self.cursor.execute("""select distinct on (rpmprovide.rpm_id) 
+                    rpmprovide.rpm_id from rpmprovide
                     inner join RPM on (rpmprovide.rpm_id = rpm.rpm_id)
                     where rpm.active_channel_id = '%s'
                     and name = '%s'
                     """ % (act_ch_id, unknown) )
         rpms = self.cursor.fetchall()
         if ( len(rpms) == 0 ):
+            log ("Could not find active RPM solving for unknown %s" % (unknown), DEBUG2)
             return None
         if ( len(rpms) > 1 ):
             log ('More than one possible solution for dep %s - potential problem.' % (unknown,) )
@@ -688,6 +699,9 @@ class PostgresDB(CurrentDB):
             log('Crap.  %d results returned.' % (len(results),) )
             return None
         logfunc(locals())
+        log ("up2date.solveDependency is returning %s" % result, DEBUG)
+        if ( type(result[0]) != type([]) ):
+            result = [result]
         return result            
 
     def getLastUpdate(self, release, arch):

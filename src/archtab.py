@@ -32,9 +32,9 @@ def getCannonArch(arch):
 
     logfunc(locals())
     
-    assert arch in self._compat_arches_table.keys(), \
+    assert arch in _compat_arches_table.keys(), \
         "Arch table does not contain %s architecture." % arch
-    return self._compat_arches_table[arch][0]
+    return _compat_arches_table[arch][0]
 
 
 # NOTE: The order of the stuff in compat is in newest->oldest order

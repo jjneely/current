@@ -144,7 +144,7 @@ def solveDependencies(sysid_string, unknowns):
 
         if pkgs:
             for pkg in pkgs:
-                provides[unk].append(pkg[0:4])
+                provides[unk].append(pkg)
 
     return provides
 

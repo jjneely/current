@@ -2,8 +2,8 @@
 
 """ cadmin is the administrative program that performs online tasks.
 
-For now, that consists of creating new channels, adding single rpms
-(new errata) to existing channels, etc.
+For now, that consists of creating new channels, adding dirs to 
+existing channels, etc.
 
 This software is distributed under the GPL v2, see file "LICENSE"
 Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
@@ -29,7 +29,7 @@ sys.path.append('/usr/share/rhn')
 from up2date_client import rpcServer
 
 # don't import current config - might not be running on a machine
-#                               with current.conf
+#                               without current.conf
 # don't import logger - same reasoning
 
 def getServer():
@@ -104,7 +104,6 @@ def main():
 
     if (len(sys.argv) == 1):
         test()
-
     elif (sys.argv[1] == 'initdb'):
         print "This is a cinstall function and should only be called from"
         print "cinstall.  This message serves as a test."

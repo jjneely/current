@@ -479,7 +479,9 @@ class PostgresDB(CurrentDB):
                             (rpm_id, name)
                             values
                             ( %d, '%s')""" %
-                            (rpm_id, string.join(string.split(prov, "'"), "''") ) )
+                            (rpm_id, 
+                                string.replace(string.replace(prov, "'", "''"),
+                                        "\\", "\\\\") ) )
 
     def _scanForFiles(self, channel):
         result = 1

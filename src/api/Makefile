@@ -2,7 +2,7 @@
 # Makefile for installing the api package for current
 #
 
-MODULES		= cadmin errata queue registration up2date __init__
+MODULES		= cadmin errata queue registration up2date __init__ applet
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 

@@ -14,7 +14,7 @@ Copyright 2001, 2002   Hunter Matthews  <thm@duke.edu>
 
 ## constants and defaults
 # These are replaced by make, so beware
-MODULES_DIR="/usr/share/current"
+MODULES_DIR="/home/jwbernin/current/src"
 
 import sys
 sys.path.append(MODULES_DIR)

@@ -500,6 +500,8 @@ class PostgresDB(CurrentDB):
         # This routine just creates the header file in the www tree
         hdr_name = string.replace(filename, '.rpm', '.hdr')
         pathname = os.path.join(config['current_dir'], 'www', channel, 'getPackageHeader', hdr_name)
+        if (os.path.exists(pathname)):
+            os.unlink(pathname)
         h_file = open(pathname, 'wb')
         h_file.write(headerBlob.unload())
         h_file.close()
@@ -532,6 +534,8 @@ class PostgresDB(CurrentDB):
         query = (query,)
         log("Creating listPackages file", DEBUG2)
         pathname = os.path.join(config['current_dir'], 'www', channel, 'listPackages', updatefilename )
+        if (os.path.exists(pathname)):
+            os.unlink(pathname)
         pl_file = gzip.GzipFile(pathname, 'wb', 9)
         str = xmlrpclib.dumps(query, methodresponse=1)
         pl_file.write(str)
@@ -560,6 +564,8 @@ class PostgresDB(CurrentDB):
         query = (query,)
         log("Creating getObsoletes file", DEBUG2)
         pathname = os.path.join(config['current_dir'], 'www', channel, 'getObsoletes', updatefilename )
+        if (os.path.exists(pathname)):
+            os.unlink(pathname)
         pl_file = gzip.GzipFile(pathname, 'wb', 9)
         str = xmlrpclib.dumps(query, methodresponse=1)
         pl_file.write(str)

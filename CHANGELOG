@@ -1,5 +1,21 @@
                         Current Project Changelog
 
+* Fir Oct 01 2004 Jack Neely <jjneely@gmail.com>
+- Took over code from Hunter.
+- Make the DB schema consistant and working
+- Lots of code clean up and refactoring in the DB layer.
+- Fixed up code so it actually does work
+- Database code moved to the currentdb module and an abstract class
+  created for what should be in the database-specific modules
+- DB code does deletes now
+- SRPMS fully rolled into the RPM and PACKAGE tables
+- Schema tweek for tracking the full pathnames of where RPMs should be.
+- Depricated the typehandler() and replaced it with apache configs...
+  if apache thinks it knows the right type it won't call the typehandler
+- Some simple transaction support.  If a database method that writes
+  to the DB blows up, call rollback()
+- Beginings of a nicer exception based error handling system
+
 * Sun Aug 31 2003 Hunter Matthews <thm@duke.edu>
 - Removed the srpms table from the schema - folding into rpms table.
 - Updated, changed and tweaked other parts of the schema.

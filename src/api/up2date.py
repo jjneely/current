@@ -39,6 +39,7 @@ def login(sysid_string):
     si = auth.SysId(sysid_string)   
     (valid, reason) = si.isValid()
     if not valid:
+        log("Fault! - sysid not valid")
         return xmlrpclib.Fault(1000, reason)
 
     # Setup the basic SysHeaders stuff
@@ -81,6 +82,7 @@ def listChannels(sysid_string):
     si = auth.SysId(sysid_string)   
     (valid, reason) = si.isValid()
     if not valid:
+        log("sysid not valid in listChannels()")
         return xmlrpclib.Fault(1000, reason)
 
     # Need a list of channels this client is authorized for 

@@ -1,30 +1,19 @@
 ##
-# To build for Red Hat 7.x, build with:
-# rpmbuild --rebuild --define "rhl8x 0" dulog-*src.rpm
+# This package can no longer easily be built for RHL 7x, due to needing a 
+# python 2.2 built with rpm support.
 # 
-%{!?rhl8x:%define rhl8x 1}
-
-# I do all this junk at the top to get it out of the way, so the rest of 
-# the file looks _sort_of_ sane.
-%if %{rhl8x}
-%define release 1.8x
-%define additional_requires httpd postgresql-server postgresql-python
-%else
-%define release 1.7x
-%define additional_requires apache python-xmlrpc postgresql-server postgresql-python
-%endif
 
 Summary: A server for Red Hat's up2date tools.
 Name: current
-Version: 0.20030825
-Release: %{release}
+Version: 1.5.6
+Release: 1
 License: GPL
 Group: System Environment/Daemons
 URL: http://current.tigris.org
 Source0: ftp://ftp.biology.duke.edu/pub/admin/current/%{name}-%{version}.tar.gz
 Requires: python rpm-python mod_python mod_ssl 
 Requires: rpm >= 4.0.2-8
-Requires: %{additional_requires}
+Requires: httpd postgresql-server postgresql-python
 BuildRequires: docbook-style-xsl docbook-style-dsssl docbook-dtds
 BuildRequires: docbook-utils docbook-utils-pdf
 BuildArchitectures: noarch
@@ -69,6 +58,14 @@ make install INSTALL_ROOT=$RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Sep 27 2004 Jack Neely <jjneely@gmail.com>
+- Much cleanup of code.  The database code is very muched changed for
+  the better and moved to the currentdb module.
+- Beginings of error handling with exceptions
+
+* Sat Nov 15 2003 Hunter Matthews <thm@duke.edu>
+- Took out build support for RHL 7.x
+
 * Thu Apr  3 2003 Hunter Matthews <thm@duke.edu>
 - Fix Issuezilla #13, wrong URL in spec file.
 

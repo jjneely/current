@@ -4,7 +4,7 @@
 
 MODULES			= archtab auth configure \
                   ConstructParser current_apache \
-                  logger RPM
+                  logger RPM exception sets
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 

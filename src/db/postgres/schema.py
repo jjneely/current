@@ -7,9 +7,10 @@ create table PACKAGE (
     name            varchar(64) not null,
     version         varchar(64) not null,
     release         varchar(64) not null,
-    epoch           varchar(8) not null
+    epoch           varchar(8) not null,
+    issource        boolean not null
     );
-create index PACKAGE_NAME_IDX on PACKAGE(pkgname);
+create index PACKAGE_NAME_IDX on PACKAGE(name);
 create index PACKAGE_VERSION_IDX on PACKAGE(version);
 create index PACKAGE_RELEASE_IDX on PACKAGE(release);
                     
@@ -28,8 +29,7 @@ create sequence channel_rpm_seq;
 create table CHANNEL_RPM (
     channel_rpm_id  int default nextval('channel_rpm_seq') unique not null,
     rpm_id          int not null,
-    channel_id      int not null,
-    pathname        varchar(1024) unique not null 
+    channel_id      int not null
     );
 create index CHANNEL_RPM_RPM_ID_IDX on CHANNEL_RPM(rpm_id);
 create index CHANNEL_RPM_CHANNEL_ID_IDX on CHANNEL_RPM(channel_id);

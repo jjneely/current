@@ -8,6 +8,7 @@ Copyright (c) 2002 Hunter Matthews    Distributed under GPL.
 
 
 from logger import *
+from currentdb import *
 
 # This single global insures that all anyone else needs to know is 
 # I hate doubled names like this, but I couldn't think of anything else
@@ -25,12 +26,14 @@ def selectBackend(config):
     global db
     if config['db_type'] == 'postgres':
         import postgres
-        db = postgres.PostgresDB(config)
+        sdb = postgres.PostgresDB(config)
     elif config['db_type'] == 'pysqlite':
         import pysqlite
-        db = pysqlite.PySqliteDB(config)
+        sdb = pysqlite.PySqliteDB(config)
     else:
         raise Exception("unknown backend type")
+
+    db = CurrentDB(config, sdb)
 
 
 ## END OF LINE ##

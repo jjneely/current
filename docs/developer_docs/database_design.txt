@@ -16,7 +16,38 @@ be used in your code, however, your __init__.py should "rename" your
 base class to 'CurrentDB'.  No other constants, objects, or functions 
 should be exposed.
 
-The pysqlite backend is the 'standard' backend, and will be considered
+The postgres backend is the 'standard' backend, and will be considered
 the primary source of the API.
 
-                                                   
+=========================================================================
+Current Database Design Part Duex
+
+This is a redesign of the above database design document.  Our goals
+are to implement a database system for Current that is capable
+of using multiple different types of databases that does not
+duplicate code or effort.
+
+We assume two things.  First, that each database you wish Current to be
+able to use will provide a Python DB API 2.0 compilant module.  Secondly,
+we assume that SQL is "standard."  (Don't ask me about the standards 
+because I really don't know.)  
+
+The 'currentdb' module will contain 98% of the database code that Current 
+will use.  It will expose an abstraced API that are the only methods that 
+the rest of the  Current server knows about.  Hidden methods added as 
+needed.  The code in the 'currentdb' module directly manipulates the 
+database using SQL.  Note that this module is NOT responcible for 
+obtaining the initial connection object and is NOT responcible for
+doing database initialization including creating tables.
+
+A database helper module may be written to simplify handling results.
+This results object will have attributes that match eat table collum
+from the select statement used.  It will use next() and prev() and 
+possibly a python interator to handle multiple rows being returned.
+
+Database specifc code will be kept in sub packages or the 'db' module.
+Each module here will have a specific class that takes the specific
+arguments needed to obtain a connection object and return that 
+object.  Each module will maintain a separate file with the code
+needed to do inital database setup.  
+

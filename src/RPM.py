@@ -52,6 +52,7 @@ class Header(object):
             the pathname, file_size, hdr or is_source attributes. """
 
         self.pathname = pathname
+        # XXX: What if we don't have permission to read the file?  Exception
         self.file_size = os.stat(pathname).st_size
 
         (self.hdr, self.is_source) = self._getHeaderFromFilename(pathname)
@@ -59,9 +60,9 @@ class Header(object):
     def __getitem__(self, item):
         assert item in tagvalues, "Invalid attribute requested"
 
-        funcname = '_get_' + tagvalues[item]        
+        funcname = '_get_' + tagvalues[item]
         meth = getattr(self, funcname, None)
-        if meth is None: 
+        if meth is None:
             return self.hdr[item] 
         else: 
             return meth()
@@ -109,6 +110,14 @@ class Header(object):
     def _get_SERIAL(self):
         # RPMTAG_SERIAL == RPMTAG_EPOCH.  SERIAL is found first.
         # this causes problems.
+        return self._get_EPOCH()
+
+
+    def _get_E(self):
+        # I don't know what Jeff did, but RPMTAB_E == RPMTAG_EPOCH
+        # and since hunter's code looks up by the actual numeric number
+        # we actually end up running this function for h[RPM.EPOCH]
+
         return self._get_EPOCH()
 
 

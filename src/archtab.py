@@ -31,6 +31,12 @@ def getCannonArch(arch):
     """
 
     logfunc(locals())
+
+    # BUGFIX: In newer versions of up2date (first seen in RHEL 3) the
+    # client isn't sending us a simple arch "i686" but the contents of
+    # the /etc/rpm/platform file e.g. "i386-redhat-linux"
+    # We assume that we can split off of '-'s and take the first element.
+    arch = arch.split('-')[0]
     
     assert arch in _compat_arches_table.keys(), \
         "Arch table does not contain %s architecture." % arch

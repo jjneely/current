@@ -1,4 +1,7 @@
 CVS
+.svn
 *.tar.gz
 .#*
 .project
+*.pyc
+*.pyo

@@ -1,5 +1,13 @@
                        Current Server TODO List
 
+* rollback() when DB code tracebacks
+* Permissions on RPMS must be sane
+* CurrentError class ??
+* How should SRPMS be handed.  Just the latest versions on disk or all of them
+
+* Write slick apache configs to replace the typehandler.  The apache 
+  configs will override the typehandler making things whiny.
+
 * redo the logging so that current.log is empty for log_level 0 and
   perhaps 1 - access_log and error_log are all we need there.
   Keep error_log very small at 0, and still quiet at 1.
@@ -12,20 +20,7 @@
   we have a helper function, which is wrong, but thats ok, as we don't
   use it. narf.
  
-* The logger probably needs to switch to string based levels, for
-  implementation/namespace reasons.
-
 * Fixup the perms checking code, and move it to the backend.
-
-* When we update, we should set a flag to only bump the channel version 
-   if we actually changed something.
-
-* Cleanup terminology - its either an rpm, or a package. Pick one, change
-  the rest. Its a package.
-
-* labelCompare wants None as the epoch component, not "" (empty string)
-  we have a helper function, which is wrong, but thats ok, as we don't 
-  use it. narf.
 
 * Figure out how the heck to do sub-channels. Have to resolve deps using 
   the sub-channel and its parent.
@@ -34,7 +29,36 @@
   (which does't exist) it would be cool to include mod_status and 
   mod_config information.
 
+  HTML templating: http://www.owlfish.com/software/simpleTAL/index.html
+                   http://www.entrian.com/PyMeld/
 
+* SQL Database support.  Possible use of a third party module to make
+  our lives easier to support multiple databases?
+
+  http://pdo.neurokode.com/
+
+BUGS in 1.5.x so far:
+postgres.makeChannel()
+    We do the database bits first, commit(), then try the directory crap.
+    If the directory crap fails, we can't run makeChannel() again to fix 
+    it.
+    Solution: db first, then try: filesystem crap: except: rollback else: 
+    commit
+
+postgres.initdb()
+    Should we create the needed dirs here? I think so...
+
+postgres.*
+    All the api functions are returning 'ok' or 'fail' strings. 
+    Fix this
+
+postgres.addDir()
+    Possible to add duplicate dir entries.
+    Solution: add uniquness constrain on (channel_id, dirpathname)
+
+_scanFilesystem() is done
+
+    
 1.6.0 ship checklist
 
 More Code cleanups in general

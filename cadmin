@@ -30,7 +30,11 @@ from up2date_client import rpcServer
 
 def getServer():
     server = rpcServer.getServer()
-    server.add_trusted_cert(rpcServer.rhns_ca_cert)
+    try:
+        # In 4.2-something-ish this is done in the getServer method
+        server.add_trusted_cert(rpcServer.rhns_ca_cert)
+    except AttributeError, e:
+        pass
     return server
 
 def test():

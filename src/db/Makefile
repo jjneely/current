@@ -2,7 +2,7 @@
 # Makefile for installing the database package for current
 #
 
-MODULES			= currentdb __init__
+MODULES			= currentdb __init__ resultSet
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 

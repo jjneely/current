@@ -44,8 +44,17 @@ APACHE_CONFIG = """
 Alias /XMLRPC/$RHN %(web_dir)s
 
 <Directory %(web_dir)s>
-    # Make certain this is set - current won't work without it
+    # Make certain these are set - current won't work without it
     Options FollowSymLinks
+
+    <FilesMatch "\.(hdr|rpm)$">
+        ForceType application/octet-stream
+    </FilesMatch>
+    <FilesMatch "^[0-9]*$">
+        ForceType application/binary
+        Header append Content-Transfer-Encoding binary
+        Header append Content-Encoding x-gzip
+    </FilesMatch>
 </Directory>
 
 <Location ~ "/XMLRPC$">
@@ -62,7 +71,6 @@ Alias /XMLRPC/$RHN %(web_dir)s
 
 <Location /XMLRPC/$RHN>
     PythonPath "sys.path + ['%(mod_dir)s']"
-    PythonTypeHandler current_apache
     PythonAccessHandler current_apache
 </Location>
 
@@ -115,9 +123,13 @@ def main():
         apache_config.close()
 
     elif args[0] == 'create_certificate':
+        if len(args) > 1 and args[1] == '--days':
+            days = args[2]
+        else:
+            days = 365
         os.chdir('/etc/current')
         os.system('openssl genrsa -out server.key 1024')
-        os.system('openssl req -new -x509 -days 365 -key server.key -out server.crt')
+        os.system('openssl req -new -x509 -days %s -key server.key -out server.crt' % days)
         os.system('openssl x509 -noout -text -in server.crt > RHNS-CA-CERT')
         os.system('cat server.crt >> RHNS-CA-CERT')
 

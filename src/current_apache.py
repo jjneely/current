@@ -27,6 +27,7 @@ import sys
 from mod_python import apache
 
 from logger import *
+from exception import CurrentException
 import configure
 import auth
 import db
@@ -72,7 +73,7 @@ def init_backend():
     except IOError, e:
         apacheLog("Cannot open the %s log file. Usually a permissions problem." % logfile, 'ALERT')
         apacheLog("This is going to hinder all current operation - please fix", 'ALERT')
-        return
+        return 1
 
     apacheLog("Starting logging", 'INFO')
     apacheLog("Using current log %s" % logfile, 'INFO')
@@ -81,11 +82,18 @@ def init_backend():
 
     # Setup the database connection
     # In the future, the database may need to be up before auth
-    db.selectBackend(configure.config['db_type'])
-    db.db.connect(configure.config)
+    try:
+        db.selectBackend(configure.config)
+    except Exception, e:
+        log("Error initializing data base!  Current will not function",
+                MANDATORY)
+        logException()
+        return 1
 
     # Authentication
     auth.authorize = auth.Authorization()
+
+    return 0
 
 
 def accesshandler(req):
@@ -98,12 +106,15 @@ def accesshandler(req):
 
     # we assume that if the config object is there, all the init got done.
     if not configure.config:
-        init_backend()
+        ret = init_backend()
+        if ret:
+            # Backend failed to start up
+            return apache.HTTP_INTERNAL_SERVER_ERROR
 
-    if 0:      # debugging code - leave this here
-        apacheLog(req.uri)
-        for key in req.headers_in.keys():
-            apacheLog("headers_in[%s] == %s" %(key, req.headers_in[key]))
+    # debugging code - leave this here
+    log(req.uri, DEBUG2)
+    for key in req.headers_in.keys():
+        log("headers_in[%s] == %s" %(key, req.headers_in[key]), DEBUG2)
  
     # Now we can actually check on the  clients authorizations
     hi = auth.SysHeaders(req.headers_in)
@@ -117,6 +128,8 @@ def accesshandler(req):
 
 
 def typehandler(req):
+    # Replaced by Apache configs.  This code is legacy and not used.
+    
     """ Type Handler for mod_python.
 
     The packageList and the rpm headers are compressed. This
@@ -132,20 +145,25 @@ def typehandler(req):
 
     # we assume that if the config object is there, all the init got done.
     if not configure.config:
-        init_backend()
+        ret = init_backend()
+        if ret:
+            # Backend failed to start up
+            return apache.HTTP_INTERNAL_SERVER_ERROR
+
+    log("Inside the typehandler", DEBUG2)
 
     # setting headers creatively
     if string.find(req.uri, 'listPackages') > 0 or string.find(req.uri, 'getObsoletes') > 0:
         # listPackages is both compressed, and has a different 
         # content_type than the others
-        apacheLog('setting compressed headers')
+        log('typehandler setting compressed headers', DEBUG2)
 
         req.headers_out['Content-Encoding'] = 'x-gzip'
         req.headers_out['Content-Transfer-Encoding'] = 'binary'
         req.content_type = 'application/binary'
     else:
         # everything else is uncompressed, and is octet-stream
-        apacheLog('setting normal headers')
+        log('typehandler setting normal headers', DEBUG2)
         req.content_type = 'application/octet-stream'
 
     return apache.OK
@@ -158,7 +176,10 @@ def handler(req):
 
     # we assume that if the config object is there, all the init got done.
     if not configure.config:
-        init_backend()
+        ret = init_backend()
+        if ret:
+            # Backend failed to start up
+            return apache.HTTP_INTERNAL_SERVER_ERROR
 
     if req.method == 'GET':
         return apache.DECLINED
@@ -181,15 +202,11 @@ def handler(req):
             log ("Couldn't decode XMLRPC call.", DEBUG)
             return apache.HTTP_BAD_REQUEST
     
-        try:
-            # gen result
-            log ('Requesting: %s' % method, DEBUG)
-            log ('  with params = %s' % pprint.pformat(params), DEBUG2)
-            # Fixme: need to pass req object here?
-            result = callAPIMethod(method, params)
-        except:
-            logException()
-            return apache.HTTP_BAD_REQUEST
+        # gen result
+        log ('Requesting: %s' % method, DEBUG)
+        log ('  with params = %s' % pprint.pformat(params), DEBUG2)
+        # Fixme: need to pass req object here?
+        result = callAPIMethod(method, params)
 
         apacheLog('Result = %s' % pprint.pformat(result), 'NOTICE')
     
@@ -203,7 +220,10 @@ def loghandler(req):
 
     # we assume that if the config object is there, all the init got done.
     if not configure.config:
-        init_backend()
+        ret = init_backend()
+        if ret:
+            # Backend failed to start up
+            return apache.HTTP_INTERNAL_SERVER_ERROR
 
     for key in req.headers_out.keys():
         apacheLog("headers_out[%s] == %s" %(key, req.headers_out[key]))
@@ -308,6 +328,15 @@ def callAPIMethod(method, params):
         log('  params were: %s' % pprint.pformat(params), MANDATORY)
         return xmlrpclib.Fault(1000, 'Function %s called with wrong arg count'
                                % function)
+        
+    except CurrentException, e:
+        # Something bad happened that we cought and need to tell the user
+        log("ERROR: A CurrentException was raised -- alert user.", 
+            MANDATORY)
+        logException()
+        log('  params were: %s' % pprint.pformat(params), MANDATORY)
+        return xmlrpcFault(1000, str(e))
+    
     except Exception, e:
         # something totally bad happened.  :((
         log('ERROR: Recognized function %s blew up with undefined error'

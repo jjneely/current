@@ -24,7 +24,7 @@ For people who want to submit general patches to Current:
     4. Follow the coding/naming conventions already in Current.
        ':'s effectively end a line - no one liners.
        Variable names should be descriptive in all but the most obvious
-       cases, etc etc. Channel.py is a good model to follow. Cadmin isn't.
+       cases, etc etc. 
 
     5. You MUST update any docs to go with your patch. If you add 
        something (sql backend, whatever) there better be a new file in the
@@ -36,9 +36,8 @@ For people who want to submit general patches to Current:
     6. Don't change the CHANGELOG or the version number in your patch- 
        I'll deal with that when I apply your patch.
 
-    7. We use bitkeeper, hosted at bk://stenia.biology.duke.edu/current-1.3
-       You don't have to though - I prefer unified diffs, actually.
-              
+    7. We use CVS at current.tigris.org
+                     
     8. Each patch should be ONE change, and ONE change only. Don't send
        two features or a feature and bugfix in one patch - send two 
        patches. Multiple bugfixes in one patch might be ok if they are 
@@ -46,75 +45,46 @@ For people who want to submit general patches to Current:
        
                    
 For people who are working on backends for Current:
-    1. Python DB API V2.0. Developed with PostgreSQL (for now)
+    *. Python DB API V2.0. Developed with PostgreSQL (for now)
 
        I will accept no other backend patches UNTIL we have a stable,
        sane postgres backend. Functionality FIRST, portability SECOND.
        Patches against the postgres work to make later porting easier
        will be carefully considered.
        
-    2. If you're working on sql, follow the same schema as Toby's patch.
-       If you think the schema needs additions/changes, you'd better 
-       document WHY. (Patch is on the ftp server.)
-    
-    3. Pure python 1.5.2.  Python 2.2 only when Red Hat does.
-       The postgres patches so far require the python/sql from redhat 7.2
-       Thats perfectly acceptable. 
-       
-    4. Sane handling of multiple rpm name/version/release/epoch (NVRE) and
+    *. Sane handling of multiple rpm name/version/release/epoch (NVRE) and
        arch (A) per channel.
 
-    5. Rpm's and rpm headers on file system so they could be served with
+    *. Rpm's and rpm headers on file system so they could be served with
        apache and mod_python.
 
-    6. Recurse directories on database population.  Ignore files that are not
+    *. Recurse directories on database population.  Ignore files that are not
        rpms. Install trees are not just rpm files - don't require that.
 
-    7. Works correctly with stock Redhat NFS/FTP install trees.
+    *. Works correctly with stock Redhat NFS/FTP install trees.
 
-    8. Works correctly with simple mirror of updates.redhat.com
+    *. Works correctly with simple mirror of updates.redhat.com
 
-    9. Rule removed. 
-    
-    10. Can add or remove rpms from channel without having to rebuild the
-        entire database.
+    *. Can add or remove rpms from channel without having to rebuild the
+       entire database.
 
-    11. Will lay foundation for "non-anonymous" mode, enabling "up2date -p",
-        subscribed channels, and lots more.
+    *. Will lay foundation for "non-anonymous" mode, enabling "up2date -p",
+       subscribed channels, and lots more.
 
-    12. Provide at least as much functionality as the existing shelve
-        implementation (in 0.9.5, plus obsolete information).
+    *. Provide at least as much functionality as the existing shelve
+       implementation (in 1.4.x)
    
                          
 What follows below is a random collection of thoughts. Ignore them at 
 your peril.
 
-* For the shelve based implementation, I worked out the following 
-  design. It turns out to be a bad idea to break things up like this
-  when using a single SQL database for everything. Toby's patch changed
-  that, and thats fine.
 
-  For rpm information, we have a 3-tier design.
-  up2date.py  is the first tier - it figures out what the client said 
-  and deals with the vagaries of xmlrpc and GET and headers and such.
-  
-  packagedb.py is the second tier - it presents the complete set of 
-  channels as a single database image to the top tier (up2date.py). It
-  tries to be the "logic" layer, but the 2.7 clients took most of that 
-  logic out...
-  
-  channel.py is the third and lowest tier - it stores all the data in 
-  python shelves, files, pickles, rutabagas, whatever.
-  
-  There are multiple channel objects, one packagedb object, and up2date.py
-  is a module of standalone functions.
-  
-* Watch out for client side caching in 2.7 clients - I lost a full days
-  development time trying to figure out why the client never seemed to do
-  more than one GET to the server, yet still knew the "wrong" answer. 
-  It caches darn near everything - which is a good, desirable feature, as 
-  long as you know its there!. Delete everything in /var/spool/up2date to
-  get fresh hits against the database.
+* Watch out for client side caching in 2.7 and later clients - I lost a full
+  days development time trying to figure out why the client never seemed to
+  do more than one GET to the server, yet still knew the "wrong" answer.  It
+  caches darn near everything - which is a good, desirable feature, as long
+  as you know its there!. Delete everything in /var/spool/up2date to get
+  fresh hits against the database.
   
   This also explained why they bothered having database "versions" or 
   last_modified values - the client will know to pull down fresh data if 
@@ -126,27 +96,9 @@ your peril.
   RHN stuff we don't use, and add anything we want.) I can see benefits/
   problems either way. Comments welcome.
   
-* cadmin is the offline "current server admin tool". Its written in python
-  as well, but was quickly thrown together code that is rather fragile. If
-  you're a python hacker and want something to work on, I'd recommend cadmin
-  right now - I'm going to change it very little while I get the main server
-  in shape, then (if nobodies done it) I'll rewrite cadmin to be more
-  robust.
-  
 * One of the fundamental goals of Current is to never modify the client
   software. This software does a critical task, and modifying the client
-  frankly implies I don't know what I'm doing. However, RH has hard-coded
-  their GPG signature into the code. I'll have to do something to have
-  multiple GPG keys be acceptable when checking packages. Naturally, I hope
-  that RH will take those patches and roll them into their official client.
-  
-  I think I'll probably figure out how to have a separate keyring stored 
-  somewhere, and simply say any key in that ring is a valid rpm signing 
-  key (perfectly analogous to the RHNS-CA-CERT file for SSL certs). This 
-  will mean delving into the innards of rpm again, never a fun task.
+  frankly implies I don't know what I'm doing. 
 
-  NOTE: Red Hat has already fixed all/most of this in the rawhide version
-  of up2date, at least 2.7.25 and later.
   
-
 Comments? What do YOU want the server to look like?  

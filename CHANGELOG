@@ -1,5 +1,39 @@
                         Current Project Changelog
 
+* Sat Jul 19 2003 John Berninger  <johnw@berningeronline.net>
+- Notes on client support added to schema-design.txt
+- Small bugfix? for RPM.py. rpmmodule is using SERIAL when we want EPOCH
+   Hunter: fix this.
+- Another shelf code related removal
+- Back to try/except for dsn vs user/password to access the database.
+- Hunter blew the RPM.py integration by forgetting his own API. He used 
+  text strings ('SOURCEPACKAGE') instead of module constants 
+  (RPM.SOURCEPACKAGE)
+- Changed schema and code to handle the same rpm file in multiple channels.
+
+* Wed Jul 16 2003 Hunter Matthews <thm@duke.edu>
+- Updated the tester.py file for RPM.py
+- Took out more shelf related code
+- Small comment changes.
+
+* Wed Jul 16 2003 Hunter Matthews <thm@duke.edu>
+- First set of cleanups for postgres.py
+  John does try/except for dsn vs user/password, which is silly
+     The config object KNOWS which we have, just do an if/else
+  Log messages far too verbose at this level of code
+- bug fix for having obsolete versions and flags reversed in an sql call.
+
+* Sun Jul 13 2003 Hunter Matthews <thm@duke.edu>
+- Upgraded to final version of RPM.py module.
+  Based partly on comments from #python
+- patched postgres.py to use new RPM.py module.
+
+* Sun Jul 6 2003 Hunter Matthews <thm@duke.edu>
+- Fixed typo in the applet support.
+
+* Sun Jul 6 2003 Hunter Matthews <thm@duke.edu>
+- Took out obsolete shelf backend.
+
 * Sat Jun 14 2003 Hunter Matthews <thm@duke.edu>
 - Forward ported changes from 1.4.3
 

@@ -1,5 +1,15 @@
                         Current Project Changelog
 
+* Mon Apr 04 2005 Jack Neely <jjneely@gmail.com>
+- Current 1.7.1 -- Developer's only release
+- Re-work cadmin to have a modular inerface that's easily expanded.
+  See the admin module.
+- Code to handle sessions via Cookies as well as a normal session hash
+- Import of SimpleTAL 3.12.  All our web pages will be simpleTal
+  templates.
+- A new mod_python hander, current_web.py, to power web frontend.
+  Right now just enough to test the session code
+
 * Mon Mar 21 2005 Jack Neely <jjneely@gmail.com>
 - Current 1.6.0
 - Some very minor documentation tweeks regarding generating SSL certs

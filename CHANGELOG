@@ -1,5 +1,10 @@
                         Current Project Changelog
 
+* Tue Dec 14 2004 Jack Neely <jjneely@gmail.com>
+- Current 1.5.8
+- Brown paper bag time.  Fix the bad XML my new XMLRPC module was
+  outputting.
+
 * Mon Oct 18 2004 Jack Neely <jjneely@gmail.com>
 - Current 1.5.7
 - SQLite support via the pysqlite python module

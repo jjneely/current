@@ -62,6 +62,7 @@ def fileDump(cursor, filename, gz=0, encoding=None):
     fd.write(xmlheader)
     fd.write("<methodResponse>\n")
     fd.write("<params>\n<param>\n")
+    fd.write("<value><array><data>\n")
 
     # don't suck the entire data set into memory at once
     row = cursor.fetchone()
@@ -78,6 +79,7 @@ def fileDump(cursor, filename, gz=0, encoding=None):
             
         row = cursor.fetchone()
 
+    fd.write("</data></array></value>\n")
     fd.write("</param>\n</params>\n")
     fd.write("</methodResponse>\n")
     

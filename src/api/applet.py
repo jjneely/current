@@ -22,7 +22,7 @@ def poll_status():
     result = {}
     result['checkin_interval'] = 15360
     result['server_status'] = 'normal'
-    return resultr
+    return result
 
 
 def poll_packages(release, arch, last_checkin, uuid):

@@ -8,10 +8,10 @@
 # the file looks _sort_of_ sane.
 %if %{rhl8x}
 %define release 1.8x
-%define additional_requires httpd librpm404 rpm404-python
+%define additional_requires httpd librpm404 rpm404-python postgresql-server postgresql-python
 %else
 %define release 1.7x
-%define additional_requires apache python-xmlrpc 
+%define additional_requires apache python-xmlrpc postgresql-server postgresql-python
 %endif
 
 Summary: A server for Red Hat's up2date tools.

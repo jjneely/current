@@ -1,4 +1,8 @@
                         Current Project Changelog
+* Wed Apr 16 2003 John Berninger <johnw@berningeronline.net>
+- Hunter: applet fixes look okay.
+- added checks to not error out when a scan_channel hits a non-RPM or -SRPM
+  file
 
 * Thu Apr 10 2003 Hunter Matthews <thm@duke.edu>
 - Removed the obsolete misc.py file

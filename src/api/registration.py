@@ -1,5 +1,3 @@
-# registration.py
-
 """ Up2date registration API module.
 
 Copyright (c) 2001 Hunter Matthews    Distributed under GPL.
@@ -23,16 +21,20 @@ from logger import *
 __current_api__ = [
     'welcome_message',
     'privacy_statement',
+    'terms_and_conditions',
     'reserve_user',
     'register_product',
     'new_user',
     'new_system',
     'send_serial',
     'add_hw_profile',
+    'refresh_hw_profile',
     'add_packages',
     'delete_packages',
     'update_packages',
+    'list_packages', 
     'upgrade_version',
+    'update_transactions',
     ]
 
 
@@ -42,6 +44,11 @@ def welcome_message():
 
 def privacy_statement():
     return configure.config['privacy_statement']
+
+
+def terms_and_conditions():
+    # return config.cfg.getItem("terms_and_conditions")
+    return ""
 
 
 def reserve_user(username, password):
@@ -109,6 +116,17 @@ def add_hw_profile(sysid_string, hardware_info):
     return 0
     
     
+def refresh_hw_profile(sysid_string, hardware_info):
+
+    # Authorize the client
+    si = auth.SysId(sysid_string)   
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
+
+    return 0
+    
+    
 def add_packages(sysid_string, package_list):
 
     # Authorize the client
@@ -132,6 +150,30 @@ def delete_packages(sysid_string, package_list):
 
     
 def update_packages(sysid_string, package_list):
+
+    # Authorize the client
+    si = auth.SysId(sysid_string)   
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
+
+    return 0
+
+    
+def list_packages(sysid_string):
+    """ This function is still included, but apparently not used. """
+
+    # Authorize the client
+    si = auth.SysId(sysid_string)   
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
+
+    # we don't know what format the client is expecting...
+    return "no information"
+
+    
+def update_transactions(sysid_string, time, transaction_data):
 
     # Authorize the client
     si = auth.SysId(sysid_string)   

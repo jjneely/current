@@ -8,7 +8,7 @@ the server success/failure.
 For details on the exact API, what each method expects and what it 
 returns, please see the rhn_api.txt file.
 
-Copyright 2002 Hunter Matthews
+Copyright 2003 Hunter Matthews
 
 This software may be freely redistributed under the terms of the GNU Public
 License (GPL) v2.
@@ -18,11 +18,7 @@ Started figuring out some way to get rid of that pesky cron job in 1.5.0.
 
 """
 
-__author__ = 'Hunter Matthews <thm@duke.edu>'
-
 import xmlrpclib
-import string
-import pprint
 
 from logger import *
 import auth
@@ -32,7 +28,7 @@ import auth
 # Idea stolen from up2date/getMethod.py
 __current_api__ = [
     'get',
-    'submit'
+    'submit',
     ]
 
 
@@ -42,23 +38,15 @@ def get(sysid_string, action_version, client_status):
     logfunc(locals())
 
     # Authorize the client
-    si = auth.SysId()
-    si.loadstring(sysid_string)
-    if not si.isValid():
-        return xmlrpclib.Fault(1000, "Invalid client certificate.")
-
-#     params = 
-#     encoded_action = xmlrpclib.dumps(params, packages.upgrade)
-#    
-#     result = {'id': '777', 
-#               'version': '2',
-#               'action': encoded_action}
+    si = auth.SysId(sysid_string)
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
 
     # Right now, current does not support this api. Its safe to return
-    # an empty dict.
-    result = {}
-    return {'type': 'xml',
-            'data': result}
+    # an empty dict (which means "no action for this client")
+    action = {}
+    return action
 
 
 def submit(sysid_string, action_id, status, message, data):
@@ -67,16 +55,15 @@ def submit(sysid_string, action_id, status, message, data):
     logfunc(locals())
 
     # Authorize the client
-    si = auth.SysId()
-    si.loadstring(sysid_string)
-    if not si.isValid():
-        return xmlrpclib.Fault(1000, "Invalid client certificate.")
- 
-    result = 0
+    si = auth.SysId(sysid_string)
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
+                                                                                
     # The return value is ignored, so I can't figure out the return _type_.
     # We assume 0 is safe.
-    return {'type': 'xml',
-            'data': result}
+    result = 0
+    return result
 
 
 ## END OF LINE ##

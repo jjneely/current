@@ -1,4 +1,3 @@
-## up2date.py
 """ up2date API for implementing the server side of up2date.
 
 Copyright (c) 2001 Hunter Matthews    Distributed under GPL.
@@ -27,6 +26,8 @@ __current_api__ = [
     'login',                               ## These are the newer 2.7 API
     'listChannels',
     'solveDependencies',
+    'subscribeChannels',
+    'unsubscribeChannels',
     ]
 
 
@@ -147,6 +148,34 @@ def solveDependencies(sysid_string, unknowns):
                 provides[unk].append(pkg)
 
     return provides
+
+
+def subscribeChannels(sysid_string, channels, username, password):
+
+    # Authorize the client
+    si = auth.SysId(sysid_string)
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
+
+    # The client doesn't support this call yet 
+    # and we don't have backend support yet anyway
+
+    return 0                                                                                 
+
+
+def unsubscribeChannels(sysid_string, channels, username, password):
+
+    # Authorize the client
+    si = auth.SysId(sysid_string)
+    (valid, reason) = si.isValid()
+    if not valid:
+        return xmlrpclib.Fault(1000, reason)
+
+    # The client doesn't support this call yet 
+    # and we don't have backend support yet anyway
+
+    return 0                                                                                 
 
 
 ## END OF LINE ##    

@@ -1,4 +1,3 @@
-## applet.py
 """ up2date APPLET API for implementing the server side of the APPLET
     interface in the rhn-applet package
 
@@ -9,20 +8,22 @@ For details on this (admittedly short) API, please see the rhn_api.txt file.
 """
 
 import db
-import configure
 import archtab
 from logger import *
+
 
 __current_api__ = [
     'poll_status',
     'poll_packages'
     ]
 
+
 def poll_status():
-    toret = {}
-    toret['checkin_interval'] = 15360
-    toret['server_status'] = 'normal'
-    return toret
+    result = {}
+    result['checkin_interval'] = 15360
+    result['server_status'] = 'normal'
+    return resultr
+
 
 def poll_packages(release, arch, last_checkin, uuid):
     # release is the release of the client
@@ -45,9 +46,9 @@ def poll_packages(release, arch, last_checkin, uuid):
         return {'use_cached_copy':1}
 
     # Now we need to build the return cache...
-    rval = {}
-    rval['last_modified'] = channel_update_time
-    rval['contents'] = []
+    result = {}
+    result['last_modified'] = channel_update_time
+    result['contents'] = []
     pkgs = db.db.listAppletPackages(release, carch)
     log ('%s packages returned.' % len(pkgs) )
     for row in pkgs:
@@ -61,6 +62,6 @@ def poll_packages(release, arch, last_checkin, uuid):
         dict['errata_advisory'] = ''
         dict['errata_id'] = ''
         dict['errata_synopsis'] = ''
-        rval['contents'].append(dict)
+        result['contents'].append(dict)
 
-    return rval 
+    return result 

@@ -31,7 +31,7 @@ import configfile
 defaults = {
     "version": VERSION,
     "config_file": CONFIG_DIR + "/current.conf",
-    "apache_config_file": "/etc/httpd/conf/current.httpd.conf",
+    "apache_config_file": "/etc/httpd/conf.d/current.conf",
     "log_file":    LOG_DIR + "/current.log",
     "log_level":   0,
 }

@@ -31,6 +31,8 @@ class PostgresDB(CurrentDB):
         self.conn = None
 
     def initdb(self, config):
+        # We don't do normal loggin here, we use prints, as this is
+        # currently handled locally (no pun intended).
         CurrentDB.initdb(self, config)
 
         try:
@@ -65,12 +67,16 @@ class PostgresDB(CurrentDB):
     def connect(self, config):
         # We'll definitely need loggin here, but I've yet to figure out
         # how to make that work sanely.
+        log("Obtaining connection", TRACE)
         if ( self.conn != None ):
+            log("Connection already exists!", TRACE)
             return
         try: 
             self.conn = pgdb.connect(config['db_dsn'])
+            log("Connection obtained via DSN", TRACE)
         except:
             self.conn = pgdb.connect(user=config['db_user'], host=config['db_host'], password=config['db_pass'], database=config['db_name'])
+            log ("Connection via user/password", TRACE)
 
     def disconnect(self):
         if ( self.cursor != None ):
@@ -81,7 +87,7 @@ class PostgresDB(CurrentDB):
             self.conn = None
 
     def makeChannel(self, config, channel):
-        logfunc(locals())
+        logfunc(locals(), TRACE)
         self.cursor = self.conn.cursor()
 
         # FIXME: Need to check for duplicate channel creation.
@@ -90,6 +96,7 @@ class PostgresDB(CurrentDB):
         # from this scheme...  cool.
 
         if (channel.has_key('parent') ):
+            log("Creating a child channel", TRACE)
             # First, grab the id of the parent channel specified.
             self.cursor.execute("""select channel_id from CHANNEL where
                 label = '%s'""" % (channel['parent'],) )
@@ -120,6 +127,7 @@ class PostgresDB(CurrentDB):
         else:
             # Check for duplicate top-level channel creations here?
             # Yes, but later.
+            log("Creating new top channel", TRACE)
             self.cursor.execute("""insert into CHANNEL
                     (name, label, arch, osrelease, description, lastupdate)
                     values ('%s', '%s', '%s', '%s', '%s', '%s')""" %
@@ -130,6 +138,7 @@ class PostgresDB(CurrentDB):
                          channel['desc'],
                          time.strftime("%Y%m%d%H%M%S", time.gmtime() ) ) )
         self.conn.commit()
+        log("New channel created and committed.", TRIVIA)
 
         # Now create the directories and such and so.
         webdir = os.path.join(config['current_dir'], 'www')
@@ -142,11 +151,14 @@ class PostgresDB(CurrentDB):
             os.mkdir(os.path.join(chan_dir, 'getPackageSource'))
             os.mkdir(os.path.join(chan_dir, 'listPackages'))
 
+        log("New channel and dirs created.", DEBUG2)
+
         return "ok"
 
     def addDir(self, channame, dirname, binary=1):
         # If binary = 1 (the default), we assume this is a directory of
         # binary RPMS.  That's what the indicator is there for.
+        logfunc(locals(), TRACE)
         if (self.cursor == None):
             self.cursor = self.conn.cursor()
         elif ( self.cursor.description == None ):
@@ -163,13 +175,14 @@ class PostgresDB(CurrentDB):
                 (%d, '%s', '%s')"""
                 % (chanid, dirname, str(binary)) )
         self.conn.commit()
+        log("Directory/ies added to channel", DEBUG2)
         return "ok"
 
     def scanChannel(self, config, channel):
         # This would be a good place to drop the indexes...  then recreate them
         # when we're all done.  We don't do that yet.
         result = {}
-        logfunc(locals())
+        logfunc(locals(), TRACE)
         self.cursor = self.conn.cursor()
         # Update the channel modification time FIRST.
         self.cursor.execute("""update channel set lastupdate='%s'
@@ -178,12 +191,17 @@ class PostgresDB(CurrentDB):
         # Need to always scan SRPMS (if any) first.  Otherwise, we have to do
         # a two-pass import, which we don't want to do.
         result['src'] = self._scanChannelSrc(channel)
+        log("Src dirs scanned", DEBUG2)
         result['bin'] = self._scanChannelBin(config, channel)
+        log("Bin dirs scanned", DEBUG2)
         result['chkdeletedfiles'] = self._scanForFiles(channel)
+        log("Files scanned", DEBUG2)
         self.conn.commit()
         self.cursor = self.conn.cursor()
         result['setactive'] = self._setActiveElems(channel)
+        log("Active elements (RPMS) set", DEBUG2)
         result['populatedirs'] = self._populateChannelDirs(config, channel)
+        log("Channel dirs populated), DEBUG2)
         self.conn.commit()
         return result
 
@@ -205,6 +223,7 @@ class PostgresDB(CurrentDB):
         query = self.cursor.fetchall()
         incr_reslt = 1
         for row in query:
+            log("Going to scan SRC dir %s for channel %s" % (row[0], channel), TRIVIA)
             incr_reslt = incr_reslt and (0 != self._scanSrcDir(channel, row[0]))
         if ( incr_reslt != 1 ):
             result['status'] = 'failed'
@@ -216,9 +235,11 @@ class PostgresDB(CurrentDB):
         result = 1
 
         for file in os.listdir(dir):
+            log("Scanning file %s" % (file,), TRACE)
             pathname = os.path.join(dir, file)
             rpm_info = self.rpmWrapper.getRpmInfo(pathname)
             if not rpm_info['issrc']:
+                log("Not a src rpm.", TRACE)
                 continue
             srpm_id = self._getSrpmId(file)
             if not srpm_id:
@@ -228,6 +249,7 @@ class PostgresDB(CurrentDB):
                                 (file, pathname) )
             srpm_id = self._getSrpmId(file)
             result = result and ( 0 != srpm_id )
+            log("File scan result: %s" % (result,), TRACE)
         return result
 
 
@@ -240,6 +262,7 @@ class PostgresDB(CurrentDB):
         # QUESTION: Is this /all/ a single transaction, or is /each/ RPM/SRPM
         #   a single transaction?
         # IMHO:  *shrug*  I dunno...
+        logfunc(locals(), TRIVIA)
         result = {}
         # first, select the binary dirs
         self.cursor = self.conn.cursor()
@@ -250,6 +273,7 @@ class PostgresDB(CurrentDB):
         query = self.cursor.fetchall()
         incr_reslt = 1
         for row in query:
+            log ("Scanning bin dir %s of channel %s" % (row[0], channel), TRIVIA)
             incr_reslt = incr_reslt and ( 0 != self._scanDirToChannel(config, channel, row[0]) )
 
         if ( incr_reslt != 1 ):
@@ -269,6 +293,7 @@ class PostgresDB(CurrentDB):
         return result
 
     def _addRpmPackage(self, config, path, channel):
+        log("Adding RPM %s to channel %s" % (path, channel), TRIVIA)
         filename = os.path.basename(path)
         rpm_info = self.rpmWrapper.getRpmInfo(path)
         
@@ -285,17 +310,20 @@ class PostgresDB(CurrentDB):
             log("no results for channel pull!")
             return 0
         ch_id = chreslts[0][0]
+        log("Inserting package information.", TRACE)
         package_id = self._insertPackageTable(rpm_info)
         if ( package_id == 0 ):
             # we have a problem.  return it.
             log("package_id problem")
             return 0
         # the next call returns 0 on failure, otherwise positive non-zero
+        log("Inserting RPM information.", TRACE)
         rpm_id = self._insertRpmTable(rpm_info, package_id, ch_id)
         if not rpm_id:
             log("RPM %s failed." % (path,) )
 
         # Put the header file into place
+        log("Creating header file.", TRACE)
         self._createHeaderFile(config, channel, filename, rpm_info['hdr'])
 
         # We return the success of the rpm table insert - pos non-0 is good
@@ -477,6 +505,7 @@ class PostgresDB(CurrentDB):
         h_file.close()
 
     def _populateChannelDirs(self, config, channel):
+        logfunc(locals(), DEBUG2)
         results = {}
         self.cursor.execute("""select lastupdate from channel where
                     channel.label = '%s'""" % (channel,) )
@@ -486,6 +515,7 @@ class PostgresDB(CurrentDB):
         updatefilename = qry[0][0]
 
         # First, populate the listPackages directory.
+        log("Grabbing listPackages information", TRIVIA)
         self.cursor.execute("""select package.pkgname, package.version,
                 package.release, package.epoch, rpm.arch, rpm.size from
                 package, rpm
@@ -500,14 +530,17 @@ class PostgresDB(CurrentDB):
             row.append(channel)
         # now query should contain exactly what we want. (wow, that was cool...)
         query = (query,)
+        log("Creating listPackages file", DEBUG2)
         pathname = os.path.join(config['current_dir'], 'www', channel, 'listPackages', updatefilename )
         pl_file = gzip.GzipFile(pathname, 'wb', 9)
         str = xmlrpclib.dumps(query, methodresponse=1)
         pl_file.write(str)
         pl_file.close()        
+        log("listPackages file created successfully", DEBUG)
         results['listPackages'] = "ok"
         
         # Now populate the getObsoletes directory.
+        log("Grabbing getObsoletes information", TRIVIA)
         self.cursor.execute("""select package.pkgname, package.version,
                 package.release, package.epoch, rpm.arch,
                 rpmobsolete.name, rpmobsolete.flags, rpmobsolete.vers
@@ -525,39 +558,49 @@ class PostgresDB(CurrentDB):
                 if ( type(item) != type('') ):
                     item = str(item)
         query = (query,)
+        log("Creating getObsoletes file", DEBUG2)
         pathname = os.path.join(config['current_dir'], 'www', channel, 'getObsoletes', updatefilename )
         pl_file = gzip.GzipFile(pathname, 'wb', 9)
         str = xmlrpclib.dumps(query, methodresponse=1)
         pl_file.write(str)
         pl_file.close()
+        log("getObsoletes file created succefully", DEBUG)
         results['getObsoletes'] = "ok"
 
         # Now populate getPackageSource
+        log("grabbing getPackageSource information", TRIVIA)
         self.cursor.execute("""select distinct on (srpm.filename) srpm.filename, srpm.pathname from srpm
                 inner join rpm on (srpm.srpm_id = rpm.srpm_id)
                 inner join channel on (rpm.active_channel_id = channel.channel_id)
                 where channel.label = '%s'""" % (channel,) )
         query = self.cursor.fetchall()
         dpath = os.path.join( config['current_dir'], 'www', channel, 'getPackageSource')
+        log("Unlinking old files...", TRIVIA)
         for file in os.listdir(dpath):
             os.unlink( os.path.join(dpath, file) )
+        log("Creating symlinks...", DEBUG2)
         for row in query:
             src = row[1]
             dst = os.path.join(dpath, row[0])
             os.symlink(src, dst)
+        log("getPackageSource synlinks created", DEBUG)
         results['getPackageSource'] = "ok"
 
         # now populate getPackage
+        log("grabbing getPackage information", TRIVIA)
         self.cursor.execute("""select rpm.pathname from rpm
                     inner join channel on (rpm.active_channel_id = channel.channel_id)
                     where channel.label = '%s'""" % (channel,) )
         query = self.cursor.fetchall()
         dpath = os.path.join ( config['current_dir'], 'www', channel, 'getPackage')
+        log("Unlinking old files...", TRIVIA)
         for file in os.listdir(dpath):
             os.unlink( os.path.join (dpath, file) )
+        log("Creating getPackage symlinks...", DEBUG2)
         for row in query:
             dir = os.path.join(dpath, os.path.basename(row[0]) )
             os.symlink(row[0], dir)
+        log("getPackage symlinks created", DEBUG)
         results['getPackage'] = "ok"
 
         # getPackageHeader ought to already be populated, so we're done.

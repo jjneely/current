@@ -44,81 +44,13 @@ Hardware/Software you need:
 
 
 Installation on the server [by rpm]
-* Install the Current rpm. If you're reading this, you've most likely done
-  that step. :) You also need apache, mod_python, and mod_ssl. The apache,
-  mod_python, and mod_ssl packages from redhat work fine.
-
-* Modify the config file /etc/current/current.conf to suite your site.
-  Important points here are how your channel(s) are setup, and where you
-  want the current_dir to be. Note: the list of valid channels in the
-  [current] section is a list of the channel labels of all channel sections,
-  not a lit of the channel section names. This is a bug which will be 
-  corrected in a future release.
-
-* cadmin is the Current administration program. One of its
-  functions/commands is "create_certificate". When setting up your server
-  for the first time, you'll need to run 
-  [root@server current]$ cadmin create_certificate
-  
-  This will leave a 'server.crt' and 'server.key' files and a 'RHNS-CA-CERT'
-  for use later.  There should not be a need to regenerate these files as
-  you upgrade Current. 
-  
-  Copy the server.crt file to /etc/httpd/conf/ssl.crt/server.crt
-  Copy the server.key file to /etc/httpd/conf/ssl.key/server.key
-  
-  Copy the RHNS-CA-CERT file to all your _client_ machines as 
-  /usr/share/rhn/RHNS-CA-CERT
-
-* Next create the apache snippet that you need. Assuming you kept the 
-  default 'apache_config_file' value in your current.conf, 
-  [root@server current]$ cadmin create_apache_config
-  
-  Will put the file into /etc/httpd/conf/current.httpd.conf. You need 
-  to add a single line (which cadmin won't do - we don't touch _your_ 
-  config files) to /etc/httpd/conf/httpd.conf of
-  
-  Include /etc/httpd/conf/current.httpd.conf
-  
-  I put it at the end of my httpd.conf file - I'm using exactly what 
-  Red Hat shipped. Your site may be different.
-    
-* Create all the channels that your configured above. You need to run the 
-  following command once per CHANNEL that you configured.
-  [root@server current]$ cadmin -v create CHANNEL_LABEL  
-  
-  To get a handy list of all the channels you listed in current.conf, try
-  [root@server current]$ cadmin print_channels
-  
-* You must make sure that all the files apache/current needs when running
-  are readable by the apache user. Since most people run cadmin as root,
-  [root@server current]$ chmod -R ugo+rx $current_dir
-  OR
-  [root@server current]$ chown -R ugo+rx $current_dir
-  is needed. Which is better/safer depends greatly on your site. I use 
-  the first. Naturally, you should replace $current_dir with whatever
-  value you specified in current.conf
-  
-* Create the current.log file.
-  [root@server current]$ touch /var/log/httpd/current.log
-  [root@server current]$ chown apache /var/log/httpd/current.log
-  
-* Start apache (and current)
-  [root@server current]$ service httpd start
-  
-  Remember, you need to shut apache down (shut current down) anytime you
-  use cadmin.
-  
-* Remember, copy the /etc/current/RHNS-CA-CERT file that you created earlier
-  to ALL of your clients, replacing the /usr/share/rhn/RHNS-CA-CERT file
-  that Red Hat shipped. This file tells the clients which servers to trust.
-  
-  Failure to copy this file is, right now, the most common reason for 
-  things not working.
-
-Current should now be operational.
+This has been obsoleted by the installation instructions in the SGML 
+documentation suite.  Please read the provided [HTML,PS] documentation.
 
 Installation on the clients:
+Note: Although this information is accurate, this file is no longer
+maintained.  Any future changes will be amde only to the SGML stack and
+reflected only in the [HTML,PS] documentation provided.
 
 * Make sure that the /usr/share/rhn/RHNS-CA-CERT file is the one that you
   created on your server. Things are absolutely guaranteed NOT to work if 
@@ -202,7 +134,7 @@ Installation on the clients (advanced):
 
 Voila. You may now solve world peace. Or something.
 Updates, changes, errors, or whatever in these doc should be reported to
-the mailing list, current-server@lists.dulug.duke.edu
+the mailing list, issues@current.tigris.org
 
 
 Note 1: Right now, only one channel per arch/os_release combination is

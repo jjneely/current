@@ -31,20 +31,14 @@ the pure python daemon will not be supported in 1.4.x
 see about using apache even more than we do right now, logging improvements,
 etc. 
 
-1.5.x I  expect this is about where Red Hat 8.0 will come into play, which
-means moving to apache 2.0, mod_python 3.0, and TADA python 2.2.  Due to the
-timing of the RHL 8.0 release, this might be a quick development cycle. 
-The 2.9 up2date API (only one function call is new) will be supported here.
-The rhnsd trick will be implmented in this version as well.
+1.5.x This is the start of integration with PostgreSQL and Red Hat Linux
+8.0, which implies Apache 2.x, mod_python 3.x, and of course Python 2.2 (or
+later).
 
 1.6.x will be the production version of the up porting 1.5.x
 
-1.7.x will forward porting the SQL work from 1.1.x. pysqlite looks VERY 
-appealinig as a replacement for the shelve backend (which we've grown to 
-hate). pysqlite is an "embedded" SQL database, that would let us _just_ use
-the sql backend for everything. People wanting a simple to setup server,
-that really only does the anonymous type of support we've had to now will
-use it. Sites wanting even more power will run postgresql.
+1.7.x will work on refining additional SQL backends and supporting the
+rhn_applet
 
 1.8.x Production anonymous only server using pysqlite.
 

@@ -5,11 +5,13 @@
 
 3. make sedspec sedrules
 
-4. bk citool
+# CHANGES FOR CVS:
+4. cvs commit
 
-5. bk tag release-WHATEVER
+5. cvs -q tag release-WHATEVER
 
-5. bk push thm@stenia:/local/bitkeeper/current-WHATEVER
+5a. If eve-dot-zero release:
+		cvs -q tag -b release-FOO-branch
 
 6. make archive
 
@@ -18,8 +20,12 @@
 8. scp current-WHATEVER and the rpms in step 7 to 
    ftp:/local/ftp/pub/admin/current
 
-9. announce on mailing list
+9. publish release tarball / rpms on tigris
 
-10. annouce on freshmeat
+10. update news and main pages on tigris
+
+11. announce on mailing list
+
+12. annouce on freshmeat
 
 

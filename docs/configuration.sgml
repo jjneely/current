@@ -1,0 +1,309 @@
+<!--  Current Configuration Guide -->
+<section status="draft"><title>Configuration Guide</title>
+<section id="server-common"><title>Common Server Configuration</title>
+<para>
+The first task in configuring Current is to configure to common (or global)
+area of the server; this is the <emphasis role=bold>[current]</emphasis> 
+section of the configuration file.  We'll start by simply giving you a 
+table of what information should go in this section; the table below lists 
+the variable names, and what should be put in as the value for each name.
+</para>
+<glosslist>
+<glossentry id="log_file">
+<glossterm>log_file</glossterm>
+<glossdef><para><emphasis role=bold>OPTIONAL</emphasis>
+This specifies the log file Current should attempt to use
+if the apache_log_file file is not writable.  In versions prior to 1.3, was the
+only log file used by Current.</para>
+</glossdef>
+</glossentry>
+<glossentry id="pid_file">
+<glossterm>pid_file</glossterm>
+<glossdef><para><emphasis role=bold>OPTIONAL, DEPRECATED</emphasis>
+In versions prior to 1.3, this specified the file to record the server's PID
+number in.  No longer used in versions 1.3 and later.</para>
+</glossdef>
+</glossentry>
+<glossentry id="log_level">
+<glossterm>log_level</glossterm>
+<glossdef><para>This tells the server what level of detail to log at; the
+default level is VERBOSE (1).  This entry in the config file should be an
+integer between zero (0) and ten (10) inclusive.</para>
+</glossdef>
+</glossentry>
+<glossentry id="http_port">
+<glossterm>http_port</glossterm>
+<glossdef><para><emphasis role=bold>DEPRECATED</emphasis>
+In versions prior to 1.3, this determined the port the standalone server would
+listen on for insecure connections.  This is no longer used, as the port is 
+determined by the Apache configuration file.</para>
+</glossdef>
+</glossentry>
+<glossentry id="https_port">
+<glossterm>https_port</glossterm>
+<glossdef><para><emphasis role=bold>DEPRECATED</emphasis>
+In versions prior to 1.3, this determined the port the standalone server would
+listen on for secure connections.  This is no longer used, as the port is 
+determined by the Apache configuration file.</para>
+</glossdef>
+</glossentry>
+<glossentry id="server_secret">
+<glossterm>server_secret</glossterm>
+<glossdef><para>This entry contains a <quote>secret</quote> string which is
+used to generate system IDs for client machines.  If this string is changed,
+all clients will have to re-register with the Current server before they will
+be recognized as authorized clients.  This value must be changed, and should
+be kept confidential for your site.</para>
+</glossdef>
+</glossentry>
+<glossentry id="server_id">
+<glossterm>server_id</glossterm>
+<glossdef><para>This is a string that denotes the identity of the Current
+server; it is not necessarily related to the hostname of the machine or to
+anything else, but is simply a random string.  It is used in determining
+if a given client is authorized to access this server, along with the
+server_secret entry.</para>
+</glossdef>
+</glossentry>
+<glossentry id="key_file">
+<glossterm>key_file</glossterm>
+<glossdef><para><emphasis role=bold>DEPRECATED</emphasis>
+In versions prior to 1.3, this entry gives the name of the PEM file used in
+decrypting SSL connections.  It is no longer used in version 1.3 and later
+versions.</para>
+</glossdef>
+</glossentry>
+<glossentry id="privacy_statement">
+<glossterm>privacy_statement</glossterm>
+<glossdef><para>This is a message sent to the client when 
+<command>rhn_register</command> is run on the client against the Current
+server.  It is free-text, and can be multiple lines long.  It should be
+enclosed in quotes to ensure proper parsing of the configuration file.
+</para>
+</glossdef>
+</glossentry>
+<glossentry id="welcome_message">
+<glossterm>welcome_message</glossterm>
+<glossdef><para>This is a free-form string which is a brief message sent to the
+clients when <command>rhn_register</command> is run on the client against the
+Current server.  It can be multiple lines long.
+</para>
+</glossdef>
+</glossentry>
+<glossentry id="valid_channels">
+<glossterm>valid_channels</glossterm>
+<glossdef><para>This is a list if channel labels for valid channels served by
+this instance of Current.  Please note:  this is not a list of channel section
+names; it is a list of the labels of each section, found within the channel
+section of the configuration file.
+</para>
+</glossdef>
+</glossentry>
+<glossentry id="current_dir">
+<glossterm>current_dir</glossterm>
+<glossdef><para>This is the location where all the database files, RPM headers,
+and RPM symlinks will be kept.  This directory tree needs to be readable by
+the user under which Apache normally runs.
+</para></glossdef>
+</glossentry>
+<glossentry id="apache_config_file">
+<glossterm>apache_config_file</glossterm>
+<glossdef><para>This is the file to create with the Apache configuration bits
+that enable the Current server.  This file should be included in Apache's main
+configuration file with the line:
+<screen>
+Include &lt;filename&gt;
+</screen>
+</para></glossdef>
+</glossentry>
+</glosslist>
+<para>
+The most important thing to note above is the definition of the 
+<quote>valid_channels</quote> entry - if you do not understand the above
+definition, go back and re-read it until you do understand it.  Having
+incorrect entries in this list may cause anything from tracebacks to simple
+unresponsiveness in your Current server.
+</para>
+</section>
+<section id="channel_config"><title>Channel Configuration</title>
+<para>
+The second major portion of the config file is the channel configuration
+section(s).  There is no upper limit set within Current itself as to how many
+channels you can have, but as of the most recent versions, you can only have
+one channel per OS revision and architecture combination.
+</para>
+<para>
+There are ten (10) items which must appear in each channel definition; all ten
+are required, but some can be blank.  Below is a list of each item and what 
+it's definition is.
+</para>
+<glosslist>
+<glossentry id="label">
+<glossterm>label</glossterm>
+<glossdef><para>The label is what the channel is known as internally, as well
+as what appears in the valid_channels definition of the global configuration
+section.  It is not necessarily meant to be human-understandable.  The only
+allowed characters for this entry are alphanumeric, underscore, dash, and
+decimal point (period).  The length limit for the label is 64 characters.
+</para></glossdef>
+</glossentry>
+<glossentry id="name">
+<glossterm>name</glossterm>
+<glossdef><para>The name is the human-readable designation of the channel.
+Whitespace is allowed in the name, but the entire name should be less than
+80 characters long and cannot span multiple lines.
+</para></glossdef>
+</glossentry>
+<glossentry id="parent_channel">
+<glossterm>parent_channel</glossterm>
+<glossdef><para>This entry is the name of the <quote>parent</quote> channel; 
+as of version 1.3.1, Current does not yet support the concept of parent / child
+channels, but this is a planned feature for later releases.  This field will
+contain the label of the channel thought of as the parent of this channel;
+the field restrictions that apply to <quote>label</quote> also apply here.
+</para>
+</glossdef>
+</glossentry>
+<glossentry id="arch">
+<glossterm>arch</glossterm>
+<glossdef><para>This is the architecture designation for this channel.  The 
+value for this variable must be an established Red Hat architecture designation
+such as i386, i586, s390, sparc, etc.
+</para></glossdef>
+</glossentry>
+<glossentry id="os_release">
+<glossterm>os_release</glossterm>
+<glossdef><para>This field designates the OS release level of the tree.
+</para></glossdef>
+</glossentry>
+<glossentry id="description">
+<glossterm>description</glossterm>
+<glossdef><para>The description is a free-form text entry which is shown to the
+user during an interactive up2date run on clients.  It is a short description
+of the tree served by this channel.  The length of this field should not exceed
+128 characters.
+</para></glossdef>
+</glossentry>
+<glossentry id="rpm_dirs">
+<glossterm>rpm_dirs</glossterm>
+<glossdef><para>This is a whitespace-separated list of directories which
+contain the binary RPMs you wish to be served through this channel.  Care
+should be taken to ensure that these directories are readable by the Apache
+server.  Please see the <quote>Using Current</quote> section for information
+on how to create / maintain these directories.
+</para>
+</glossdef>
+</glossentry>
+<glossentry id="src_dirs">
+<glossterm>src_dirs</glossterm>
+<glossdef><para>This is a whitespace-separated list of directories which
+contains SRPMS (Source RPMS) for the binary RPMs in the rpm_dirs directories.
+</para>
+</glossdef>
+</glossentry>
+<glossentry id="db_dir">
+<glossterm>db_dir</glossterm>
+<glossdef><para><emphasis role=bold>DEPRECATED</emphasis>
+This is the directory where Current stores the channel
+information and the file-based database of the RPMS and SRPMS in rpm_dirs and
+src_dirs, respectively.  Cached RPM headers are also stored here when the
+channel is created / updated with <command>cadmin</command>.</para>
+</glossdef>
+</glossentry>
+<glossentry id="srpm_check">
+<glossterm>srpm_check</glossterm>
+<glossdef><para>This is a new entry as of version 1.3.2, which allows the
+user of Current to determine how important the presence of SRPMS for each RPM
+is in this channel.  Valid values for this field are 0, 1, and 2; this check is
+performed only when the channel database is created or updated using the
+<command>cadmin</command> utility.  A setting of 0 implies no check; a setting 
+of 1 implies that any RPMS without a corresponding SRPM will cause a warning
+but that the process will continue, a setting of 2 implies that any RPM without
+a corresponding SRPM will cause a fatal error and the database will be marked
+invalid.
+</para></glossdef>
+</glossentry>
+</glosslist>
+</section>
+<section id="apacheconfig"><title>Apache Configuration</title>
+<para>
+Now that all the channels are properly configured, we need to configure the
+Apache server itself to handle registration and update requests.  This is where
+Current can start causing problems in a production system, which is why we
+strongly recommend you not try this on an active, production web server.
+</para>
+<para>
+We're not going to go into a great deal of detail about Apache's configuration
+file, <filename>httpd.conf</filename>, but we will touch on the sections of
+that file that affect Current.  First, and most important, you must have the
+mod_python module installed and functioning.  Since Current is written in
+Python, for mod_python, not having it just doesn't make sense.  Secondly, you
+must have SSL support enabled and functioning for your Apache server.
+</para>
+<para>
+You should take note of where Apache expects to find the SSL server certificate
+and key files; in Red Hat Linux 7.3, those locations are
+<filename>/etc/httpd.conf/ssl.crt/server.crt</filename> for the server
+certificate and <filename>/etc/httpd/conf/ssl.key/server.key</filename>
+for the server key.  You will need to know these directories when you go to
+generate the server certificate and key using <command>cadmin</command>.
+</para>
+<para>
+This configuration step has been greatly simplified with the
+<quote>create_apache_config</quote> command to <command>cadmin</command>, so
+it no longer needs to be discussed in great detail.  You will need to ensure
+that the directory hierarchy where the Current databases are kept, however, is
+readable by the Apache process.
+</para>
+<para>
+Once you've completed all the above configuration steps, you should be able to
+create your channel databases and start the Apache server normally.  Once the
+clients are properly configured, everything should Just Work(TM).  If it
+doesn't work, or if anything in this documentation is unclear, please submit a
+bug report / question to the mailing list.  Client configuration will be
+covered later.
+</para>
+</section>
+<section id="postconfig"><title>Post-Configuration Initialization</title>
+<para>
+After completing the configuration, there are a few tasks which can't properly
+be classified with channel instantiation / maintenance, but which are critical
+to the operation of the server, so we'll discuss those tasks here.
+</para>
+<para>
+The most critical of these tasks, by far, is creating the SSL key file and 
+certificate file which will be used to encrypt communications between the
+clients and the Current server.  To do this, first issue a <command>cadmin
+create_certificate</command> command after installing Current.  This will
+create several files in <filename>/etc/current</filename>, among them
+<filename>current.pem</filename>, <filename>CURRENT-CA-CERT</filename>,
+<filename>current.key</filename>, and <filename>current.crt</filename>.
+</para>
+<para>
+The <filename>CURRENT-CA-CERT</filename> must be copied to clients prior to
+using Current; this will be discussed in the client section of this guide.
+</para>
+<para>
+The <filename>current.key</filename> and <filename>current.crt</filename>
+must be copied to the <filename>/etc/httpd/conf/ssl.key</filename> and
+<filename>/etc/httpd/conf/ssl.crt</filename> directories, respectively.  They
+must also either be renamed, or the entries concerning these files must be
+changes to the proper names in the <filename>httpd.conf</filename> file,
+Apache's main configuration file.
+</para>
+<para>
+Also critical to operating a Current server is to issue a <command>cadmin
+create_apache_config</command> command in order to create the Apache 
+configuration snippet mentioned above; without this configuration snippet,
+the Apache server will not know to invoke Current.
+</para>
+<para>
+It is probably a good idea to configure the server to use 
+<command>up2date</command> and Current to update itself as a client, as well.
+To do this, simply perform all the configuration steps on the server that you 
+would on a normal client; the client and server software bits are totally
+disjoint and communicate only through XMLRPC calls, they do not step on
+each other on the same system.
+</para>
+</section>
+</section>

@@ -1,0 +1,11 @@
+SCCS
+BitKeeper
+ChangeSet
+docs/SCCS
+docs/client/SCCS
+docs/samples/SCCS
+future/SCCS
+support/SCCS
+other/open*
+.current.*
+current.prj

@@ -1,0 +1,25 @@
+1. Update CHANGELOG with all changes. Include version number you are 
+   releaseing.
+
+2. Update makefile with correct version number.
+
+3. make sedspec sedrules
+
+4. bk citool
+
+5. bk tag release-WHATEVER
+
+5. bk push thm@stenia:/local/bitkeeper/current-WHATEVER
+
+6. make archive
+
+7. rpm -ta current-WHATEVER.tar.gz
+
+8. scp current-WHATEVER and the rpms in step 7 to 
+   ftp:/local/ftp/pub/admin/current
+
+9. announce on mailing list
+
+10. annouce on freshmeat
+
+

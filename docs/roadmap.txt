@@ -1,0 +1,76 @@
+                         CURRENT SERVER ROADMAP
+    
+A full up2date server could be a VERY complex critter, and so I plan to 
+add functionality in stages or major releases. 
+
+Naturally, once this is public, there will also be requests/bug fixes/
+patches from other users. I hope, anyway.
+
+Status: 
+1.0.x An anonymous only type of up2date - we just drop all
+the registration data on the floor, pass back just enough of a SysId to
+work, and simply update packages. This should be a very acceptable
+substitute for yup. This is the production release right now.
+
+1.1.0 was completed, but the timing turned out to be bad. Due to various
+reasons, John and I both consider the mod_python work more critical (we
+need current to scale more than we need it to provide a full db solution)
+The 1.1.0 version does _work_, and we're certainly not going to get rid
+of the code (its quite nice now). We're just going to put it aside for 
+a while.
+
+1.2.x will not be released.
+
+1.3.x is primarily John's work on getting current to 
+work with apache/mod_python/mod_ssl. This should scale MUCH better than
+the pure python daemon we have today. With a little cadmin trickery,
+it won't be any harder to setup than the old plain daemon. As a result,
+the pure python daemon will not be supported in 1.4.x
+
+1.4.x will be production quality versions of the 1.3.x work. I want to 
+see about using apache even more than we do right now, logging improvements,
+etc. 
+
+1.5.x I  expect this is about where Red Hat 8.0 will come into play, which
+means moving to apache 2.0, mod_python 3.0, and TADA python 2.2.  Due to the
+timing of the RHL 8.0 release, this might be a quick development cycle. 
+The 2.9 up2date API (only one function call is new) will be supported here.
+The rhnsd trick will be implmented in this version as well.
+
+1.6.x will be the production version of the up porting 1.5.x
+
+1.7.x will forward porting the SQL work from 1.1.x. pysqlite looks VERY 
+appealinig as a replacement for the shelve backend (which we've grown to 
+hate). pysqlite is an "embedded" SQL database, that would let us _just_ use
+the sql backend for everything. People wanting a simple to setup server,
+that really only does the anonymous type of support we've had to now will
+use it. Sites wanting even more power will run postgresql.
+
+1.8.x Production anonymous only server using pysqlite.
+
+1.9.x Begining support on host tracking, actions, etc. 
+
+ 
+----------------------------------------------------------------------------
+Features to be added along the way, somewhere:
+
+1. 2.7 versions of the up2date client have hooks to be able to plug in
+arbitrary code, so that rhnsd could trigger, for instance, installation of a
+new config file. This is the server push mechanism needed to replace gromit. 
+Big thing here will be figuring out what how why where security. Little bits
+like that.
+
+2. Red Hat has provided a clean mechanism for a different CA certificate 
+to be used (just replace RHN-CA-CERT), but they hard coded the GPG public
+key for package signing. Oops. FIXED in 2.7.25 
+
+3. For Current's expected target audience, I can't imagine that the RHN
+applet (the desktop "throbber") is all that important. If it _is_ you'll
+have to tell me.
+
+4. We'll start to need a more powerful control/administrative system than
+cadmin pretty soon. I'd like that to be web based (like RHN itself). 
+    
+    
+
+

@@ -1,0 +1,102 @@
+                            CURRENT FAQ FILE
+
+These are some common questions or problems I get with new admins using 
+Current. If you feel something should go in here, please email me.
+
+---------------------------------------------------------------------------
+Q1. I can't get the clients to talk to the server - it never does anything, 
+   just gives me some ugly looking traceback on the client.
+
+A1.1: Note the port numbers in your client and server configuration files. Two
+numbers are needed (one for encrypted traffic, one for unencrypted traffic),
+and while you can use any numbers you like, you have to use the same numbers
+on the clients and the server, and you have to make sure you get the
+ssl/non-ssl bit sorted out correctly.
+
+The error messages for goofing this up are not very clear, and not 
+something I can easily fix. If things don't work for you, 
+a) make sure your /usr/share/rhn/RHNS-CA-CERT file is correct
+b) your client port numbers match your server port numbers
+c) you have ssl->ssl and nonssl->nonssl correct. (8080 is non-ssl, 8081
+   is ssl, by default)
+ 
+The above 3 things account for about 70% of the complaints I get about
+current not working for people.
+
+Note: This question was really critical in the 1.0.x release, and is 
+   almost unneeded on the 1.3+ releases.
+
+
+A1.2: One admin has noticed that recent versions of stunnel are built with
+libwrap/tcpwrappers support. Make certain that either you have
+configured tcpwrappers AND and portblocking / firewalling rules correctly
+to allow your client machines to connect.
+
+The best way to test this is to also have your server configured to be
+able to run up2date/rhn_register itself. If you can run rhn_register
+from your server, and it seems to work, but no other machine
+can, its a firewall/security/networking issue.
+
+Note: that this answer only applies to the 1.0.x releases- 1.3+ does 
+not use stunnel.
+
+
+A1.3: If you get SSL errors, check that your RHNS-CA-CERT file is correct
+_very_ carefully. Current is now over a year old (yay!) and my test cert
+just quit working - look to make sure your CA cert or server cert hasn't
+expired.
+
+Valid for all current releases.
+
+  
+----------------------------------------------------------------------------
+Q2. I'm trying to test current, and it seems to work the first time, but
+after that the clients aren't using the correct data from the server anymore.
+
+A2. Watch out for client side caching - I lost a full days development time
+trying to figure out why the client never seemed to do more than one GET to
+the server, yet still knew the "wrong" answer.  It caches darn near
+everything - which is a good, desirable feature, as long as you know its
+there!. Delete everything in /var/spool/up2date to get fresh hits against
+the database.
+  
+This also explained why they bothered having database "versions" or 
+last_modified values - the client will know to pull down fresh data if 
+the database changes. Yes, I felt bloody stupid.
+
+
+----------------------------------------------------------------------------
+Q3. Some of my clients work, but some don't. I get the following traceback.
+
+A3. This is typically caused by the clocks of the client and server being
+skewed. (The root cause is a client bug). To prevent this, use rdate
+or ntp to sync the clocks together. The clocks don't have to be super
+accurate - +-5 minutes is fine.
+
+This is also fixed in versions of up2date after 2.7.11 (I'm not exactly
+sure of when that fix went in) - using 2.7.63 or later is what I 
+recommend.
+
+
+----------------------------------------------------------------------------
+Q4. When I add packages to an existing channel, or add a new channel, 
+Current doesn't seem to see them right away.
+
+A4.1: Please, PLEASE, never run cadmin at the same time Current is running.
+The correct way to deal with server updates is to shutdown Current, make you
+changes with cadmin, and then restart Current. 'service current stop|start'
+should work well for this. This was fixed in 1.0.1.
+
+A4.2 This is still a concern in 1.3+ - you must stop apache, use cadmin,
+and then start apache - there are no exceptions.
+
+
+----------------------------------------------------------------------------
+Q5. What versions of the up2date client API are supported?
+
+A5. The 2.7 version of the API is fully supported with the exception of
+server-pushed actions.  The 2.5 version is no longer (and never will be again)
+supported.  In fact, it never existed.  2.5 was all a big government
+conspiracy deliberately aimed at Open Source.  These are not the API calls
+you are looking for; go on about your business.  2.9 APIs will be
+supported at some point in the near future.

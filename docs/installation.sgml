@@ -1,0 +1,103 @@
+<!-- Current Installation Guide -->
+<section status="draft"><title>Installation Guide</title>
+<section id="intro"><title>Introduction</title>
+<para>
+This document will guide you through the steps required to install a
+functioning 1.3-series Current Server.  Regular maintenance of the server will
+be covered later; the beginning portions of this document will only cover the 
+steps required to get to a point where you have a valid Current server instance
+responding to client registration and update requests.
+</para>
+<para>
+Please note that Current (and up2date itself) are moderately advanced systems
+administration topics.  If you aren't comfortable with tar, RPM, general
+systems administration, and similar topics, you probably shouldn't be using
+this software.  Although we want as large a user base as possible, and we hate 
+discouraging people, this software can very easily destroy data and disable 
+systems if it is not set up and used correctly.
+</para>
+<para>
+You should also note that Current is still in very active development, most
+especially with the 1.3 series; the 1.0 series has proven relatively stable, so
+if you require stability, you should probably use a 1.0.x release.  If you
+elect to proceed with the development version, you should be prepared to
+encounter bugs, and willing to report them to the mailing list.
+</para>
+<para>
+Bug reports should include any and all tracebacks, the version of up2date (or
+rhn_register) and Current you are experiencing the problems with, and wherever
+possible log extracts showing the failure of failures.  You may also be asked
+to submit your config file for the server and details on what packages are in
+your database(s).
+</para>
+<para>
+Between full releases (1.0 to 1.1 or similar), the release notes or README will
+include any changes or minor incompatibilities.  You should definitely review
+the example config file (<filename>current.conf</filename>) between
+snapshots for changes, and you will almost certainly need to recreate your 
+databases.  As of 1.0, Current records database versions, and will complain if
+you attempt to run the server with an out-of-date database.
+</para>
+</section>
+<section id="requirements"><title>Hardware and Software Prerequisites</title>
+<para>
+Your first concern is server hardware robustness.  The machines currently used
+by the developers for testing minor and major releases are PIII's running
+at 600 and 733 MHz with 128 and 256 MB of RAM respectively.  You will also 
+need sufficient disk space to contain full trees of all the packages you wish
+to update automatically, with an additional 50 - 100 MB for database overhead
+per tree.  The full Red Hat 7.2 tree is roughly 2.5 GB and the updates for
+7.2 are an additional 2.1 GB.  Red Hat Linux 7.1 is slightly smaller, but you
+should probably plan on about 5 - 7 GB per tree (which includes the space for
+the updates) for full Red Hat Linux trees, or trees of comparable size.  In
+general, a good quality midrange server will provide you with the horsepower
+you need for an average Current installation.
+</para>
+<para>
+Secondly, you will need clients on the network; having an update server is sort
+of pointless if you don't have anything to update.  :)  For Current, you will
+need any version of Red Hat Linux with up2date version 2.7 and all of it's
+dependencies.
+</para>
+<para>
+As of version 1.3 (a development version), you will also need the Apache web
+server software installed on your Current server.  According to very 
+preliminary test results, you should still be able to server normal web pages
+from this Apache server after installing Current, but please don't try this on
+a production server, as we can't guarantee that.
+</para>
+</section>
+<section id="installing"><title>Installing Current</title>
+<para>
+There are two methods for installing the Current package; the method you choose
+will depend on how you downloaded Current and how comfortable you are with
+third-party RPM packages.  The developers, of course, highly recommend
+downloading and installing with RPMs, as it's much easier than dealing with
+the tarball.
+</para>
+<para>
+The recommended method, again, is installing with the provided RPM packages.
+To install Current with this method, simply download the RPM to your hard
+drive, and issue an <command>rpm -ihv &lt;<filename>filename</filename>&gt;</command>
+and watch the package get installed for you.  You can now skip down to the
+section entitled <quote>Configuring Current</quote>.
+</para>
+<para>
+To install using the tarball, download the tarball and unpack it.  This will
+(should) create a directory called <filename>current-1.3.11/</filename> in the
+directory you unrolled the tarball from.  Inside this directory are several
+<filename>.py</filename> files, an example configuration file, and the 
+control executable <filename>cadmin</filename>.  First, copy all the
+<filename>.py</filename> files to <filename>/usr/share/current</filename>.  
+The <filename>cadmin</filename>
+file should be copied to somewhere in root's path, probably 
+<filename>/usr/sbin</filename> or <filename>/sbin</filename>.  Finally, you'll
+need to create an <filename>/etc/current</filename> directory, and copy the
+example configuration file (<filename>current.conf</filename>) there.
+</para>
+<para>
+At this point, Current is installed in your system, but is not configured or
+otherwise usable.  On to configuration!
+</para>
+</section>
+</section>

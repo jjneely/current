@@ -1,0 +1,72 @@
+Various header bits
+
+============================================================================
+The server sees the following headers from an unmodified client (v2.7.86)
+[Tue Sep 10 11:49:13 2002] [notice] Inside the accesshandler
+[Tue Sep 10 11:49:13 2002] [notice] headers_in[Host] == dangermouse.biology.duke.edu
+[Tue Sep 10 11:49:13 2002] [notice] headers_in[User-Agent] == rhnHTTPlib.py/1.26[Tue Sep 10 11:49:13 2002] [notice] headers_in[X-Info] == Red Hat Network Update Agent (C) Red Hat, Inc ($Revision: 1.1 $)
+[Tue Sep 10 11:49:13 2002] [notice] headers_in[X-RHN-Auth] == 199935d93342086d35e6a67fbe2eed638e532b2d
+[Tue Sep 10 11:49:13 2002] [notice] headers_in[X-RHN-Auth-Channels] == ['dulug-7.2-i386', '20020910114126']
+[Tue Sep 10 11:49:13 2002] [notice] headers_in[X-RHN-Auth-Expiration] == 1031676553
+[Tue Sep 10 11:49:13 2002] [notice] headers_in[X-RHN-Auth-User-Id] == Anonymous
+[Tue Sep 10 11:49:13 2002] [notice] headers_in[X-RHN-Client-Version] == 2
+[Tue Sep 10 11:49:13 2002] [notice] headers_in[X-RHN-Server-Id] == dangermouse.biology.duke.edu
+[Tue Sep 10 11:49:13 2002] [notice] uri = /XMLRPC/$RHN/dulug-7.2-i386/listPackages/20020910114126
+ 
+
+============================================================================
+The client sees the following headers from a real RHN server:
+
+Retrieving list of all available packages...
+THE HEADERS COMING IN (rhnHTTPlib.py):
+	x-info : XML-RPC Processor (C) Red Hat, Inc ($Revision: 1.1 $)
+	content-type : application/binary
+	date : Sat, 07 Sep 2002 21:15:51 GMT
+	connection : close
+	last-modified : Mon, 02 Sep 2002 17:42:54 GMT
+	server : Apache/1.3.26 (Unix)  (Red-Hat/Linux) mod_python/2.7.8 Python/1.5.2
+	x-rhn-client-version : 2
+	x-rhn-proxy-version : 0
+	content-transfer-encoding : binary
+	content-encoding : x-zlib
+	x-cache : MISS from www.rhns.redhat.com
+	x-client-version : 1
+	content-length : 23754
+	via : 1.1 www.rhns.redhat.com
+
+Removing installed packages from list of updates...
+
+Removing packages with files not specified from list...
+
+Getting headers for available packages...
+THE HEADERS COMING IN (rhnHTTPlib.py):
+	server : Apache/1.3.26 (Unix)  (Red-Hat/Linux) mod_python/2.7.8 Python/1.5.2
+	x-rhn-client-version : 2
+	x-rhn-proxy-version : 0
+	x-rhn-package-header : kernel-source-2.4.18-10.i386.hdr
+	content-type : application/octet-stream
+	date : Sat, 07 Sep 2002 21:15:56 GMT
+	connection : close
+	x-cache : MISS from www.rhns.redhat.com
+	via : 1.1 www.rhns.redhat.com
+	content-length : 756409
+	last-modified : Tue, 20 Aug 2002 23:42:32 GMT
+
+Removing packages with files marked to skip from list...
+
+Testing package set / solving RPM inter-dependencies...
+Retrieving selected packages. ..
+THE HEADERS COMING IN (rhnHTTPlib.py):
+	x-package-filename : kernel-source-2.4.18-10.i386.rpm
+	content-type : application/octet-stream
+	date : Sat, 07 Sep 2002 21:16:00 GMT
+	etag : "7800f9-1acef80-3d62d3e8"
+	connection : close
+	last-modified : Tue, 20 Aug 2002 23:42:32 GMT
+	server : Apache/1.3.26 (Unix)  (Red-Hat/Linux) mod_ssl/2.8.10 OpenSSL/0.9.6g
+	x-rhn-client-version : 2
+	x-rhn-proxy-version : 0
+	accept-ranges : bytes
+	via : 1.1 www.rhns.redhat.com
+	content-length : 28110720
+kernel-source-2.4.18-10.i38  Retrieved.

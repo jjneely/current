@@ -1,0 +1,66 @@
+Testing Current
+
+* The easiest test (and required to run up2date itself) is to run
+  rhn_register and get yourself a sysid. As root on the CLIENT:
+  [root@client /root]$ rhn_register 
+  
+  This will walk you through the rhn_register client. Both text mode and 
+  gui mode are supported (the server does the same stuff - its up to you
+  to choose).
+  
+  This will ask a series of questions, some of which you can skip, some of 
+  which you must fill in (that code is in the client, not the server).
+  
+  Feel free to use whatever bogus values amuse you: rhn_register will 
+  automatically determine the architecture and os_release values to send
+  and those are the only values the server depends on. (Right now).
+  
+  Note: If you get a welcome message AT ALL, something worked. :)
+  
+  Note: Once you have a sysid, you can copy it to all your clients 
+  OF THE SAME ARCHITECTURE AND OS_RELEASE. (After all, the server is running
+  in anonymous mode)
+  
+  If rhn_register completes without error, basic POST/xmlrpc functionality 
+  is working. Congratulations!
+
+* Now run up2date on the client, as root. The two safest and most basic 
+  cases are 
+  [root@client /root]$ up2date --showall
+  and 
+  [root@client /root]$ up2date -l
+  
+  which will show all the packages that the server can send to your client, 
+  and all the packages that you need to update on your client, respectively.  
+  
+* Now you can pull down a package. Find some package in your Current servers
+  database that you know isn't installed (at all) on your client, and
+  [root@client /root]$ up2date foo
+  
+  The client should make a couple of requests to the server - first doing a
+  login(), then listPackages(), then one or more getPackageHeader() calls,
+  and finally a getPackage(). This should result in foo-x.y-z.i386.rpm
+  showing up in /var/spool/up2date on your client.
+  
+  Some of what all this means is explained in rhn_api.txt
+  
+* Now for the great finale, dependancy resolution. 
+  For this, you have to find TWO packages that are NOT installed on your 
+  client machine, one requiring the other. I used the postgres database 
+  packages for this, as they aren't installed on my test machine. 
+  
+  Ask up2date to install the one that requires the other. In my case, that
+  would be 
+  [root@client /root]$ up2date postgresql-python
+  
+  Up2date will make similar queries to the server as above, but after
+  getting the header will notice that it also needs the 'postgresql' package
+  as well (since postgresql-python requires postgresql). So, it'll now do a
+  getPackageHeader() and getPackage() calls on 'postgresql' itself.
+  
+  Remember, you can do this test with any two packages that require each 
+  other that aren't installed on your client. 
+  
+  Note: Fully repeating these tests requires that you clear out
+  /var/spool/up2date to get rid of cached headers and rpms.
+  

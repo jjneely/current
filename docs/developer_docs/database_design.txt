@@ -1,0 +1,129 @@
+Up2date server shelve database design
+
+Designing some way to keep track of all the files, dependancy information, 
+users, hosts, and everthing else that up2date touches on is very complex.
+
+Initially, we are just concerned with keeping track of rpms and their
+details. Even this sub-set is not simple - I've quite literally coded 4 
+fairly different versions of this. Initially an rpmdb based solution seemed
+logical - it already has to track rpms, and has all the code for dependancy 
+resolution builtin, why not leverage that? 
+
+The rpmdb was never meant as a public interface, it was never meant as a
+generic rpm database solution (its specifically designed for tracking the
+installed rpms on ONE host), it deals poorly with conflicts, obsoletes, 
+multiple architectures for the same package (the kernel comes in i386, i586,
+and i686 forms - and rpmdb only allows ONE to be installed at a time), and 
+it scales poorly, thats why. By saying it deals with obsoletes and conflicts
+poorly, I mean in the sense of a server. And limiting a user to one arch of
+a single package is a feature, on the _client_. 
+
+So, we need a completely new solution. SQL databases spring to mind, but 
+a) I don't know a great deal of SQL yet, and b) I wanted a server solution
+someone could (theoretically) just install and go. Installing
+firebird/mysql/postgres, defining DB users, creating tables. Blech.
+
+For reference, I developed with about 1150 packages, the vast majority of 
+which were RH's i386 7.1 and i386 powertools.
+
+Speed is less important that correctness here, but everone always asks:
+
+design           speed
+----------------------
+rpmdb            7m10s      Full rpmdb + shelve of "extra packages" that 
+                            didn't fit due to i386, i586, i686 dups.
+
+shelve           14m        :( I dug around and discovered that the default
+                            for shelves is to use bsddb.hashes. On the 
+                            file dependancy information (LOTS of strings 
+                            with very similar prefixes) this made for 
+                            terrible performance. 
+
+shelve(b-tree)   45s        Yes, 45 seconds. Switching all the shelves to 
+                            bsddb.b-trees and no other code changes made 
+                            a huge improvement. 
+                            
+(Not a truly fair comparison because rpmdb is both storing more data than
+I am [but that we won't need] and it's more careful. To be a server, we 
+have to force most of that "careful" code not to work, so its a toss-up)
+
+Turns out a) I didn't need ALL the tables to be shelves (a couple are
+simple string->string mappings) and b) I didn't need all the shelves to be 
+backed up by bsddb-btree's. "Fixing" all that makes almost no difference
+in the timings what-so-ever, so I quit caring / tweaking. 
+
+What tables I had and what I put in them turned out to be more important 
+and far trickier than discovering bsddb has a poor hash function for 
+filenames. 
+
+All the tables and a single python pickle are kept in a "db_dir" to keep
+everthing tidy. The pickle stores non-db critical information like the 
+"backing" directory names and such. 
+
+Future plans will need to include some way of doing single package deletes,
+as new errata/package versions come in. Look painful, as there's no really
+good way to figure out which dep_* entries we need to delete without 
+either A) reparsing the old header again (ICK) or B) groveling through the
+whole damn thing, looking for hits (DOUBLE ICK).
+
+
+Current Design    
+Plan E, Version 3
+--------------
+Notes:
+1. All the shelves in v3 are backed by bsddb.btrees.
+
+2. Watch for differences between NVRE (name,version,release,epoch), 
+   NVREA (NVRE,arch) and NVREAS (NVREA,size). 
+
+3. Recall that even shelves must have strings for keys.        
+
+4. plist (dep_provides table) is a list of 3 elements:
+   [ NVREstring, provideflag, provideversion ] where the last two come 
+   from the RPMTAGs of the same name. Its yucky. 
+   
+   I'm not entirely certain we need the whole list - solvedep() may not
+   require either the provideflag or provideversion. If not, I'll take it
+   out in v1.x somewhere, but its there for now.
+
+5. See the code for exact details, but in short, we use the dep_* tables to
+   access the arch_index, use that with the clients arch to pick a best
+   match, and then access a particular rpm file. Or in the case of
+   listall_size, we grab the arch_index and go. The source package lookups
+   are just easy in comparison.
+          
+
+
+Historical Notes
+----------------
+
+Plan A was just to use rpmdb. Didn't work out because of multi-arch pkgs.
+       I was hoping to ignore the problem initially, but the kernel and 
+       glibc are kinda important.
+       
+Plan B was kinda weird - use three (yes, 3) rpmdbs, one for each arch. 
+       (i386 & noarch, i586, i686)
+       
+Plan C was anydbm's and uh. Well. Some string manipulation functions. Lots 
+       of string manipulation functions. The horror of this put the project
+       on hold for a few months.
+       
+Plan D was just a second crack at plan A, with a pickle for catching the 
+       "extra_pkgs" - places where there was i386 and i586 version of the 
+       same thing, and so on. I was eventually able to create the rpmdb, 
+       get extra_pkgs built and so on, but it hurt. It hurt bad.
+       
+Plan E is really a second crack at Plan C. Instead of simple anydbm's, we
+       go with full shelves to get as much python data structure goodness 
+       as we can. Turns out pythons pickling functions are a MAJOR win.
+       
+       Plan E is the design for v1.0 of current. As I figure out exactly the 
+       best way to store the right data for the up2date calls, I tailor
+       the tables count and layout, but its the same Plan.
+       
+Plan F is maybe an SQL database (postgres probably, Gadfly possibly) or 
+       perhaps db3. (db3 has a true table type that looks interesting). For
+       now I'm really happy with the shelves - fast and easy to use.
+       
+       
+                                                   

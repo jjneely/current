@@ -1,0 +1,82 @@
+                       Current Server TODO List
+
+*     Minor nit
+**    Potential problem
+***   Cleanup needed
+****  Bug
+***** Nasty nasty nasty
+
+1.4 Release Critical todo list
+1. Fixup open/update in cadmin
+2. Make check_db also check perms
+3. Make the makefile build the docs
+4. make the spec file install the docs
+5. Make some kind of config file checker thingy
+6. DONE
+the logging crap can wait - people will survive at 0 right now.
+
+
+* Make it so that we can checkdb the whole db at once
+
+* Maybe make it so we can update the whole db at once
+
+***** redo the logging so that current.log is empty for log_level 0 and 
+      perhaps 1 - access_log and error_log are all we need there.
+      Keep error_log very small at 0, and still quiet at 1.
+
+**** Add perms checking code to cadmin to _warn_ of possible perms problems.
+
+*** With apache doing the work, some of the database can go away.
+    Leave it - we'll just blow away the shelve backend later.
+
+* Instead of using a python based PythonTypeHandler setting the compression
+  headers, we could do a more advanced config with mod_header and set
+  the headers automatically for any listPackage or getPackageHeader request
+
+  mod_asis could probably also do this work, but I think mod_header 
+  would be better.
+
+** standalone.callAPIMethod() should get connInfo separately, to make 
+   logging prettier
+
+*** we ignore channel versions during create/delete/listpackage. Fix that.
+    Old channel versions might need to live for up to an hour, to give 
+    "logged in" clients a chance to expire.
+
+** Clean up the doc directory.
+
+
+* Cleanup terminology - its either an rpm, or a package. Pick one, change
+  the rest. Its a package.
+
+* labelCompare wants None as the epoch component, not "" (empty string)
+  we have a helper function, which is wrong, but thats ok, as we don't 
+  use it. narf.
+
+***** Improve cadmin's code to the point where it doesn't suck.
+  
+** The logger probably needs to switch to string based levels, for 
+   implementation/namespace reasons. Or ditch it completely in 
+   mod_python.
+
+* When we get an invalid sysid, look at the system_id field - if its from
+  RHN or openup, report a different error message (wrong server dude) than
+  if its just a bogus sysid. Email AL and PB about adding similar code to
+  their servers.
+
+* Figure out how the heck to do sub-channels. Have to resolve deps using 
+  the sub-channel and its parent.
+
+* See if the ConfigParser class can support [section] names with periods,
+  and then the section name could _BE_ the label value for a channel. 
+  Config seems like it ought to be simple to get right, but is in fact an
+  ever loving cast iron ... well, you know.
+
+  Use the ConfigPaser from python v2.2
+
+* In the new web based, database backed current administrative system
+  (which does't exist) it would be cool to include mod_status and 
+  mod_config information.
+
+
+

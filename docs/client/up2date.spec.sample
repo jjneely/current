@@ -1,0 +1,688 @@
+
+# releases before 7.1 didnt use grub, so dont need grubby from mkinitrd 3.2.2
+%define has_grub 0 
+%define has_poptmodule 0
+
+Summary: Automatically update RPMs for a Red Hat Linux System
+Name: up2date
+Version: %(echo `awk '{ print $1 }' %{SOURCE1}`)
+Release: %(echo `awk '{ print $2 }' %{SOURCE1}`)_current
+License: GPL
+Group: System Environment/Base
+Source0: %{name}-%{version}.tar.gz
+Source1: version
+Source2: up2date.config
+Source3: up2date.cron
+Source4: RHNS-CA-CERT
+Requires: python >= 1.5.2-27
+Requires: rpm >= 4.0.2
+Requires: rpm-python >= 4.0.2
+BuildRoot: %{_tmppath}/%{name}-root
+
+Requires: python-xmlrpc >= 1.5.0
+Requires: gnupg
+Requires: sh-utils
+Requires: rhn_register
+Prereq: /sbin/chkconfig
+
+
+# only need mkinitrd on x86 and only grubby on 7.2 or higher
+%ifnarch i386 ia64 
+%define needsmkinitrd  0
+%else
+%define needsmkinitrd 1
+%endif
+
+%if %{has_grub}
+%define needsgrubby 1
+%else
+%define needsgrubby 0
+%endif
+
+%if %{needsgrubby}
+Requires: mkinitrd >= 3.2.2
+%define needsmkinitrd 0
+%endif
+
+%if %{needsmkinitrd}
+Requires: mkinitrd
+%endif
+
+# these are provided by rpm-python >= 4.02
+%if %{has_poptmodule}
+Requires: poptmodule.so
+%else
+# or python-popt >= 1.6
+Requires: up2datepoptmodule.so
+%endif
+
+%description
+The Red Hat Update Agent automatically queries your Current
+server and figures out what packages need to be updated on your box.
+
+
+%package gnome
+Summary: GUI client for Update Agent.
+Group: System Environment/Base
+Requires: %{name} = %{version}
+Requires: usermode >= 1.36
+Requires: pam >= 0.72
+Requires: pygnome pygtk pygtk-libglade pygnome-libglade
+Requires: rhn_register-gnome
+
+%description gnome
+GNOME interface to the Update Agent. Runs if X Windows is available.
+
+%prep
+%if %{?RHNdevel:1}%{!?RHNdevel:0} 
+%setup -c -q
+%else 
+%setup -q 
+%endif 
+
+# Put the new current related files in place
+cp %{SOURCE2} .
+cp %{SOURCE3} . 
+cp %{SOURCE4} . 
+
+%build
+make
+
+%install
+# only needed for 6.x
+#cp up2date.pam6x up2date.pam
+
+rm -fr $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT
+make install PREFIX=$RPM_BUILD_ROOT MANPATH=%{_mandir}
+
+mkdir -p $RPM_BUILD_ROOT/etc/X11/applnk/System
+cat > $RPM_BUILD_ROOT/etc/X11/applnk/System/up2date.desktop << EOF
+[Desktop Entry]
+Name=Update Agent
+Name[sv]=RHN Uppdateringsprogram
+Comment=%{summary}
+Comment[sv]=uppdatera automatiskt RPM:er för Red Hat Linux
+Icon=up2date.png
+Exec=/usr/bin/up2date
+Type=Application
+Terminal=0
+EOF
+
+mkdir -p $RPM_BUILD_ROOT/etc/X11/applnk/System
+cat > $RPM_BUILD_ROOT/etc/X11/applnk/System/up2date-config.desktop << EOF
+[Desktop Entry]
+Name=Update Agent Configuration
+Comment=Allows you to configure system and network settings for Red Hat Network
+Icon=up2date.png
+Exec=/usr/bin/up2date-config
+Type=Application
+Terminal=0
+EOF
+
+mkdir -p $RPM_BUILD_ROOT/etc/sysconfig/rhn
+mkdir -p $RPM_BUILD_ROOT/var/spool/up2date
+
+# install the rhnsd init script
+mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d/
+install -m 755 rhnsd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/rhnsd
+
+# Version 1.0.x of Current can't handle rhnsd/rhn_check calls. So 
+# rhnsd is disabled, and we have a simple cron job taking its place.
+mkdir -p $RPM_BUILD_ROOT/etc/cron.daily
+install -m 755 up2date.cron $RPM_BUILD_ROOT/etc/cron.daily/up2date
+
+# install config file
+install -m 644 rhnsd.sysconfig $RPM_BUILD_ROOT/etc/sysconfig/rhn/rhnsd
+
+%find_lang %{name}
+
+%post
+# if old configuration exists, copy it into place
+if [ -f /etc/up2date.conf ]; then
+    cp /etc/up2date.conf /etc/sysconfig/rhn/up2date
+fi
+
+#/sbin/chkconfig --add rhnsd
+
+
+#%preun
+# if [ $1 = 0 ] ; then
+#     /etc/rc.d/init.d/rhnsd stop >/dev/null 2>&1
+#     /sbin/chkconfig --del rhnsd
+# fi
+# 
+# 
+# %postun
+# if [ "$1" -ge "1" ]; then
+#     /etc/rc.d/init.d/rhnsd condrestart >/dev/null 2>&1
+# fi
+
+# %triggerpostun -- up2date <= 2.0.4
+# if [ "$1" -ge "1" ]; then
+#     /etc/rc.d/init.d/rhnsd condrestart >/dev/null 2>&1
+# fi
+
+%clean
+rm -fr $RPM_BUILD_ROOT
+
+
+%files -f %{name}.lang
+%defattr(-,root,root)
+%doc ChangeLog
+%dir /etc/sysconfig/rhn
+%config(noreplace) /etc/sysconfig/rhn/up2date
+%config(noreplace) /etc/logrotate.d/up2date
+/usr/sbin/up2date
+/usr/share/rhn/up2date_client/__init__.*
+/usr/share/rhn/up2date_client/translate.*
+/usr/share/rhn/up2date_client/clap.*
+/usr/share/rhn/up2date_client/config.*
+/usr/share/rhn/up2date_client/hardware.*
+/usr/share/rhn/up2date_client/up2date.*
+/usr/share/rhn/up2date_client/wrapper.*
+/usr/share/rhn/up2date_client/iutil.*
+/usr/share/rhn/up2date_client/lilo.*
+/usr/share/rhn/up2date_client/grubcfg.*
+/usr/share/rhn/up2date_client/lilocfg.*
+/usr/share/rhn/up2date_client/elilocfg.*
+/usr/share/rhn/up2date_client/checkbootloader.*
+/usr/share/rhn/up2date_client/bootloadercfg.*
+/usr/share/rhn/up2date_client/text_config.*
+/usr/share/rhn/up2date_client/rhnHTTPlib.*
+/usr/share/rhn/up2date_client/rpmSource.*
+/usr/share/rhn/up2date_client/getMethod.*
+/usr/share/rhn/up2date_client/rhnDefines.*
+/usr/share/rhn/up2date_client/up2dateUtils.*
+/usr/share/rhn/__init__.*
+/usr/share/rhn/actions/__init__.*
+/usr/share/rhn/actions/hardware.*
+/usr/share/rhn/actions/errata.*
+/usr/share/rhn/actions/packages.*
+/usr/share/rhn/actions/systemid.*
+/usr/share/rhn/actions/up2date_config.*
+%{_mandir}/man8/*
+
+
+#public keys and certificates
+/usr/share/rhn/RHNS-CA-CERT
+/usr/share/rhn/RPM-GPG-KEY
+
+%config(noreplace) /etc/sysconfig/rhn/rhnsd
+/usr/sbin/rhnsd
+/usr/sbin/rhn_check
+/etc/rc.d/init.d/rhnsd
+/etc/cron.daily/up2date
+%dir /var/spool/up2date
+
+%files gnome
+%defattr(-,root,root)
+%config /etc/X11/applnk/System/up2date.desktop
+%config /etc/X11/applnk/System/up2date-config.desktop
+%config /etc/security/console.apps/up2date
+%config /etc/security/console.apps/up2date-nox
+%config /etc/security/console.apps/up2date-config
+%config /etc/pam.d/up2date
+%config /etc/pam.d/up2date-config
+%config /etc/pam.d/up2date-nox
+/usr/bin/up2date
+/usr/bin/up2date-config
+/usr/bin/up2date-nox
+/usr/sbin/up2date-config
+/usr/sbin/up2date-nox
+/usr/share/rhn/up2date_client/gui.*
+/usr/share/rhn/up2date_client/configdlg.*
+/usr/share/rhn/up2date_client/progress.*
+/usr/share/rhn/up2date_client/checklist.*
+/usr/share/rhn/up2date_client/advisorywin.*
+/usr/share/rhn/up2date_client/userpass.*
+/usr/share/rhn/up2date_client/*png
+/usr/share/pixmaps/*png
+
+%changelog
+* Sat Feb 23 2002 Hunter Matthews <thm@duke.edu>
+- Modified for use with the Current server.
+
+* Sat Nov 11 2001 Adrian Likins <alikins@redhat.com>
+- dont include dmimodule.so, it's in rhn_register
+  which is required
+
+* Sat Nov 10 2001 Adrian Likins <alikins@redhat.com>
+- first pass at conditional support for mkinitrd
+
+* Tue Oct 23 2001 Adrian Likins <alikins@redhat.com> 
+- add define for "no_grub"
+- require "poptmodule.so" instead of rpm >= 4.0.3
+- remove "/usr/sbin/up2date" from up2date-gnome #51600
+
+* Mon Oct 22 2001 Adrian Likins <alikins@redhat.com> 2.7.3
+- make errata.update and package.update actions more
+  robust
+- fixes for athlon kernels and cyrix glibc issues
+
+* Wed Sep 26 2001 Adrian Likins <alikins@redhat.com>
+- s390 support
+
+* Thu Sep  6 2001 Cristian Gafton <gafton@redhat.com>
+- updated translations
+
+* Thu Sep 6 2001 Adrian Likins <alikins@redhat.com> 
+- add action to disable systemid
+
+* Wed Sep  5 2001 Cristian Gafton <gafton@redhat.com>
+- don't need the actions/client stuff no more
+
+* Wed Sep 5 2001 Adrian Likins <alikins@redhat.com> 2.6.3-7.x.1
+- properly decode the proxyurl setting for http gets
+  (fix several proxy related bugs...)
+- pass in the right variable for proxyPassword so 
+  authenticated proxies work (#53261)
+- handle cases where packages can go to/from noarch
+
+* Tue Sep  4 2001 Cristian Gafton <gafton@redhat.com>
+- reworking the Makefiles
+- add dmimodule
+- this means that the source file is now tar.gz instead of tar.bz2...
+
+* Tue Sep 4 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.39
+- fix bug #53160
+- use "family" for the model cpu field for ia64 (#53100)
+- fix bug #53139, #52999
+- enable support for bios remapped drives with lilo (#52201)
+- fix a typo in lilocfg (#53141)
+- catch all xmlrpcfaults and show them in gui dialogs if approriate
+  (part of #53008)
+- more arch fixes (should fix #53121, #52201, #52296)
+
+* Fri Aug 31 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.37
+- take arch into consideration in getUpdatedPackageList
+- fix bug #52287
+
+* Wed Aug 29 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.36
+- fixes to the header caching to properly handle multiple arches
+  properly
+- some grub and bootloader fixes to hopefully make grub work correctly
+
+* Tue Aug 28 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.35
+- grubby wants full path, not kernel version
+ 
+* Tue Aug 28 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.34
+- add more grub support
+- make lilo stuff a bit more tested
+
+* Fri Aug 24 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.33
+- fix bug #52288
+- some bootloader fixes
+- fix bug #52243 (handle unsolveable deps better)
+
+* Thu Aug 23 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.32
+- show package name while downloading in text mode #52388
+- detect if grub is installed and "do nothing"
+- add checkbootloader.py
+
+* Wed Aug 15 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.30
+- fix for the "proxy bug" fix bugs #51778, #51641, 
+  and numerous roswell-list posts
+- I dislike http proxies
+- invert the new package selection stuff to 
+  better match rpm on basket case ver compares #51760
+
+* Thu Aug 9 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.29
+- po updates
+- fix a text config bug
+
+* Wed Aug  8 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.25
+- moved to up2date_client directory
+- changed exit status on actions to the new/old standard
+- moved actions to /usr/share/rhn/actions
+- reverted to the original queue.* api
+
+* Wed Aug  1 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.24
+- use new up2date.solveDependecies() call in solveDep
+- use new errata.getErratum() call for errata info fetching
+- add up2date_config action module
+
+* Sat Jul 28 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.23
+- split client.py into seperate action modules
+- rhn_check.py uses the new queue.get_action
+
+* Thu Jul 26 2001 Adrian Likins <alikins@redhat.com> 2.6.0-7.x.22
+- export the remove_package method
+
+* Tue Jul 24 2001 Adrian Likins <alikins@redhat.com>
+- use the old solvdep call for the time being
+- point to beta server
+- add warning message about beta
+
+* Mon Jul 23 2001 Adrian Likins <alikins@redhat.com>
+- require a newer rpm
+- move the py-popt and clap
+
+* Mon Jul 16 2001 Adrian Likins <alikins@redhat.com>
+- more channel work
+- more verbose error reporting on http errors
+
+* Thu Jul 12 2001 Adrian Likins <alikins@redhat.com>
+- add "update_for_errata" action
+- make the action code more flexible
+- include new actions dir
+- include getMethod module
+
+* Tue Jul 10 2001 Adrian Likins <alikins@redhat.com>
+- make rhn_check work
+
+* Sat Jul 7 2001 Adrian Likins <alikins@redhat.com>
+- be more robust on network failures. fix bug #28368
+- add actions for remove packages, and update/geting the config
+- more text_config work, fix bug #47502, #47499
+- only show relevant exclude packages, fix bug #47081
+- be more forgiving in the proxy names, fix bug #41611
+- error if the storageDir doesnt exist
+- various code cleanups
+
+
+* Mon Jul 2  2001 Adrian Likins <alikins@redhat.com>
+- first version to use the new server api
+- use channels
+- use http get for package/header/listall transport
+- minor bugfixes
+- bump version to 2.6.0
+- explicitily require mkinitrd. fix bug #46111
+- make relative paths absolute. fix bug #40834
+- fall back to whatever font is available if
+  get the one we want. fix bug #40072
+
+* Mon Jun 11 2001 Adrian Likins <alikins@redhat.com>
+- include eli support into the Makefiles/spec
+
+* Thu May 31 2001 Cristian Gafton <gafton@redhat.com>
+- incorporate fixes from the hardware detection for rhn_register
+
+* Tue May  8 2001 Adrian Likins <alikins@redhat.com>
+- be more paranoid checking for CA certs
+- fix bug #36981
+- use long ints for memeory sizes (#36761)
+
+* Tue Apr 17 2001 Preston Brown <pbrown@redhat.com>
+- close all file descriptors (non-critical fix)
+- rhn_check fixup for foreign languages
+
+* Tue Apr 10 2001 Preston Brown <pbrown@redhat.com>
+- preserve lilo.conf backup permissions
+- other minor traceback issue fixups
+
+* Sat Apr  7 2001 Preston Brown <pbrown@redhat.com>
+- noBootLoader config option to not run bootloader cmds on kernel upgrade
+
+* Fri Apr  6 2001 Preston Brown <pbrown@redhat.com>
+- fixes for source package retrieval
+- more traceback fixes
+- rhn_check fixes to use internal up2date dep. resolution
+
+* Tue Apr  3 2001 Adrian Likins <alikins@redhat.com>
+- quieter lilo test runs
+- make labels default to the same style as anaconda
+
+* Tue Apr  3 2001 Preston Brown <pbrown@redhat.com>
+- yet another lilo upgrade fix, this one for SMP (#34431)
+- disable back button after package installation (#34413)
+
+* Mon Apr  2 2001 Preston Brown <pbrown@redhat.com>
+- more lilo/kernel fixes (alikins)
+
+* Tue Mar 27 2001 Preston Brown <pbrown@redhat.com>
+- "-a, --allpackages" options removed.  WAY too much network traffic.
+- rhnsd init script checks for presence of systemid before starting.
+
+* Fri Mar 23 2001 Adrian Likins <alikins@redhat.com>
+- added the files for lilo setup to the spec file
+
+* Thu Mar 22 2001 Jay Turner <jkt@redhat.com>
+- removed '-r' as a valid commandline option
+
+* Tue Mar 13 2001 Preston Brown <pbrown@redhat.com>
+- fixed some translation problems (#30466)
+- don't segfault if progress window closing attempted (#28850)
+- configuration back to www.rhns as default server
+- don't fight with rhn_register over config file for now
+- fixed double-warning about GPG installation being incorrect (#30295)
+- better progress bars
+
+* Tue Mar  6 2001 Adrian Likins <alikins@redhat.com>
+- need newer version of python-xmlrpc for auth proxy support
+- add support for authenticated proxies (#18780)
+
+* Fri Mar  2 2001 Adrian Likins <alikins@redhat.com>
+- add advisorywin.* to file list
+
+* Thu Mar  1 2001 Preston Brown <pbrown@redhat.com>
+- updated ChangeLog
+- install rhnsd man page
+- be friendly (i.e. don't spew too much garbage) when not running on a tty (#19646)
+- support for viewing errata associated with an updated package (#15647)
+
+- handle cases where multiple versions of same package are installed gracefully (#22984)
+
+* Tue Feb 20 2001 Preston Brown <pbrown@redhat.com>
+- add logrotate control file
+
+* Tue Feb 20 2001 Yukihiro Nakai <ynakai@redhat.com>
+- Some fixes for gettext
+
+* Fri Feb 16 2001 Preston Brown <pbrown@redhat.com>
+- minor fix for when noReplaceConfig is turned on
+
+* Sat Feb 10 2001 Adrian Likins <alikins@redhat.com>
+- added support for --justdb, and --dbpath, mainly
+  for testing purposes
+- be even nicer to the rpmdb (open it up less often...)
+
+* Fri Feb  9 2001 Adrian Likins <alikins@redhat.com>
+- added simple --verbose support
+- start logging to /var/log/up2date things like package
+  downloads, header gets, etc
+
+* Thu Feb  8 2001 Adrian Likins <alikins@redhat.com>
+- fixed a couple of bugs in odd package update scenarios
+- add support for configFilesToIgnore directive to allow
+  certain config files to be ignore even if modified
+- fix a time display bug in the gui bug #23501
+- fix a bad reference in the gui bug #23240
+- dont query the db so agressively when doing config file checks
+- handle cases where we get partial rpms in the spool dir
+- implement a headerCache, and new config option headerCacheSize
+  to limit the size of the cache
+- add support for fetching multiple headers at once. Speeds
+  up header downloading alot.
+- new config option headerFetchCount to configure how many
+  headers to fetch at a time
+- handle cases where files marked as config files are now
+  symlinks or directories or links to dirs. ick.
+
+* Mon Feb  5 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- i18nize init script
+
+* Wed Jan 24 2001 Preston Brown <pbrown@redhat.com>
+- integrate i18n
+
+* Sun Jan 21 2001 Jay Turner <jkt@redhat.com>
+- added -f, --force option to force package
+  installation in TUI mode, neglecting file,
+  package and configuration file skip lists
+
+* Sun Jan 7 2001  Adrian Likins <alikins@redhat.com>
+- make `up2date package` work
+- added --nox mode to force the point of nogui
+- added text_config text mode configuration
+- added --whatprovides and --solvedeps options
+- added -k/--packagedir option to specify extra
+  local dirs to look for packages
+- handle packages with Conflicts a little better
+- updated man page for up2date
+- added console.app and pam.d entries for up2date-nox
+- change handling of noReplaceConfig to not download
+  fetch packages with local config changes even if the new
+  package has a differerent format
+
+* Tue Dec 19 2000 Preston Brown <pbrown@redhat.com>
+- if old configuration from Update Agent 1.x exists, preserve it.
+
+* Mon Dec 18 2000 Preston Brown <pbrown@redhat.com>
+- support legacy rpm during signature checks
+
+* Fri Dec 15 2000 Preston Brown <pbrown@redhat.com>
+- translated
+- needs python-xmlrpc 1.2.1 or newer for selectable transport encoding
+
+* Fri Dec 08 2000 Preston Brown <pbrown@redhat.com>
+- give reasons why packages are skipped
+- require pygnome-libglade (#21877)
+
+* Thu Nov 30 2000 Preston Brown <pbrown@redhat.com>
+- https proxy support
+- more cleanups and user-friendliness improvements
+
+* Tue Nov 28 2000 Preston Brown <pbrown@redhat.com>
+- fix NUMEROUS bugs (#11942, #18817, #18846, #18950, #19528, #19668, 
+  #20442, #20472 and more)
+- move /var/spool/up2date directory from gnome pkg to main pkg (#20476)
+
+* Wed Oct 25 2000 Preston Brown <pbrown@redhat.com>
+- more intelligent dependency resolution
+- include time remaining, time elapsed, kbps information in download screen
+- some layout changes in the GUI
+- more general improvements
+
+* Mon Oct 09 2000 Preston Brown <pbrown@redhat.com>
+- fix handling of faulty command line arguments
+- fix help text regarding anonymous registration (#18543)
+- import gui module later when X is available to speed cmd line arg parsing
+- make explicit reference to up2date-config settings when packages are marked
+  for retrieval only (so users know where to change this setting)
+- implement/document -u option for batch updating a system
+
+* Fri Oct 06 2000 Cristian Gafton <gafton@redhat.com>
+- add triggerun
+
+* Wed Oct 04 2000 Preston Brown <pbrown@redhat.com>
+- increased connection interval for rhnsd
+- rhnsd file descriptor leaks fixed (#18345)
+
+* Mon Sep 11 2000 Matt Wilson <msw@redhat.com>
+- fixed rhnsd.init, don't use () after shell functions
+
+* Thu Sep  7 2000 Bill Nottingham <notting@redhat.com>
+- this isn't a noarch package anymore
+
+* Wed Sep 06 2000 Preston Brown <pbrown@redhat.com>
+- rhnsd filedescriptor leak fixed
+
+* Sun Aug 27 2000 Preston Brown <pbrown@redhat.com>
+- command line mode
+- implement flag to override "retrieveNew" cfg file option
+- noreplace config file
+- 2.0
+
+* Fri Aug 25 2000 Preston Brown <pbrown@redhat.com>
+- add rhn_check files, re-enable gnome subpkg
+- requires rhn_register so that the reg program gets pulled in on upgrades
+
+* Fri Aug 25 2000 Cristian Gafton <gafton@redhat.com>
+- add the RH public key and the CA certificate to the %%files list
+
+* Thu Aug 24 2000 Preston Brown <pbrown@redhat.com>
+- require python xmlrpc >= 1.0-3, not 1.0.3
+
+* Wed Aug 23 2000 Preston Brown <pbrown@redhat.com>
+- does signature checking now, so requires very recent RPM.
+
+* Wed Aug 23 2000 Cristian Gafton <gafton@redhat.com>
+- add rhnsd
+
+* Mon Aug 21 2000 Preston Brown <pbrown@redhat.com>
+- include missing glade file in files section
+
+* Sun Aug 20 2000 Preston Brown <pbrown@redhat.com>
+- imported changelog from old update agent, made a new specfile for new ver.
+
+* Thu Jul 13 2000 Prospector <bugzilla@redhat.com>
+- automatic rebuild
+
+* Mon Jun 26 2000 Matt Wilson <msw@redhat.com>
+- changed the attr(600,-,-) to attr(600,root,root) for /etc/up2date.conf
+
+* Sun Jun 18 2000 Matt Wilson <msw@redhat.com>
+- build for next release
+
+* Thu Jun 01 2000 Nalin Dahyabhai <nalin@redhat.com>
+- modify PAM configuration to use system-auth
+
+* Mon Apr 17 2000 Preston Brown <pbrown@redhat.com>
+- fix display of errors from server in dialog box (was mailed correctly)
+
+* Thu Mar 09 2000 Preston Brown <pbrown@redhat.com>
+- fix gnome arg munging
+
+* Wed Mar 08 2000 Preston Brown <pbrown@redhat.com>
+- --list option added
+- ability to specify packages to retrieve in batch mode from cmd line added
+
+* Mon Mar 06 2000 Preston Brown <pbrown@redhat.com>
+- revert to kernel*.  kernel-* has issues
+- depend on rpm-python
+- fix long cmd line option parsing
+
+* Thu Mar 02 2000 Bill Nottingham <notting@redhat.com>
+- fix some of the rpm-3.0.4 tweaks
+- cmdline mode fixes; remove the netscape dependency.
+
+* Mon Feb 28 2000 Preston Brown <pbrown@redhat.com>
+- many cleanups and updates
+- better e-mail summaries
+- proxy support
+- cmd line mode supported
+
+* Mon Feb 28 2000 Bill Nottingham <notting@redhat.com>
+- minor tweaks for rpm-3.0.4 compatibility
+
+* Mon Feb 14 2000 Matt Wilson <msw@redhat.com>
+- require rpm python module
+
+* Mon Nov 15 1999 Preston Brown <pbrown@redhat.com>
+- echo * characters for password entry.
+
+* Wed Nov 03 1999 Preston Brown <pbrown@redhat.com>
+- fix numeric-only passwords
+- make config file 0600 both in .spec file and when writing it
+
+* Mon Nov 01 1999 Preston Brown <pbrown@redhat.com>
+- mail summary of run results to administrators listed in cfg
+- pop up dialogs w/result summaries when done
+
+* Mon Oct 18 1999 Preston Brown <pbrown@redhat.com>
+- renamed "Registration key" to "Password"
+
+* Thu Oct 14 1999 Preston Brown <pbrown@redhat.com>
+- move removal of skipped packages to after check for installed packages
+- update the config file to exclude kernel-* by default, not kernel*
+
+* Wed Oct 13 1999 Preston Brown <pbrown@redhat.com>
+- support configurable depTries, aborting works better.
+
+* Sat Sep 25 1999 Cristian Gafton <gafton@redhat.com>
+- do not quit when starting netscape. Use a unix socket for communication
+
+* Sat Sep 25 1999 Preston Brown <pbrown@redhat.com>
+- icon added, bump rev to 1.0.
+
+* Fri Sep 24 1999 Preston Brown <pbrown@redhat.com>
+- next generation build, preparing for release
+- enabled as a PAM-console app
+
+* Thu Sep 23 1999 Preston Brown <pbrown@redhat.com>
+- updated for newer stuff
+
+* Tue Aug 24 1999 Preston Brown <pbrown@redhat.com>
+- initial spec.
+
+

@@ -1,0 +1,65 @@
+These are the user visible changes in Current from release to release.
+
+v1.3.12
+- I've updated the 'checkdb' function of cadmin for the new db.
+- New feature in cadmin 'checkperms' will try to make sure that apache
+  can read all the files needed for operation. You still have to set them
+  yourself, but this should help debug perms issues. This feature is 'beta'.
+- The database format changed again, fixing two bugs and really improving
+  transfer times of large packages. You MUST recreate your databases.
+- cadmin {create,update,checkdb} will now default to
+  creating/updateing/checking all the channels if you don't specify a
+  particular one.
+- There were a number of internal, important database changes (to reenable
+  update in a sane way). Please test this version carefully.
+- Fixed a long standing "flaw" in the config file - the channel label 
+  is now the section name. The 'srpm_check' field in [channel] sections is
+  required. The config parser now looks for these new requirements, and
+  will describe the problem to the user when they run cadmin.
+- Database creation / update times should be slightly faster.
+- cadmin reacts well to ctrl-c by the user. 
+- I very much hope that this will be the last 1.3/1.4 series changes to 
+  either the database OR the config file.
+
+v1.3.11
+- The database changes in 1.3.1x mean that the cadmin commands 'update' and
+  'checkdb' don't work - you simply will have to use 'create' each time
+  for now. 1.3.12 will fix those.
+- Reminder from 1.3.10 - the config file contents have changed (the format
+  is the same, but the required fields are a little different). Please update
+  your actual config file.
+  db_dir, srpm_check, and current_dir are the ones to watch for.
+
+v1.3.10 
+- Mod_python support drastically improved. 
+- The standalone server has been removed - it won't come back unless 
+  someone can make a really good case for it. We've made the mod_python
+  configuration about as painless as possible.
+- Config file contents changed - you'll have to update your local config.
+- The mod_python configuration changed - we now provide a 
+  "create_apache_config" command in cadmin to generate the correct 
+  apache configuration for you. Simply "Include" that file in your 
+  httpd.conf, and you should be up and running.
+- Database contents changed - you'll have to recreate all your db's.
+- You MUST make sure that all the rpms, source rpms, and the directories
+  where Current put its data are fully readable for the user that 
+  apache runs as (typically 'apache'). Since most people run cadmin as 
+  root, this will be the typical problem getting 1.3.10 to run.
+
+v1.3.3 
+- Single bug fix from 1.3.2. 
+
+v1.3.2
+- Tons of new documentation. Now available in ps/html format. 
+
+v1.3.1
+- Improvements in the new mod_python code.
+- Database bug fixes mean you need to re-create your DB's with this release
+
+v1.3.0  
+- You now need apache, mod_python, and mod_ssl installed to run Current.
+- You'll need to recreate your ssl certificates (or if you're ssl savy, 
+  you can split the ones you have up) to work with mod_ssl.
+- We provide a simple mod_python config for you to use.
+- You should not have to recreate your database to use this development 
+  release.

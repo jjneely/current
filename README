@@ -1,0 +1,76 @@
+                Current - a server for Red Hat's up2date
+
+Current is an open source implementation of a server to interact with the
+Up2date Agent shipped in Red Hat Linux.  Everything is implemented for a
+basic, anonymous only system. We are working to extend support for
+non-anonymous (fully managed) setups.
+
+If you have an existing Current setup, you MUST read the RELEASE_NOTES file
+from version to version to see whats changed (config, setup, need to rebuild
+database, whatever). If you are interested in the low-level details, please
+read the CHANGELOG. The docs directory contains the longer documentation for
+new sites or reference. The TODO file and the roadmap.txt file will tell you
+where we are going.
+
+
+Basically, the functionality of 1.0 is enough to get a small network (20-50
+ clients) updated with basic security patches. 1.4 is scalable enough to
+take this basic, anonymous only functionality to several hundred hosts
+(we predict).
+
+There is a freshmeat entry (yay!) and a website at
+http://www.biology.duke.edu/computer/unix/current. There is a link to the
+mailing list from the web page.
+
+Comments to the mailing list please. Bug reports should contain enough
+detail to help me see what the problem is. Patches always cheerfully looked
+at.
+
+  NOTE: !WARNING! ACHTUNG- This server should be carefully tested and
+  monitored before being trusted with production clients (workstations OR
+  servers). Closed driver on professional course.  Do not attempt these
+  maneuvers. Always wear your seatbelt.
+  
+
+Status:
+    rhn_register:
+        Current  can handle rhn_register versions of 1.3.x through at least
+        2.7.21.  For rhn_register this means generating a usable system id
+        and not crashing the client.  (IE, all the API functions are at
+        least stubbed out)
+
+        Both the GUI and text interfaces are supported.
+
+        Note that rhn_register disappears in the limbo betas, consumed 
+        by the up2date package itself.
+        
+    up2date:
+        Working 2.7.x (tested 2.7.2, 2.7.11, 2.7.86) for all simple cases
+        (it works here). Versions prior to 2.7 will not be supported.
+
+        Both the GUI and text interfaces are supported. (the gui has 
+        one extra call it can make, which is implemented in a limited way).
+
+        2.9.x (in limbo betas) does have 1 extra call that is not supported
+        yet. (It looks like we have that data in the database, we just 
+        need to code an extra API for it)
+
+    rhn_check / rhnsd:
+        Not working. (rhnsd just calls rhn_check).
+
+    rhn-applet:
+        Not working. (new api, haven't looked at it yet)
+
+PS. Since one cretin has already asked, NO, I will not help you try and
+'hack' the RHN system. I'm pretty familiar with the authentication
+mechanisms by now, and they're good. If I do find a bug (and I have), I'll
+report it to RH long before you see it here. Go away.
+
+AL and CG are still smarter than you are anyway. :)
+
+
+Maintainers:
+Hunter Matthews <thm@duke.edu>
+John Berninger <jwbernin@berningeronline.net>
+Current Mailing List <current-server@lists.dulug.duke.edu>
+

@@ -1,0 +1,141 @@
+Just some developer notes about mod_python. Nothing Current specific here.
+
+Order:
+PythonInitHandler
+
+in apache main config:
+    PostReadRequestHandler
+else:
+    PythonHeaderParserHandler     Initial actions based on headers
+    
+PythonAccessHandler               Module specific restrictions (ip address...)
+PythonAuthenHandler               User Authentication
+PythonAuthzHandler                User Authorization
+PythonTypeHandler                 Determine or set doctype info, 
+                                  Content-Type, Language, etc
+PythonFixupHandler                Module specific fixing of header fields
+PythonHandler                     Main request handler. 
+PythonLogHandler                  Module specific logging.
+PythonCleanupHandler              Last handler in chain
+
+
+In typical Current usage, we see the following handlers available:
+
+PythonHeaderParserHandler
+PythonAccessHandler
+PythonAuthenHandler      This handler,
+PythonAuthzHandler       and this one are only available if we do the 
+                         proper "require valid-user" etc in httpd.conf
+PythonTypeHandler
+PythonFixupHandler
+PythonHandler
+PythonLogHandler
+
+----------------------------------------------------------------------------
+From ian@veryfresh.com Fri Aug 16 17:59:28 2002
+Date: Fri, 16 Aug 2002 14:51:37 -0700
+
+On Fri, Aug 16, 2002 at 05:05:28PM -0400, Hunter Matthews wrote:
+> If anyone on the list has any ideas why the authz handler, which
+> _looked_ like the handler I should use (using HTTP request headers to
+> determine if a client was authorized to make this request), isn't
+> working, I'd still appreciate knowing. 
+ 
+After playing with it for about 20 minutes, I managed to get your
+authorization handler to run on my machine. This appears to be a minimal
+configuration:
+
+Apache http.conf:
+
+<VirtualHost *:80>
+  ServerName pytest.zoostation
+  DocumentRoot /var/local/apache/htdocs/pytest
+  Alias /XMLRPC/$RHN /home/ian/pytest
+
+  <Directory /home/pytest>
+    Options FollowSymLinks
+    AllowOverride None
+  </Directory>
+
+  <Location ~ "/XMLRPC$">
+    PythonPath "sys.path+['/home/ian/src/pytest']"
+    SetHandler python-program
+    PythonHandler current_apache
+  </Location>
+
+  <Location /XMLRPC/$RHN>
+    AuthName 'Restricted Area'
+    AuthType Basic
+    PythonPath "sys.path+['/home/ian/src/pytest']"
+    PythonAuthenHandler current_apache
+    PythonAuthzHandler current_apache
+    require valid-user
+  </Location>
+
+</VirtualHost>
+
+
+current_apache.py:
+
+from mod_python import apache
+
+def authenhandler(req):
+    """ temp function for testing.
+        this version accepts any username and password
+    """
+
+    apache.log_error("Inside the authenhandler!", apache.APLOG_NOERRNO & apache.APLOG_ERR)
+    apache.log_error("method = %s" % req.method, apache.APLOG_NOERRNO & apache.APLOG_ERR)
+    apache.log_error("headers = %s" % `req.headers_in`, apache.APLOG_NOERRNO & apache.APLOG_ERR)
+
+    pw = req.get_basic_auth_pw()
+    if req.connection.user == None:
+      return apache.HTTP_UNAUTHORIZED
+
+    return apache.OK
+
+def authzhandler(req):
+    """ temp function for testing
+        this version accepts all users for all uris
+    """
+
+    apache.log_error("Inside the authzhandler!", apache.APLOG_NOERRNO & apache.APLOG_ERR)
+    apache.log_error("method = %s" % req.method, apache.APLOG_NOERRNO & apache.APLOG_ERR)
+    apache.log_error("headers = %s" % `req.headers_in`, apache.APLOG_NOERRNO & apache.APLOG_ERR)
+
+    return apache.OK
+
+def handler(req):
+    """ temp function for testing"""
+
+    req.content_type = 'text/html'
+    req.send_http_header()
+    req.write("<html><body><h1>Testing</h1></body></html>")
+
+    return apache.OK
+
+
+Explanation:
+
+In the Apache configuration, the line which triggers all of the 
+authentication/authorization is the 'require' line. Without this line, 
+the AuthenHandler and AuthzHandler will not be called. 'require 
+valid-user' seems to be sufficient for most cases, since your 
+AuthenHandler can decide who a valid user is, and your AuthzHandler can 
+filter out anyone unauthorized.
+
+As soon as you add that line, Apache will report an internal server 
+error until you give it an AuthName, AuthType, and some sort of 
+Authentication handler. I added a stub handler which accepts any 
+username and password.
+
+Once those are all present, then Apache will happily run the 
+AuthzHandler whenever the AuthenHandler returns OK.
+
+
+Hope this helps,
+
+Ian
+<ian@veryfresh.com>
+
+

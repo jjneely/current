@@ -1,0 +1,570 @@
+                        Current Project Changelog
+
+* Fri Sep 20 2002 Hunter Matthews <thm@duke.edu>     v1.4.0
+- Caught a last minute formatting problem
+- bumped version to 1.4.0
+- released as 1.4.0
+
+* Thu Sep 19 2002 Hunter Matthews <thm@duke.edu>
+- FIX: current_apache.init_backend() had a syntax error in the error 
+  handling code. Only visible if you had a perms afflicted tree, like mine.
+- Renamed all the sysid args in API functions to sysid_string, to be 
+  compatible with new logging fucntion in 1.5. May be backported.
+- Added sysid authen/author code to all the API calls that were missing
+  it. Duke Bio doesn't use it, other might.
+- up2date.solveDependancy() had _most_ of the auth checking code. 
+  Sigh. Finished it.
+
+* Sun Sep 15 2002 Hunter Matthews <thm@duke.edu>      v1.3.90
+- Tested on stenia, update wasn't getting a new last_modified field into
+  the channel pickle. FIX: We need to rewind the pickle file in 
+  channel.close().
+
+* Sat Sep 14 2002 Hunter Matthews <thm@duke.edu>
+- Added checkperms feature to cadmin, so that admins can run a quick sanity
+  check on whether apache/mod_python will me able to read all the files.
+  Feature is beta for now - implementation is very rough.
+- Updated all the comments in current.conf to be accurate. I hope.
+  Users should check their site current.conf against the shipped one.
+- Deprecated the installation.txt file - the sgml docs are cononical now.
+- Fixed stupid bug in the makefiles that made the last two snapshots not 
+  work.
+ 
+* Thu Sep 12 2002 Hunter Matthews <thm@duke.edu>
+- Tuesdays snapshot was a disaster - I shipped an unworking/unworkable 
+  config mechanism.
+- Now the section names are the channel labels. I'm still concerned about 
+  future code, but shipping 1.4 takes precedence.
+
+* Wed Sep 11 2002 Hunter Matthews <thm@duke.edu>
+- More makefile tweaks.
+  Notice the 'make devel' rule to still allow you to run cadmin from src
+- Finally fixed an old flaw around the config file - the section names 
+  could not be the channel "label" due to python ConfigParser. I thought how
+  future code _should_ work, and have changed the name to [channel].  Users
+  must upgrade their current.conf file.
+- Added code the check for older current.conf files.
+  Make sure any channel sections are actually called [channel]
+  Only [channel] and [current] sections are valid.
+  Make sure 'srpm_check' is an option in each [channel] section.
+
+* Tue Sep 10 2002 Hunter Matthews <thm@duke.edu>
+- Redid the source repository itself. 
+- All the sources moved to src.
+- Made the makefiles properly recursive
+- We now build the html/ps version of the guide correctly.
+- Updated the spec file to deal with all this.
+
+* Tue Sep 10 2002 Hunter Matthews <thm@duke.edu>
+- Reverted fixes in the Auth.HeadersID object for standalone current that
+  were now interfering with apache headers. (which come in correctly)
+- Made packagedb.py use the new channel API.
+- Fixed thinko bug in accesshandler - it was using the SySId object instead
+  of the HeadersId object. Duh.
+- Fixed bug in typehandler test. In python, -1 is TRUE. Only 0 is false. 
+
+* Mon Sep  9 2002 Hunter Matthews <thm@duke.edu>
+- Normalized the channel.py internal API.
+  You must always open the channel, 
+  perform some operations (update, various read functions),
+  close the channel.
+- Updated cadmin to handle the new API. 
+  STILL NEED TO TOUCH current_apache.py
+- Added KeyboardInterrupt exception handler to cadmin.
+- Made channel.create() a special case of channel.open() and channel.update()
+  with a particular mode passed to open().
+- Added a check and warning for a missing srpm_check  from the config file.
+  Probably either require that in the future, or ignore its abscence
+  completely.
+- Only close() writes the 'last_modified' field to the channel.
+  Only close() writes the listPackages cache a single time.
+
+* Sun Sep  8 2002 Hunter Matthews <thm@duke.edu>
+- Database changed again, damnit. We're back to uncompressed headers, but 
+  faster pkg transfers, and listPackages has been wrong for a year - we were
+  sending the pkg size as int, instead of the desired str(int) form.
+- Finally made it so that mode cadmin commands will just do all the valid
+  channels instead of requiring the user to specify them one by one.
+- Started fixing the broken relationship between open,create/update,close in
+  channel.py
+- Speeded up accesshandler() with string.find instead of split/in combo.
+- Twiddled sendClientResult() some. 
+- Prototyped new file comments/header in current_apache.py. 
+  Developers take note.
+- Turned on rcs keywords for all bk files. Developers take note.
+
+* Tue Sep  3 2002 Hunter Matthews <thm@duke.edu>
+- Updated RELEASE-NOTES, TODO, roadmap.txt, rhn_api.txt.
+- Commented out pid/daemon checking code in cadmin
+  Removed 'initconfig' function from cadmin - only needed standalone.
+- Started bringing the update fucntionality back in.
+- Updated sample current.conf with srpm_check value (off by default)
+- Put the real auth checking code into the current_apache.accesshandler
+- 1.33 is the rev before the open() changes...
+
+* Sat Aug 24 2002 Hunter Matthews <thm@duke.edu>
+- Pulled all the old GET code out of the tree.
+- Pulled the 'connInfo' code out of the tree - none of the API calls ever
+  used it, and I question whether they should have.
+- Removed the old standalone.py, now that I'm sure we've done with the 
+  standalone server itself.
+
+* Sat Aug 24 2002 Hunter Matthews <thm@duke.edu>
+- Patch from John to update the sgml documentation.
+- Ran aspell against the sgml documentation.
+- Updated the FAQ myself.
+- Split all the development related docs into their own subdir.
+- Updated the API docs. Still not complete, but... better.
+
+* Thu Aug 22 2002 Hunter Matthews <thm@duke.edu>      v1.3.11
+- Cleaned up how cadmin create_certificate works. We only generate the 
+  files mod_ssl needs, and they have the correct names. 
+- Fixed more month bugs in the logger. Sheesh.
+- Updated (or deleted) all out of date text documentation. Installation.txt
+  is now king again. I'll update the sgml for .12.
+
+* Wed Aug 21 2002 Hunter Matthews <thm@duke.edu>
+- Brown paper bag bug: I must have overwritten the patch or backed it out -
+  the typehandler sets headers for compression on files that aren't compressed
+  OOps.
+- Made the headers compressed for good measure.
+- Applied johns patch - somehow the delete code needs 'last_modified' set.
+- 2nd Brown paper bag bug - JoinPath instead of PathJoin. I hate that fn.
+- Added code to force new sites to customize their current.conf.
+- Made a proper example current.conf to ship.
+
+* Mon Aug 19 2002 Hunter Matthews <thm@duke.edu>      v1.3.10
+- Pulled the old 'current' (standalone daemon) out of the tree completely.
+  IF YOU WANT THIS BACK, YOU MUST STEP UP AND JUSTIFY IT.
+- Updated readme, TODO documetation, roadmap.txt 
+- Commented out the redundant GET code everywhere -
+  It'll disappear soon.
+- Started the cleanup in current_apache.py
+- Created Release Notes file for a user perspective of the CHANGELOG.
+
+* Sun Aug 18 2002 Hunter Matthews <thm@duke.edu>
+- Cleaned up cadmin some, made the apache config go to a file instead of 
+  standard out, added in missing help messages (for new functions)
+
+* Sat Aug 17 2002 Hunter Matthews <thm@duke.edu>
+- Fixed the httpd.conf bits to work, according to the awesome people on 
+  the mod_python mailing list.
+- Figured out most of the secrets of apache logging, except why LogLevel debug
+  still doesn't show debug information. (minor - log as info instead)
+- Re-added the code to compress the listPackages data, and added code 
+  to typehandler to set the proper headers on that call.
+- And now 1.3.3 is "feature" complete - python does the logic, apache 
+  does the bit moving. :)
+
+* Fri Aug 16 2002 Hunter Matthews <thm@duke.edu>
+- Renamed apache.py to current_apache.py to avoid conflicts with mod_python
+- To be compatible with apache/mod_python doing the work, the database now
+  has four dirs for files: 'listPackages', 'getPackage', 'getPackageHeader',
+  and 'getPackagerSource'
+- getPackageSource and getPackage contain symlinks into the users 
+  (typically mirrored) redhat tree. The headers and list are real current
+  generated files.
+- Cleaned up some comments.
+- Reorganized the TODO list - more coming.
+- Added code to cadmin to generate the httpd.conf parts that current needs.
+  All the user has to do is add the parts we generate.
+  THIS IS EASY ENOUGH I'M GOING TO KILL THE STANDALONE FOR 1.4.
+- Rearanged the current.conf file pretty extensively - 
+  EVERYONE WILL NEED TO UPDATE THEIR CONFIGURATION
+- Bumped db schema to 4 to signify that Things Moved(tm)
+- Bumped to version 1.3.10 to signify Big Changes(tm)
+
+* Sat Aug 10 2002 Hunter Matthews <thm@duke.edu>      v1.3.3
+- Fixed typo (editing) bug in channel.py as per john's instructions
+
+* Thu Aug  1 2002 Hunter Matthews <thm@duke.edu>      v1.3.2
+- Big patch from john for new documentation updates and some code 
+  for connecting an rpm to its srpm.
+- Fixed typo in makefile for john.
+- Next version will organize the doc dir - its out of hand now.
+
+* Wed Jun 26 2002 Hunter Matthews <thm@duke.edu>      v1.3.1
+- Patch from john to fix my usage of rpm.labelCompare()
+  I forward ported this from 1.0.5 - this changelog is gonna get WAY
+  hard to keep merging though. Anyone got suggestions?
+- Patch from john to fix typos in apache.py
+
+* Mon May 20 2002 Hunter Matthews <thm@duke.edu>      v1.0.4
+- Took patch from John to fix the src_dirs bit. 
+  Wrote that back in 0.8.x somewhere and someone finally noticed it
+  didn't work.
+- Reverted recursive nature of patch. Bin dirs aren't.
+- Moved the cron job to cron.daily, and added a sleep 
+
+* Mon Apr 29 2002 Hunter Matthews <thm@duke.edu>      v1.0.3
+- Added John to maintainers list.
+- Another minor patch to the database deletion code from John.
+- Minor buglet in the logging module.
+- Fixed a stupid mistake in the supplied cron job for the client.
+- Updated the FAQ file for tcpwrappers issues.
+- Decided to ship these changes as 1.0.3 (super stable) and introduce
+  newer cron job mechanism as 1.0.4.
+
+* Fri Mar 15 2002 Hunter Matthews <thm@duke.edu>      v1.0.2
+- And John discovers that even more database schnanigans occur during 
+  delete. 
+- Note that 1.0.1 never really went out.
+
+* Thu Mar 14 2002 Hunter Matthews <thm@duke.edu>      v1.0.1    
+- cadmin now logs to stdout like it was supposed to.
+- FIX: channel.create() actually marks the channel as being open'd, for 
+  dumping.
+- FIX: Typo of TRIVIAL to TRIVIA, more evidence logging needs to be 
+  numeric or string based.
+- Took out redundant test for symlinks that was never used.
+- FIX: Fixed major bug where the database would only hold the FIRST seen arch
+  of a given package.
+- Some of the logging message cleaned up, made more specific, or added to.
+  Debugging this one was _hard_.
+- FIX: and the above exposed a reference counting bug, where we would 
+  delete the entry in the dep_names table even if it still pointed to 
+  arch_index entries.
+- FIX: Shelves could end up with duplicate entries. In the past this caused
+  no problem, but the fix 2 entries up exposed this bug.
+- FIX: in the client, (up2date 2.7.11, at least) would take the first down-
+  loaded arch as gospel, and then look for a better one. Which is _bad_
+  wrong on an i686 when the first arch in the list is athlon.
+  The workaround in the server is to "sort" the list, where sorting here 
+  is defined as "i386" first, then "noarch" then everything else.
+- BUG: The ordering needs to be done in a portable way - currently, the fix
+  only works for x86 archs.
+- Updated documentation.
+- Yes boys and girls, this is non-trivial. Bow down before the RHN team, for 
+  this trail was blazed by them.
+
+* Mon Mar 11 2002 Hunter Matthews <thm@duke.edu>     v1.0
+- Added tar-excludes to the package, so people can easily rebuild the 
+  tar archives locally.
+- cadmin checks for the Current pid file, so that (theoretically) it won't
+  run while Current is running.
+- Added a fixed athlon entry.
+- Looks like some versions of rpm can do bad things with version compares.
+  Added some logging code and a check for the rpm version on the server.
+- Fixed a bug(s) where rpm could hand back a single item, instead of a list.
+- Added the forgotten upgrade_version() api call. Might not be correct.
+- Documentation updates for all of the above.
+
+* Tue Feb 26 2002 Hunter Matthews <thm@duke.edu>
+- Updated all the doc for 1.0.rc1
+- Applied late minute patch from Tom "Spot" Calloway fixing sparc support.
+  (Spot is the aurora project maintainer)
+
+* Sat Feb 23 2002 Hunter Matthews <thm@duke.edu>
+- More cleanups of the logging functionality.
+- Major reorg of how we do client configuration - now instead of a separate
+  client packge, the server just provides the needed files for an admin to 
+  rebuild a local copy of up2date. (Though this is not _required_)
+- create_certificate script function added to cadmin - [back to pure python]
+
+* Mon Feb 18 2002 Hunter Matthews <thm@duke.edu>
+- Applied the obsoletes patch from John B.
+  NOTE: this doesn't implement the feature - it just adds the data to the db
+  This is to _try_ and hold all 1.0.x releases with compatible db's. 
+- New FAQ on the persistent clock skew problem.
+- Started cleaning up some logging issues.
+
+* Fri Feb 15 2002 Hunter Matthews <thm@duke.edu>
+- Fixed up the solveDep call path - I wasn't returning what the client
+  expected if the server could not satisfy a dependancy. Also had some old 
+  crufty code from the 2.5.x client support, which should be gone now.
+- Putting out a snapshot so people can test over the weekend. 
+
+* Thu Feb 14 2002 Hunter Matthews <thm@duke.edu>
+- Fixed bug in config.py for missing config file. This can cause a traceback
+  when all the user wanted was to see the command line options available.
+  (No config file should be required for that)
+
+* Wed Feb 13 2002 Hunter Matthews <thm@duke.edu>
+- Reapplied missing patch for the client cron job.
+  I really want to get rid of that, and just ship an alternate spec file.
+
+* Wed Feb 13 2002 Hunter Matthews <thm@duke.edu> 0.9.5
+- Added newer (better) delete patch from John. 
+- Added timestamp patch from John. 
+- Tested both.
+- More documentation updates, including rules for patch submissions. 
+
+* Mon Feb  4 2002 Hunter Matthews <thm@duke.edu>
+- Added John B's delete patch. This allows us to deal with multiple versions
+  in the same tree. 
+
+* Fri Feb  1 2002 Hunter Matthews <thm@duke.edu>
+- Having actually tested this tree on the biology network yesterday, I'll
+  call it 0.9.4.
+
+* Wed Jan 30 2002 Hunter Matthews <thm@duke.edu>   0.28
+- Started doing some cleanups in channel.py to get ready for full deletes.
+- Patched the patch of the patch from John. Where's my cluestick?
+
+* Sat Jan 26 2002 Hunter Matthews <thm@duke.edu>   0.27
+- Applied patch from John Berninger - his previous auth.py patch broke 0.9.3
+- Added rudimentary command line help to cadmin.
+
+* Wed Jan 16 2002 Hunter Matthews <thm@duke.edu>
+- Trial implementation of up2date.listChannels() and 
+  errata.getPackageErratum() - listChannels doesn't behave well in the 
+  client, but I'm not sure if this is a client or server bug.
+- Prepping for release as 0.9.3
+
+* Wed Jan  9 2002 Hunter Matthews <thm@duke.edu>
+- Patched in the "client" cron job - this is a hack until we have full 
+  rhnsd support, which is a 2.0 project.
+- I got an updated patch for ConstructParser.py from John, but either I had
+  tweaked my copy or butchered the patch somehow - John, just send me a 
+  clean copy that is correct.
+
+* Thu Dec 27 2001 Hunter Matthews <thm@duke.edu>    0.26
+- Made sure all main() fn's for testing are marked _main(), to avoid
+  namespace polution.
+- Took patch from John Berninger to "turn on" his ConstructParser.py. 
+  I patched the patch a little and applied it.
+  How linus or alan keep up with all this nonsense of patches, reverse patches
+  patches to shit they've just twiddled with, etc etc is utterly beyond me.
+
+* Wed Dec 26 2001 Hunter Matthews <thm@duke.edu>    0.9.2
+- Updated nearly all the documentation
+- Updated the Makefile, spec file, and init file.
+- Preped for release as 0.9.2
+
+* Sun Dec 23 2001 Hunter Matthews <thm@duke.edu>   0.24
+- Had a lot of crap in future/ that got included in 0.9.1 tarball. Oops.
+- Moved some files around - samples went to docs/samples, the new init
+  script and spec file went to support/, etc.
+- Checked the new ConstructParser.py into the tree. This module, by
+  John Berninger, will allow us to get rid of the scary eval() in auth that
+  prevented a 1.0. However, I haven't turned it on quite yet.
+  I hope John will accept some editorial changes before I do that.
+  (But code wise, its going in as is - I just want to change some names)
+- Updated TODO file
+- Moved defaults dict from current & cadmin to config.py. Hosed VERSION and
+  CONFIG_FILE in the process. The whole makefile/specfile/config file stuff
+  is chaos right now.
+- Added full daemon mode. Yay! We create a pid file, pop to the background,
+  provide a way to kill ourselves (-k, --kill), all the bells and whistles. 
+  This code strip-mined from the Twisted framework, which would have made
+  all this nonsense much easier, I think.  This code is VERY new and kinda
+  scary (my first daemon). Please test and send patches. With this and the
+  the auth.eval gone, we're 1.0 feature complete.
+- We catch sys.exit()'s in the main loop, and just quit normally. Part of 
+  the daemon signal handler stuff.
+- Added a new cadmin command "initconfig" that prints out, in shell variable
+  form, the vars that the current.init script will need to start stunnel for
+  us. CLEARLY, we need a native python way to do SSL. What a hack.
+- Added -k, --kill and -n, --nodaemon to config.py
+- Scoured all the print statements from the code that could be called 
+  while in daemon mode. 
+
+* Fri Dec 21 2001 Hunter Matthews <thm@duke.edu>   
+- Reimplemented sendClientResult() to use a new dictionary result type.
+  Could have been a real object, but why bother.
+- Patched new result type into up2date, registration, and errata modules.
+- We fully use the cached listPackages and headers now. Both are compressed.
+  Note: that I cheat with compressed headers - this is a feature RHN doesn't
+  have. 
+- Reimplemented most of up2date module to use a common "engine" function.
+- Noted some problems with our GET responses and errata module in TODO file.
+
+* Thu Dec 20 2001 Hunter Matthews <thm@duke.edu>   0.23
+- Started the great conversion to use the cached info. Not done yet.
+
+* Mon Dec 17 2001 Hunter Matthews <thm@duke.edu> 
+- Applied patch from John Berninger cleaning up config.py
+- Changed channel version to be human readable instead of raw seconds 
+- Now that logging works completely, removed old _verbosity option.
+- Added header caching to channel.py - need to update packagedb/up2date to
+  make use of the cached data.
+- Remembered to update _removeRpmPackage() to remove the just created hdr.
+- BUGFIX: recreate the cached listPackages data at the end of 
+  _removeRpmPackage().
+- Cleaned up all the errant print statements that have crept in lately.
+
+* Sat Dec 15 2001 Hunter Matthews <thm@duke.edu>    0.22
+- Moved _server_secret and _server_id to config file
+- Wrote channel._createListPackages for cacheing the listPackages call.
+  Saves it to $db_dir/listPackages.gz. Need to add encoding http headers
+  for it, and add support to up2date and packagedb.
+- channel.read() changed to channel.open() to make more sense w/ updates
+- Wrote  channel._deleteRpmPackage(pathname) 
+  This should lay the foundation for an "update" of errata'd packages in 
+  the future. 
+- Pulled misc.GetHeaderFromFilename() and put it in channel. 
+  Expanded that to fit better into new _addRpmDir()/_addRpmPackage() api.
+- Added a 'mode' flag to channel.open() so we can change a db once its 
+  been created. 
+
+* Wed Dec 12 2001 Hunter Matthews <thm@duke.edu>    0.19 / 0.9
+- BUG from Ivan F. Martinez <ml@ivanfm.com>, need to create db_dir if it 
+  doesn't exist.
+- Checked in contributed spec file, and modified Makefile to work with it.
+- Incorported BUGS file into TODO list
+- Tweaked install docs and others
+- Added full GET support for the http protocol
+- Added full 2.7 client support (as far as I know, its complete)
+  Broke/disabled 2.5 support in the process - the database api changed on
+  us to work better with 2.7. I question the value of fixing it.
+- Channel object used to have rpm_index[name:ver:rel:epoch:arch] -> fullpathname,
+  and now its rpm_index[rpm_filename] -> fullpathname. Need to update docs.
+- Added a connInfo param to all RHN_API calls so we get the headers, if
+  we need them. 
+ 
+* Tue Dec  4 2001 Hunter Matthews <thm@duke.edu>    0.18
+- Checked in changes to encryption.txt from Jonathan Byrne <byrnej@gol.com>
+  I edited the file some more, as I now have installation.txt checked in,
+  and some of the openssl commands had been garbled.
+- Released as todays snapshot.
+  No more working code than the last, but a ton more doc and infrastructure
+  changes.
+
+* Tue Dec  4 2001 Hunter Matthews <thm@duke.edu>    0.17
+- Added installation.txt and development.txt as new documentation.
+- Added exception logging to the logger.py
+- More documentation updates
+- Tweaked current itself to be smarter about handling ctrl-c.
+- X-RHN-Auth-Expire-Offset should have been X-RHN-Auth-Expiration
+- Massive changes in standalone.py to support GET requests. 
+-   Including collecting everything we know about an incoming connection, 
+    for possible logging/authentication later in the API layer. connInfo
+- Watch out for client side caching when debugging GET requests.
+- Cleaned up server logging some.
+
+* Wed Nov 28 2001 Hunter Matthews <thm@duke.edu>     0.16
+- Updated TODO, README, and roadmap.txt doc files.
+- Added major sections to rhn_api documentation on what I know about 2.7
+  and GET support
+
+* Sun Nov 25 2001 Hunter Matthews <thm@duke.edu>     0.15
+- Added version status (what clients are supported) to README.
+- Added our current known bugs to BUGS file.
+- Finally got command line logfile/loglevel working for the server.
+  We're going to need another config object.
+- Added auth.authorize object to "backend"
+- Renamed the pickled dictionary in the channel object to chanInfo. Its 
+  needed a number of places, mostly in the auth module. That keeps auth not
+  knowing about "channels", just about a dict that describes channels.
+- Really fleshed out the auth module. I like the HeaderId class having 
+  specific calls for setting/calculating things, instead of just using 
+  setattr/getattr everywhere. SysId will work like that soon.
+- Started do_GET() in standalone.py, to support most of the v2.7 client 
+  calls. Needs design.
+- Made standalone.call() do A LOT of error checking, carefully logging 
+  any unrecognized methods that get called, and more sanely handling 
+  recognized methods that blow up for some reason. Should make server more 
+  robust.
+- Some code cleanups.
+- It looks like I've sucessfully implemented up2date.login(), the first 
+  API call for the v2.7 clients. (most of the stuff above was to support 
+  this). This includes a concept of channels to which a client is not 
+  authorized (although this support is just stubbed in for now).
+
+* Wed Nov 21 2001 Hunter Matthews <thm@duke.edu>   0.14
+- Renamed sysid.py to auth.py 
+- Corrected documentation for what the module does (it does more now).
+
+* Wed Nov 21 2001 Hunter Matthews <thm@duke.edu>   0.13
+- Made configuration global to the whole program by instantiating the 
+  Config object in the config module as config.cfg.
+- Made the welcome_message() and privacy_statement() pull from the new 
+  global config.cfg.
+- Modified current and cadmin to use the global config.cfg.
+
+* Wed Nov 21 2001 Hunter Matthews <thm@duke.edu>   0.12
+- Renamed Repository to be Channel everywhere appropriate.
+- Added "label", "description", "parent_channel", to channel object.
+- Added code to create "last_modified" field with the seconds since epoch
+  that this channel was created.
+- Introduced explicit notion that the config file may have more channels 
+  defined than we want to serve right now - So "repository_list" got 
+  renamed to "valid_channels". 
+- Made the config file parser use the 'label' when it generates a 
+  dictionary of valid channels.
+- Needed to rename chan_name to chan_label everywhere, due to nomenclature
+  change.
+- NOTE: This doesn't fix assumptions that any client can _only_ talk to
+  one channel. But it lays the minimum groundwork necessary for v2.7.
+
+* Sun Nov 18 2001 Hunter Matthews <thm@duke.edu>
+- Updated/expanded TODO list.
+- Started expanding sysid.py to handle the authorization headers used in 
+  v2.7 clients. It should be renamed "authorization.py" or something, but 
+  I didn't want to do that right now.
+- Wrote the checksum function for SysId, and made the system id be 
+  explicityly "ANONYMOUS".
+- Tried to implement up2date.login() API, but I'm going to need full
+  channel support first, it looks like. (Rename "repository" everywhere to
+  "channel", and store some more data (last_modified at least).
+
+* Fri Nov 16 2001 Hunter Matthews <thm@duke.edu>
+- Implemented new config.py into cadmin and current. Its much better, just
+  not great, yet.
+- Figured out how to create a "CA-CERT" file from a stunnel.pem file that 
+  the clients like. Added instructions to docs/encryption.txt
+
+* Thu Nov 15 2001 Hunter Matthews <thm@duke.edu>
+- Checked in differences from the 0.8.0 branch to the main branch.
+  First experience with branching. This'll be a treat.
+
+* Wed Nov 14 2001 Hunter Matthews <thm@duke.edu>
+- Did another name change after polite conversation with the aardman
+  animation people. Wallace was a pretty cool name though...
+- Fixed makefiles DATADIR. Needed project name, not programs.
+- Got everything ready for an 0.8.0 release. Tested stunnel instructions,
+  creating new stunnel key, working with older client. It looks good.
+- release-0.8.0
+
+* Sun Nov 11 2001 Hunter Matthews <thm@duke.edu>
+- Tidied up documentation - README, Roadmap.txt, and the api docs.
+- Turned full logging back on in current - found the problem is the new 
+  clients (2.7.x) don't like my self signed cert.
+- Stubbed out a checksum calculator in sysid.py based on openup.
+- Realized that the config.py is TOTAL CRAP, and must be scrapped.
+
+* Sat Nov 10 2001 Hunter Matthews <thm@duke.edu>
+- Implmented logging in preparation for becoming a full daemon.
+- Documentation updates
+- Other code cleanups and improvements.
+
+* Wed Nov  7 2001 Hunter Matthews <thm@duke.edu>
+- Implemented errata.GetByPackage() (stubbed to return "unknown", basically).
+  I think current is API complete at this point. (for 2.5 clients)
+- Added documentation for its return value to docs.
+- Corrected registration.[add,delete]_packages() doc entries.
+
+* Tue Nov  6 2001 Hunter Matthews <thm@duke.edu>
+- Took the client code out of the prcs tree.
+- Corrected some api docs as to what the client really sends.
+- Pulled a lot of old cruft out of misc.py
+- Added proper File,Fault,normal response handling into the standalone server.
+  Files and normal definately work. Fault _looks_ like it works - needs 
+  testing.
+- implemented up2date.package(), up2date.source_package_by_name(),
+  and up2date.header() call paths. 
+- implemented the up2date.solvedeps() call path. Works!, at least for a
+  simple case. Needs much testing.
+- Some code tidying so similar methods are implemented in similar ways. Code
+  is easier to read/understand.
+- Still need at least errata.GetByPackage() used by GUI api, but all the big
+  functions are in and appear to work. Celebrated by bumping to 0.9
+
+* Mon Nov  5 2001 Hunter Matthews <thm@duke.edu> 
+- Working registration API, up2date/listall_size looks correct. 
+- New Makefile, stolen from gromit.
+- Created new cadmin program for offline tasks. 
+  For now, just dumps configfile, creates repositories, and dumps them.
+- Split current.py into current, the main program, and standalone.py,
+  the classes derived from TCPServer and BaseHTTPServer.
+- Sucked all the architecture functionality from the up2date clients 
+  up2dateUtil.py into packagedb.py. This code might need work in the future.
+- Added name, os_release, and arch_cannon fields to the repositories, so 
+  that they can be free standing without the config file.
+- Picked a single coding style, and started to use it.
+- Designated as 0.6. 0.7 will be the rest of the up2date API except 
+  solvedeps(). 0.8 will be solvedeps(), and 0.9 will be cleanup and 
+  packaging. 1.x should be a pretty good anonymous yup killer.
+
+
+

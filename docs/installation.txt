@@ -1,0 +1,229 @@
+****************************************************************
+*
+* This documentation has been superceded by the SGML docs
+*
+***************************************************************
+
+
+                 CURRENT SERVER INSTALLATION INSTRUCTIONS
+
+Please note that Current (and up2date itself) are moderately advanced 
+system administration topics. If you aren't comfortable with tar, rpm,
+general system adminstration, and similar topics, you probably shouldn't 
+be using this software. I hate to discourage people, but as a professional
+system administrator, I'm morally opposed to helping people destroy their
+machines.
+
+Current 1.3.x is in very active development right now. You should be willing
+(and able) to help debug and test what may turn out to be very wonky
+software (especially in the snapshots). If you need to report a problem,
+please send it to the mailing list (even if only I can answer the question,
+it goes into the archives for others to benefit from).
+
+Bug reports should include any and all tracebacks, what versions of 
+up2date/rhn_register/Current you were running, and potentially some 
+details on what packages/config files you were using. If you can't describe
+what broke, I will have a tough time helping you.
+
+Between releases the RELEASE-NOTES will include any changes/minor
+incompatibilities. You should DEFINATELY review the example current.conf
+between snapshots for changes (I ship my test config), and you will almost
+certainly need to recreate your databases. [Current now versions its
+databases, and will not run with an out of date database]
+                 
+
+Hardware/Software you need: 
+
+* A good middling server (I use a 600Mhz PIII w/128MB of ram) with enough
+  hard drive space for whatever packages you want to serve, plus 50-100MB
+  for the databases. Speed is generally network bound at this point, so a
+  quad xeon box will buy you zip. (Don't let it go to waste - send it to me)
+  
+* Some clients. Any Red Hat Linux version with up2date v2.7 and 
+  it's proper dependancies (python, python-xmlrpc, rpm naturally, etc)
+
+
+Installation on the server [by rpm]
+* Install the Current rpm. If you're reading this, you've most likely done
+  that step. :) You also need apache, mod_python, and mod_ssl. The apache,
+  mod_python, and mod_ssl packages from redhat work fine.
+
+* Modify the config file /etc/current/current.conf to suite your site.
+  Important points here are how your channel(s) are setup, and where you
+  want the current_dir to be. Note: the list of valid channels in the
+  [current] section is a list of the channel labels of all channel sections,
+  not a lit of the channel section names. This is a bug which will be 
+  corrected in a future release.
+
+* cadmin is the Current administration program. One of its
+  functions/commands is "create_certificate". When setting up your server
+  for the first time, you'll need to run 
+  [root@server current]$ cadmin create_certificate
+  
+  This will leave a 'server.crt' and 'server.key' files and a 'RHNS-CA-CERT'
+  for use later.  There should not be a need to regenerate these files as
+  you upgrade Current. 
+  
+  Copy the server.crt file to /etc/httpd/conf/ssl.crt/server.crt
+  Copy the server.key file to /etc/httpd/conf/ssl.key/server.key
+  
+  Copy the RHNS-CA-CERT file to all your _client_ machines as 
+  /usr/share/rhn/RHNS-CA-CERT
+
+* Next create the apache snippet that you need. Assuming you kept the 
+  default 'apache_config_file' value in your current.conf, 
+  [root@server current]$ cadmin create_apache_config
+  
+  Will put the file into /etc/httpd/conf/current.httpd.conf. You need 
+  to add a single line (which cadmin won't do - we don't touch _your_ 
+  config files) to /etc/httpd/conf/httpd.conf of
+  
+  Include /etc/httpd/conf/current.httpd.conf
+  
+  I put it at the end of my httpd.conf file - I'm using exactly what 
+  Red Hat shipped. Your site may be different.
+    
+* Create all the channels that your configured above. You need to run the 
+  following command once per CHANNEL that you configured.
+  [root@server current]$ cadmin -v create CHANNEL_LABEL  
+  
+  To get a handy list of all the channels you listed in current.conf, try
+  [root@server current]$ cadmin print_channels
+  
+* You must make sure that all the files apache/current needs when running
+  are readable by the apache user. Since most people run cadmin as root,
+  [root@server current]$ chmod -R ugo+rx $current_dir
+  OR
+  [root@server current]$ chown -R ugo+rx $current_dir
+  is needed. Which is better/safer depends greatly on your site. I use 
+  the first. Naturally, you should replace $current_dir with whatever
+  value you specified in current.conf
+  
+* Create the current.log file.
+  [root@server current]$ touch /var/log/httpd/current.log
+  [root@server current]$ chown apache /var/log/httpd/current.log
+  
+* Start apache (and current)
+  [root@server current]$ service httpd start
+  
+  Remember, you need to shut apache down (shut current down) anytime you
+  use cadmin.
+  
+* Remember, copy the /etc/current/RHNS-CA-CERT file that you created earlier
+  to ALL of your clients, replacing the /usr/share/rhn/RHNS-CA-CERT file
+  that Red Hat shipped. This file tells the clients which servers to trust.
+  
+  Failure to copy this file is, right now, the most common reason for 
+  things not working.
+
+Current should now be operational.
+
+Installation on the clients:
+
+* Make sure that the /usr/share/rhn/RHNS-CA-CERT file is the one that you
+  created on your server. Things are absolutely guaranteed NOT to work if 
+  you don't copy that file over. (It tells the client which servers to 
+  trust).
+
+* Please note that if you ever change the "server secret" string in 
+  current.conf, you MUST re-register ALL of your clients - they won't 
+  be able to authenticate otherwise.
+    
+* As root, in /etc/sysconfig/rhn/ edit the rhn_register and up2date config
+  files. The only entries you are required to change for the Current server
+  are noSSLServerURL and serverURL. (The entries are the same in both files,
+  and should be identical between rhn_register and up2date).
+  
+  From Red Hat, they are setup to point to RHN (naturally)
+  serverURL=https://www.rhns.redhat.com/XMLRPC
+  and
+  noSSLServerURL=http://www.rhns.redhat.com/XMLRPC
+  
+  Change them, either with an editor or the command line config mode, to
+  serverURL=https://YOUR.SERVER.NAME/XMLRPC
+  and 
+  noSSLServerURL=http://YOUR.SERVER.NAME/XMLRPC
+
+  Right now, the default port numbers for Current are the same as for 
+  any http/https server: 80 and 443, respectively.
+  
+* Other entries (in up2date especially) should be configured to best 
+  match your site, but the two above are all that is _required_.
+  
+  I highly recommend:
+  debug=1              # Current is beta quality software right now
+  retrieveOnly=1       # This has been enough to protect my test clients
+                       # from server bugs.
+                       
+  I suggest:                       
+  keepAfterInstall=1   # Makes it easier to see what the server did.
+  networkRetries=1     # I only get one hit in the server log, instead of 5
+                       # This is probably only needed on clients with poor
+                       # net connections anyway.
+
+  useGPG=0             # If you have any non-RH packages in your database. 
+                       # If you only use Current to serve RH official rpms,
+                       # LEAVE THIS AS 1. 
+  
+  Some other possibilites:
+  pkgSkipList=;        # and 
+  noReplaceConfig=0    # These two options (along with fileSkipList) limit
+                       # the packages the client will consider for upgrading
+
+  IF AND ONLY IF you have retrieveOnly set to 1 you can change safely change
+  pkgSkipList and noReplaceConfig. (Or you are completely comfortable with
+  wiping the client and starting over). This will make up2date consider the
+  most possibilities for upgrading. (remember, we aren't testing up2date
+  itself, but the servers ability to answer questions for it)
+  
+  I'm not going to specify EXACTLY what your config file should look like -
+  if you aren't comfortable monkeying with it, Current server is probably
+  not for you at this point. Naturally, you should make backups of the 
+  original file, if you ever want to use the RHN servers.
+  
+* For clients, thats it. 
+
+Installation on the clients (advanced):
+
+- For really easy installation on many clients, you can rebuild the 
+  up2date and rhn_register rpms themselves.
+  
+- First, you'll need the 2.7.11 up2date and the 2.7.2 rhn_register 
+  source rpms, and all the build requisites. (as examples - all 2.7 series
+  clients work)
+  
+- Use the RHNS-CA-CERT file you generated when you installed your server
+  and the files in the docs/client directory, you can build up2date and 
+  rhn_register rpms specific to your server. (There's even a cron job 
+  there to replace rhnsd).
+  
+- I am NOT going to document the details of rpm building here: the files
+  should be fairly self-evident.
+
+Voila. You may now solve world peace. Or something.
+Updates, changes, errors, or whatever in these doc should be reported to
+the mailing list, current-server@lists.dulug.duke.edu
+
+
+Note 1: Right now, only one channel per arch/os_release combination is
+supported. You can "add" packages easily to the base redhat simply by
+including multiple dirs per channel - the example config file shows how
+this is done (its how I use it).
+  
+Note 2: The example config file implies that I've used a full CD image/ nfs
+install tree as my package set. That IS how I do it - I hope for my
+situation to be able to have one tree that is used both to install new
+clients and keep old ones up2date. However, thats not a requirement - you
+just need some rpm files in one or more directories and a place to create a
+database.
+
+As a bare minimum, just the published Red Hat errata in a single dir would
+make a very valuable Current server for simple/small sites....
+    
+Note: During channel creation, if your tree is like mine, there might be
+some warnings about duplicate packages (exactly the same package seen twice,
+through symlinks). Since thats not a problem for the database to resolve, it
+prints a warning and moves on. Nothing _has_ to be done about these
+warnings.
+
+

@@ -1,0 +1,7 @@
+#! /bin/bash
+
+## in 1.0.x we don't want all the clients to hit the server at the same time
+## mod 3600 seconds should spread them over about an hour
+sleep $(($RANDOM % 3600))
+/usr/sbin/up2date -u
+

@@ -1,0 +1,602 @@
+RHN Application Programming Interface 
+or "What's all this, then?"
+
+
+This file lists all the information I have (mostly from reverse engineering
+and just reading the code) about the API used in the Red Hat Network. Due to
+that fact, virtually all the information in this document should be viewed
+with a heathly respect for the vagaries of reverse engineering(1).
+
+I've tried to keep the kinds of information about the api consistent. I've
+also tried to mark where I'm uncertain about whats going on, and guessing.
+
+(1) I implemented an important data item as the size of the installed
+package (IE, how much disk space it takes up once package foo is installed
+on your computer), as that was what looked correct at the time, and made the
+most sense. It worked fine with the clients that I tested, so I assumed I
+had that part correct and moved on to other parts. 
+
+Later test runs against RHN itself (with a client modified to log exactly
+what RHN sent back) showed that I had guessed wrong completely: RHN sent
+back the rpm file size. Which in retrospect, for what the client was doing
+with the data, made perfect sense. Oops.
+
+Please be careful with this information.
+
+
+Nomenclature:
+-------------
+
+Both the header parts of Rpm files and HTTP protocol headers are discussed
+here. I try to say "rpm header" for the first and "http header" or just
+"header" for the second. Please report any problems with this usage.
+
+NVRE is a short hand for Name, Version, Release, Epoch and potentially some
+other fields from an rpm file. Both the server and the clients use these
+acronyms, so you should be familiar with them. (I try to make sure the
+server always has them capitalized). Common values appended are Arch, Size,
+and Channel.
+
+Please report any other weirdness in either the doc or common code. I'd like
+Current to be easier for other people to read than it was to develop.
+
+
+Low Level Protocols:   (Transport Protocols)
+--------------------
+
+This text assumes an intermediate familiarity with http and XMLRPC - as that
+is what developing up2date servers assumes. If you just want to hack on 
+specific API methods, skip this section.
+
+Http is the protocol that that web servers and web clients use to
+communicate, and up2date uses this protocol (and https, which is simply http
+encrypted using SSL/TLS.) The most important commands (for up2date at least)
+are POST and GET, the same ones CGI scripts use. On top of POST, up2date
+uses xml-rpc. up2date exercises almost all of the XMLRPC protocol. (Its a
+beautiful protocol in its power and simplicity - I really like it).
+
+In earlier clients, all client/server interaction was XMLRPC calls made
+across the normal "POST" method of http. This is basically a grown up CGI
+protocol. For any API call, the server gets some funny data in a standard
+(XMLRPC encoded) way, decodes it into a function name and some parameters
+(which might be an empty list).
+
+The server does some stuff, figuring out what to say to the client, and then
+(modulo some weirdness with how RH sent files and rpm headers back to the
+client) sent back a normal XMLRPC response.
+
+rhn_register still works that way, but for up2date in 2.6 and later, things
+have changed. For one thing, only up2date.login(), up2date.listChannels(),
+and up2date.solveDepedencies() are straight XMLRPC (still over "POST") like
+in the earlier clients.
+
+All the other "calls" are not XMLRPC "function" calls at all - in fact, they
+don't use XMLRPC at all, nor are they "POST" http. up2date uses "GET" now
+for bulk data transfer. (In other words, POST and XMLRPC was too slow, and
+didn't allow cacheing of results in web caches. Using GET fixes these
+problems).
+
+The http headers that were sent back in the up2date.login() call identify
+this client and provide copies of its authentication data. The headers are
+processed (to confirm the client is allowed) and then a normal web server
+GET request happens, which theoretically just returns a file.
+
+In summary form, Old Style:
+POST with XMLRPC
+    path is always 'https://some.server.com/XMLRPC'  # IE, nothing useful here
+    headers are mostly useless, except the Content-Length
+    standard input (in CGI scripts at least) is Content-Length bytes
+        of XMLRPC encoded function call,
+      
+    server processes the function call, 
+   
+    returns some XMLRPC encoded function result (which might be nothing).
+   
+New Style:   
+Some calls (all of rhn_register, and first call of up2date) are exactly
+the same as in the old style, a POST'ed XMLRPC call.
+
+The remaining calls are
+GET 
+    'path' is https://some.server.com/XMLRPC/$RHN/CHAN_NAME/METHOD/ARGUMENT
+        'https//some.server.com/XMLRPC' is the same, actually coming from
+        the up2date and rhn_register config files in /etc/sysconfig/rhn
+       
+        '$RHN' is some constant text 
+       
+        CHAN_NAME  identifies which channel this client wants to 'ask a
+        question' of
+       
+        METHOD is some particular method call like 'listPackages' or 
+        'getPackage', and ARGUMENT is some data for that method.
+       
+    'headers' contain much more interesting data, including authorization 
+        information, and X-RHN-Client-Version, identifying what 'protocol'
+        version this client understands.
+        Note that since we are a GET, there is no Content-Length header at
+        all.
+       
+    standard input (in CGI scripts at least) is completely empty. (Its
+        an open file descriptor, but contains nothing useful)
+
+Examples:
+    http://unix-install.biology.duke.edu/XMLRPC/$RHN/
+           dulug-i386-7.2/listPackages/20020730174657 
+
+    http://unix-install.biology.duke.edu/XMLRPC/$RHN/
+           dulug-i386-7.2/getPackageHeader/zsh-4.0.2-2.i386.hdr
+
+    http://unix-install.biology.duke.edu/XMLRPC/$RHN/
+           dulug-i386-7.2/getPackage/zsh-4.0.2-2.i386.rpm
+
+
+The old way was simpler (at least it was simpler to document :)) but the new
+way provides a number of desirable features. Using mod_python, itsd possible
+to intercept _just_ enough of the GET call to process (and authorize/deny)
+the http headers and then let apache just blast the requested file back down
+the pipe. Apache is VERY VERY fast, at least compared to an all python
+server.
+
+For older (IE, pure python, correct but slow) versions of Current, we
+just parsed (split) the path into method(params) and make a very
+similar call to what was used for v2.5 (Old Style) calls.
+
+
+Up2date Client/Server Notes:
+---------------
+
+These are just some notes that are important for consistency between this
+server and the Red Hat server. (You can have a working server that acts
+different than the RH server just from not sending exactly what the clients
+expect.)
+
+1. Errors
+   The client almost always takes whatever exception it gets and turns
+   it into a generic "CommunicationError", typically with its one arg being
+   the text message from the lower level exception type.
+   
+   Server exceptions generally come in two flavors - some kind of low level 
+   network problem, which shows up on the client as a socket.error or 
+   cgiwrap.ProtocolError. I never generate these directly - I let server
+   bugs show up as these. 
+   
+   If the client makes an improper query or some other recoverable problem,
+   the client will get an xmlrpclib.Fault(). Faults have 2 pieces of 
+   information - a numeric faultCode, and a (normally) textual faultString.
+   
+2. Red Hat's defined dozens of faultCodes for specific API calls. Those 
+   are slowly getting defined here as I go back and document them.
+   
+   Then in later versions they pulled most of these out. Oh well.
+   
+3. One special faultCode is 99. That indicates a busy (overloaded) server,
+   and the faultString must be a number of ??seconds?? for the client to 
+   wait and retry the request.
+   
+4. The clients (2.7 versions ESPECIALLY, but all clients) cache results 
+   from the server agressively. You'll have to remove the files from 
+   /var/spool/up2date EACH TIME for consistent debugging results.   
+      
+
+HTTP Headers:
+-------------
+
+Note that only 'Content-Length' is important for pre-2.7 (XMLRPC over
+POST) clients. 'X-Client-Version' can probably be ignored, or infered from
+the fact that the client is even doing XMLRPC over POST.
+
+For version 2.7 clients (GET requests from up2date itself), a number of 
+RHN specific headers are used. Note though that only a very few are used by
+the client itself - most are for the client to pass right back to the server
+as a token or credential to authorize later GET requests.
+
+Client accessed headers: 
+
+'X-RHN-Fault-Code' and 'X-RHN-Fault-String' are used by rhnHTTPlib.py. 
+The library converts these into a similar kind of dohicky as an
+xmlrpclib.Fault(). That code looks a little weird at this point.
+
+'X-RHN-Auth-Expiration' is used(1) to determine if the client needs to 
+do a relogin at any point. Basically, the authentication is only good 
+for about an hour. If needed, the client will automatically reauth to 
+the server. [I couldn't figure out why this was needed till I thought 
+about modem connected clients downloading large package sets...]
+
+'X-RHN-Auth-Channels' are a list of (wait for it!) channels that this client
+is authorized to use. 
+
+All the rest are just sent back to the server, untouched: 
+'X-RHN-Client-Version' 'X-RHN-Auth-User-Id' 'X-RHN-Server-Id'
+
+(1) There are two minds at work in developing the client, and they aren't
+talking to each other. Somebody created a rhnDefines.py which is a simple 
+mapping of some CONSTANT to the actual http header text. And then they
+almost never use it (its used ONCE in 2.7.2, for AUTH_EXPIRATION). 
+The other developer just accesses the http headers directly. I don't know
+what to make of this. 
+
+Its not the only disconnect - there are a couple of helper functions
+defined, that are never used. Example: up2date.getChannels() is ignored by
+the (close by) up2date.getAvailablePackageList().
+
+
+API CALL DOCUMENTATION:
+=======================
+API calls will look like "registration.welcome_message" where 
+registration is the section or catagory of call, and welcome_message is 
+the name of the call itself. They look like regular python calls through
+the miracle of XML-RPC and the gnarly python implementation. (Thank RH for
+picking some sane languages/standards for doing this)
+
+
+Registration
+------------
+up2date itself may make registration calls - they aren't just for
+rhn_register
+
+
+registration.add_hw_profile()
+    versions: 2.5, 2.7
+    params = (sysid, hardware_info)
+    returns = nothing
+    faultCodes: 99 = delay.
+
+    Where hardwareInfo is an array of dictionaries. I recommend the
+    hardware.py module of register for the exact, gruesome details.  class
+    "MEMORY", "NETINFO", and "CPU" are the only really interesting looking
+    items. (for dukebio at least)
+
+                    
+registration.add_packages()
+    versions: 2.5, 2.7
+    params = (sysid, package_list)
+    returns = nothing
+    faultCodes: 99 = delay.
+
+    Where package_list is a list of lists:
+    [
+      [ N, V, R, E ]
+      [ N, V, R, E ]
+    ]
+    
+    OR a single list of:
+    [ N, V, R, E ]
+    
+    of the packages to add to this systems profile.
+    
+
+registration.delete_hw_profile()
+    versions: 2.5, 2.7 
+
+    Note: Not actually used in rhn_register
+
+
+registration.delete_packages()
+    versions: 2.5, 2.7 
+    params = (sysid, package_list)
+    returns = nothing 
+
+    The package_list is the same two possibilities documented in
+    registration.add_packages(). The function call exists in up2date,
+    but isn't used, anywhere.
+
+
+registration.list_packages()
+    versions: 2.5,  2.7
+    params = (sysid)
+    returns = a [ [NVRE], [NVRE], [NVRE] ] type list of lists.
+    faultCodes: 99 = delay
+
+    Note: Only appears in the listPackages() function, which is not used.
+
+
+registration.new_system()
+    versions: 2.5,  2.7
+    params = (system_dict, optional packages)   tuple of 1 or 2 dicts
+        system_dict is a dict of [ username, password, profile_name,
+            architecture, & os_release ]. The profile_name defaults to the
+            hostname of the client. 
+    faultCodes: 99 = delay.
+    return the sysId of this new system.        
+
+    The optional packages list is implied by the API, but in the text
+    client is never used. Instead, a separate registration.add_packages
+    call is made with the same info.
+    SysId is the basically the system_dict, plus some stuff, encoded in 
+    xml. 
+    
+    API BUG: The new_system() call doesn't include the 'operating_system'
+    field, but the resulting sysid is expected to contain it. How is up2date
+    server to know? You could be a solaris machine with rpm ported...
+    
+    SysId = { username, profile_name, architecture, os_release, 
+              type = 'REAL', checksum = '', operating_system = 'Red Hat Linux',
+              description = '_release_ running on _architecture_'
+              fields = result.keys() }
+    return = '<?xml version="1.0"?>\n' + xmlrpclib.dumps(tuple([SysId]))          
+
+          
+registration.new_user()
+    versions: 2.7
+    params = (username, password, optional email_address, optional orgid,
+              optional orgpassword)
+             tuple of 2 to 5 strings
+    NOTE: code indicates email is optional, but both gui and tui require it
+    faultCodes: 99 = delay.
+    return nothing
+
+
+registration.privacy_statement()    
+    versions: 2.5, 2.7 
+    params are empty
+    return is a string with the message
+    faultCodes: 99 = delay.
+    FIXME: get the message from config
+
+
+registration.refresh_hw_profile()
+    versions: 2.5, 2.7 
+
+    Used by: rhn_check
+    
+    Note: Not actually used in rhn_register
+
+
+registration.refresh_packages()
+    versions: 2.7, 2.7
+
+    Note: Not actually used in rhn_register
+
+
+registration.register_product()
+    versions: 2.5, 2.7 
+    params = (sys_id, product_info) tuple of length 2
+        product_info is a poorly named dictionary, which actually describes
+        a user. Keys are optional, and can contain
+        [ title, first_name, last_name, company, address1, address2, city,
+        state, zip, country, position, phone, fax, reg_num
+        contact_{email,fax,mail,newsletter,phone,special} ]
+        Title is really salutation. 
+        contact_* are integer indications about how to notify users of 
+        errata, whatever.
+    faultCodes: 99 = delay.
+    return nothing
+
+    
+registration.reserve_user()
+    versions: 2.5, 2.7 
+    params = (username, password)  tuple of strings, length 2
+    faultCodes: 99 = delay.
+                -3 = account already in use
+                -14 = password too short
+                -15 = bad chars in the username
+    return xmlrpclib.True if the user is already registered with up2date
+                          AND the password matches. If the password doesn't
+                          match, then its an existing account.
+    return xmlrpclib.False if the user is new 
+
+    
+registration.send_serial()
+    versions: 2.5, 2.7 
+    params = (sys_id, serial_number, OPT oemId) tuple of strings, len 2 or 3
+    faultCodes: 99 = delay
+    returns nothing
+
+    serial_number is chosen strictly by the user
+    oemId is potentially set in the rhn_register config file
+
+
+registration.update_packages()
+    versions: 2.5, 2.7 
+    params = (sysid, package_list)
+    returns = nothing
+    Called by: rhn_check, 
+
+    Where packageList is an array of arrays, where each inner array is
+    ['pkgname', 'version', 'release', 'epoch'] of all the packages currently
+    installed on the client system, and so this data should _replace_ the
+    current profiles pkg list.
+
+    Note: Not actually used in rhn_register. I would have expected it
+          instead of the add_packages() call, but I guess RH is assuming 
+          its a new system.
+
+
+registration.upgrade_version()
+    versions: 2.5, 2.7 
+    params = (sysid, new_version)
+    returns = New sysid
+    Where the new version is the new distribution release/version number. 
+    Essentially resets the os_release field of the sysid.
+
+    Note: Not actually used in rhn_register
+
+
+registration.validate_reg_num()
+    versions: 2.5, 2.7 
+    params = (regNum)
+    return nothing
+    faultCodes: 99 = delay.
+                -16 = invalid registration number
+                
+    NOTE: This call is in rhnreg.validateRegNum(), which is not called by
+    anything that I can see.
+    
+    
+registration.welcome_message()
+    versions: 2.5, 2.7 
+    params are empty
+    return is a string with the message
+    faultCodes: 99 = delay.
+    FIXME: get the message from config
+    
+
+Up2Date
+-------
+I document the newer GET based calls as if they were regular xmlrpc calls.
+This is because the code is slowly transitioning, and the doc is too. :(
+
+The new api functions are documented first, then the older ones. 
+
+up2date.getPackage()
+    versions: 2.7
+    params: (channel, filename)
+    returns: unknown
+    faultCodes: unknown
+    
+    
+up2date.getPackageHeader()
+    versions: 2.7
+    params: (channel, filename)
+    returns: unknown
+    http headers:
+        Content-Length = len(header)
+        X-RHN-Package-Header = filename (the original .hdr filename)
+        Last-Modified = stat of the channel??? 
+        Content-Type = "application/octet-stream"
+    
+    faultCodes: unknown
+    
+    The filename comes in as basically an rpm filename, but instead of
+    '.rpm' it ends with '.hdr'. The logical thing to do is cache these
+    rpm headers somewhere for faster processing.
+
+    
+up2date.getPackageSource()
+    versions: 2.7
+    params: (channel, filename)
+    returns: unknown
+    faultCodes: unknown
+    
+
+up2date.listChannels()
+    versions: 2.7
+    params: (channel_label, channel_version)
+    returns: unknown
+    faultCodes: unknown
+    
+    
+up2date.listPackages()
+    versions: 2.7
+    params: (channel, lastmod)
+    returns: unknown
+    faultCodes: unknown
+    
+    
+up2date.login()
+    versions: 2.7
+    params: (sysid) 
+    returns: unknown
+    faultCodes: unknown
+    
+    
+up2date.solveDependancies()
+    versions: 2.7
+    params: (sysid, unknowns)
+    returns: unknown
+    faultCodes: unknown
+    
+    
+up2date.subscribeChannels()
+    versions: 2.7
+    params: unknown
+    returns: unknown
+    faultCodes: unknown
+    
+    
+up2date.unsubscribeChannels()
+    versions: 2.7
+    params: unknown
+    returns: unknown
+    faultCodes: unknown
+    
+
+Errata
+------
+
+errata.GetByPackage()
+    versions: 2.5, 2.7
+    params = (pkgName, os_release) 
+             where os_release is the 'version' field from the clients rpmdb.
+             why this doesn't use the sysid, I don't know.
+    returns a list of structures representing advisories about this package
+    faultCodes: none specified. Just return a string.
+    
+    In up2date 2.5, an advisory is a dict with:
+    'errata_type': I assume this is like 'bug, remote exploit, local exploit
+                   or whatever
+    'advisory':    Looks to be the RH assigned number for this one.
+    'topic':       Is probably the package or system this advisory affects.
+                   'Buffer overflows in ypbind' or something.
+    'description': has got to be the big long winded discussion part.
+
+    In up2date 2.7, we add:
+    'errata_id': a numeric for the "advisory"?
+    'synopsis':  another name for the topic?
+    
+    It returns a list, but at least the gui throws away all the entries but
+    the last. I expect this is for multiple advisories/erratas for the 
+    same package, and they just want to print the last, most recent one.
+    
+    My intention is to only return one, for server simplicity. That should
+    satisfy both gui/tui quite well.
+    
+    The gui client uses all four fields. The command line version just uses
+    advisory and topic.
+    
+    Note: I've guessed at what the fields are from how they are used and 
+    their names.
+    
+                  
+errata.getErrataInfo()
+    versions: 2.7
+    params: (sysid, errata_id)
+    returns: unknown
+    faultCodes: unknown
+    
+    
+errata.getPackageErratum()
+    versions: 2.7
+    params: (sysid, package)
+    returns: unknown
+    faultCodes: unknown
+    
+
+Queue
+-----
+
+Types:
+
+An action from the server is a dict with fields:
+'id':
+'version': a string, representing a single int. (fed to int())
+           rhn_check understands version 2 in 2.7.86
+'action': XMLRPC encoded method call for the client
+          includes the normal 'method' and 'params' portions.
+
+A status from the client back to the server is a dict with fields:
+'uname': results of os.uname() call
+'uptime': two integers representing total uptime in seconds and 
+          uptime in this run-level
+          FIXME: is this a list? 
+          
+                        
+
+queue.submit()
+    versions: 2.7, 2.9
+    params: (action_id, status, message, data)
+    returns:
+    
+queue.get()
+    versions: 2.7, 2.9
+    params: (systemid, action_version, client_status)
+    returns:
+    
+    action_version is a simple int, and has been '2' for all of 2.7-2.9
+    client_status is the dict described in the "Types" section above.
+    
+HUNTER: you're at the check_action and handle_action fucntions    
+
+
+That should be enough to cook your noodle. Its done a number on me.
+    

@@ -1,0 +1,64 @@
+From the real RHN
+
+[root@jade up2date]# rm -f * ; up2date -l
+bar
+httpServerUrl: https://www.rhns.redhat.com/XMLRPC
+
+Retrieving list of all available packages...
+unRHN server = Apache/1.3.20 (Unix)  (Red-Hat/Linux) mod_python/2.7.3 Python/1.5.2
+unRHN x-rhn-client-version = 2
+unRHN x-info = XML-RPC Processor (C) Red Hat, Inc ($Revision: 1.1 $)
+unRHN content-type = text/xml
+unRHN date = Fri, 21 Dec 2001 18:24:08 GMT
+unRHN content-encoding = x-gzip
+unRHN content-transfer-encoding = binary
+unRHN x-client-version = 1
+unRHN content-length = 15401
+unRHN last-modified = Wed, 19 Dec 2001 20:51:49 GMT
+unRHN via = 1.1 www.rhns.redhat.com
+########################################
+########################################
+unRHN server = Apache/1.3.20 (Unix)  (Red-Hat/Linux) mod_python/2.7.3 Python/1.5.2
+unRHN x-rhn-client-version = 2
+unRHN x-info = XML-RPC Processor (C) Red Hat, Inc ($Revision: 1.1 $)
+unRHN content-type = text/xml
+unRHN date = Fri, 21 Dec 2001 18:24:10 GMT
+unRHN content-encoding = x-gzip
+unRHN content-transfer-encoding = binary
+unRHN x-client-version = 1
+unRHN content-length = 7684
+unRHN last-modified = Fri, 21 Dec 2001 14:10:48 GMT
+unRHN via = 1.1 www.rhns.redhat.com
+########################################
+########################################
+
+Removing installed packages from list of updates...
+########################################
+
+Removing packages marked to skip from list...
+########################################
+
+Getting headers for available packages...
+unRHN server = Apache/1.3.20 (Unix)  (Red-Hat/Linux) mod_python/2.7.3 Python/1.5.2
+unRHN x-rhn-client-version = 2
+unRHN content-type = application/octet-stream
+unRHN x-rhn-package-header = pam-devel-0.75-18.7.i386.hdr
+unRHN date = Fri, 21 Dec 2001 18:24:15 GMT
+unRHN x-info = XML-RPC Processor (C) Red Hat, Inc ($Revision: 1.1 $)
+unRHN x-client-version = 1
+unRHN content-length = 24901
+unRHN last-modified = Tue, 13 Nov 2001 21:15:29 GMT
+unRHN via = 1.1 www.rhns.redhat.com
+
+unRHN server = Apache/1.3.20 (Unix)  (Red-Hat/Linux) mod_python/2.7.3 Python/1.5.2
+unRHN x-rhn-client-version = 2
+unRHN content-type = application/octet-stream
+unRHN x-rhn-package-header = tetex-xdvi-1.0.7-15.6.i386.hdr
+unRHN date = Fri, 21 Dec 2001 18:24:16 GMT
+unRHN x-info = XML-RPC Processor (C) Red Hat, Inc ($Revision: 1.1 $)
+unRHN x-client-version = 1
+unRHN content-length = 13949
+unRHN last-modified = Tue, 23 Oct 2001 19:54:02 GMT
+unRHN via = 1.1 www.rhns.redhat.com
+There was a fatal error communicating with the server.  The message was:
+Connection aborted by the user

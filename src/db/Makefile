@@ -2,7 +2,7 @@
 # Makefile for installing the database package for current
 #
 
-MODULES			= currentdb __init__ resultSet sessions
+MODULES			= currentdb __init__ resultSet sessions web profile
 PYFILES         = $(addsuffix .py,  $(MODULES))
 OBJECTS         = $(addsuffix .pyc, $(MODULES))
 

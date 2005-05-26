@@ -9,7 +9,7 @@ be using this software. I hate to discourage people, but as a professional
 system administrator, I'm morally opposed to helping people destroy their
 machines.
 
-Current 1.5.x is in very active development right now. You should be willing
+Current 1.7.x is in very active development right now. You should be willing
 (and able) to help debug and test what may turn out to be very wonky
 software (especially in the snapshots). If you need to report a problem,
 please send it to the mailing list (even if only I can answer the question,
@@ -72,6 +72,23 @@ configs.  Normally /etc/httpd/conf/ssl.key/ and /etc/httpd/conf/ssl.crt/.
 This sets up the database schema.  Restart Apache and current should be
 operational.
 
+*) Edit your up2date configuration files to point to the new Current
+server.  You want something that looks like
+
+    http://<server>/XMLRPC
+    https://<server>/XMLRPC
+
+Its pretty clear what to change in /etc/sysconfig/rhn/up2date.  The cadmin
+tool uses this file to figure out what server to issue Current commands
+to although in 1.7 and up there is a '-s' or '--server' flag to specify
+a URL of the form above.
+
+*) "cadmin test" will test out the connection to the Current server
+and print the values of sys.path.  If you get a traceback checkout the
+current.log, and apache logs to trace down the problem.  Also, you can
+use the '-s' switch to specify the server URL manually.  The cadmin
+command also supports --help.
+
 *) Run: cadmin create_channel -r <release> -a <arch> -l <label> -n <name>
 This will create a channel for you.  The release must match the version
 of the redhat-release or fedora-release package on your clients.  The
@@ -84,10 +101,13 @@ Adds a directory to the channel specified by label.  Any RPMs in that
 directory tree will be included in the channel.  You may add as many
 directories as needed.
 
-*) Run: cadmin scan_channel -l <label>
+*) Run: cadmin scan -l <label>
 This scans the directories and updates the database and the on disk
 data that Apache serves out to the up2date clients.  You may want to
 put this in a cron job.
+
+*) Take your web browser and go to http://<server>/current and you
+should find the Current web interface.
 
 There you have it.  You should now have a working Current server.
 

@@ -14,7 +14,7 @@ from currentdb import *
 # I hate doubled names like this, but I couldn't think of anything else
 # that was short.
 db = None
-
+sdb = None
 
 def selectBackend(config):
     """ Factory function to start the db type specified. """
@@ -23,7 +23,7 @@ def selectBackend(config):
     #   return globals()["%s_DB" % name]()
     # but for now, we keep it simple and stupid
 
-    global db
+    global db, sdb
     if config['db_type'] == 'postgres':
         import postgres
         sdb = postgres.PostgresDB(config)
@@ -36,7 +36,7 @@ def selectBackend(config):
     else:
         raise Exception("unknown backend type")
 
-    db = CurrentDB(config, sdb)
+    db = CurrentDB(config)
 
 
 ## END OF LINE ##

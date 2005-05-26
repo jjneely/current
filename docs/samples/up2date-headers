@@ -1,0 +1,16 @@
+Feb 27 16:53:35 /XMLRPC/$RHN/rawhide/getPackageHeader/ORBit2-2.12.1-1.i386.hdr
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[Host] == localhost:443
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[Accept-Encoding] == identity
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[x-client-version] == 1
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[x-rhn-server-id] == <REPLACE ME!>
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[x-transport-info] == Extended Capabilities Transport (C) Red Hat, Inc (version 1.40)
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[x-up2date-version] ==
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[user-agent] == rhn.rpclib.py/$Revision: 1.1 $
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[x-rhn-transport-capability] == follow-redirects=1
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[x-rhn-auth] == 41fcd144a35e9747e23c6d92c6b473d50f160b87
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[x-rhn-auth-channels] == ['rawhide', '20050214234920'],['test', '20050119220409']
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[x-rhn-auth-user-id] == foobar
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[content-type] == text/xml
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[x-rhn-auth-expiration] == 1109544806
+Feb 27 16:53:35 (/home/slack/projects/current/src/current_apache.py, accesshandler(), 119): headers_in[x-info] == RPC Processor (C) Red Hat, Inc (version 1.44)
+

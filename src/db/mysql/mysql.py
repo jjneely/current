@@ -41,10 +41,11 @@ class MysqlDB(specificDB):
 
 
     def getCursor(self):
+        c = self.conn.cursor()
         if self.cursor == None:
             self.cursor = self.conn.cursor()
 
-        return self.cursor
+        return c
 
 
     def disconnect(self):

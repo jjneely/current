@@ -1,0 +1,19 @@
+<h1 tal:content="title">The title</h1>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Epoch</th>
+        <th>Version</th>
+        <th>Release</th>
+        <th>Arch</th>
+    </tr>
+    <div tal:repeat="foo rpm">
+        <tr><td tal:content="foo/name"></td>
+            <td tal:content="foo/epoch"></td>
+            <td tal:content="foo/version"></td>
+            <td tal:content="foo/release"></td>
+            <td tal:content="foo/arch"></td>
+        </tr>
+    </div>
+</table>
+

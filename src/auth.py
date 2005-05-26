@@ -203,23 +203,25 @@ class SysHeaders:
     def addAuthChannel(self, chanInfo):
         """ Append to our authorized channels list. """
 
-        new_chan = [chanInfo['label'], chanInfo['lastupdate']]
+        new_chan = [str(chanInfo['label']), 
+                    str(chanInfo['lastupdate'])]
+                    
         self.data['X-RHN-Auth-Channels'].append(new_chan)        
 
 
     def _calcChecksum(self):
         """ Calculate the checksum field of the header id. """
         
-        str = configure.config['server_secret']
+        s = configure.config['server_secret']
         for attr in ['X-RHN-Auth-User-Id', 'X-RHN-Server-Id', 
                      'X-RHN-Auth-Expiration']:
-            str = str + self.data[attr] 
+            s = s + self.data[attr] 
 
-        # Can't append a list of lists to a string        
+        # Can't append a list of lists to a string
         for chan in self.data['X-RHN-Auth-Channels']:
-            str = str + chan[0] + ':' + chan[1]
+            s = s + str(chan[0]) + ':' + str(chan[1])
 
-        sum = sha.new(str)
+        sum = sha.new(s)
         return sum.hexdigest()
                     
 

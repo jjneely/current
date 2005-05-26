@@ -19,6 +19,7 @@ import time
 
 from db.resultSet import resultSet
 from logger import *
+import db
 import exception
 import archtab
 import RPM
@@ -53,11 +54,11 @@ class specificDB(object):
 
 class CurrentDB(object):
     
-    def __init__(self, config, specific):
+    def __init__(self, config):
         # Copy in the config information - we need it to connect, and we 
         # need it when creating and updating channels.
         self.config = config
-        self.specific = specific
+        self.specific = db.sdb
 
         self.conn = self.specific.getConnection()
         self.cursor = self.specific.getCursor()
@@ -119,7 +120,7 @@ class CurrentDB(object):
         if not os.access(chan_dir, os.W_OK):
             os.mkdir(chan_dir)
             for dir in ['getObsoletes', 'getPackage', 'getPackageHeader',
-                        'getPackageSource', 'listPackages']:
+                        'getPackageSource', 'listPackages', 'listAllPackages']:
                 os.mkdir(os.path.join(chan_dir, dir))
         # FIXME: need an else here for error handling
 
@@ -151,6 +152,7 @@ class CurrentDB(object):
         result = {}
 
         # scan the filesystem, see if anything changed
+        log("Scanning Filesystem for packages", DEBUG)
         (added_rpms, deleted_rpms) = self._scanFilesystem(channel)
         
         # Delete or add first?
@@ -161,8 +163,10 @@ class CurrentDB(object):
             # Only want to run if we actually added or removed packages
             self._updateChannelTimeStamp(channel)
 
+            log("Solving for newest RPM set", DEBUG)
             result['setactive'] = self._setActiveChannelRpms(channel)
 
+            log("Populating channel files", DEBUG)
             result['populatedirs'] = self._populateChannelDirs(channel)
 
             # Run setActive and populateChannel on any channels
@@ -569,6 +573,24 @@ class CurrentDB(object):
         xmlrpc.fileDump(self.cursor, filename, gz=1)
 
 
+    def _doListAllPackages(self, channel, filename):
+        """Return a list suitable for creating an XML data chuck for
+           up2date of all packages in this channel."""
+
+        self.cursor.execute('''select PACKAGE.name, PACKAGE.version,
+                PACKAGE.release, PACKAGE.epoch, RPM.arch, 
+                RPM.size, CHANNEL.label 
+                from PACKAGE, RPM, CHANNEL_RPM, CHANNEL  where
+                CHANNEL_RPM.rpm_id = RPM.rpm_id and
+                CHANNEL_RPM.channel_id = CHANNEL.channel_id and
+                CHANNEL.label = %s
+                and PACKAGE.package_id = RPM.package_id
+                and PACKAGE.issource = 0
+                order by PACKAGE.name''', (channel,))
+       
+        xmlrpc.fileDump(self.cursor, filename, gz=1)
+
+
     def _doObsoletesList(self, channel, filename):
         """Return a list suitable for xmlrpclib of obsoletes for 
            this channel."""
@@ -589,33 +611,108 @@ class CurrentDB(object):
         xmlrpc.fileDump(self.cursor, filename, gz=1)
 
 
-    def _getPackageSourceList(self, channel):
+    def _doSourcePackages(self, channel):
         """Blah, Blah, files for getPackageSource for this channel."""
 
-        self.cursor.execute('''select RPM.filename from 
-                RPM, PACKAGE, CHANNEL, CHANNEL_RPM
+        self.cursor.execute('''select RPM.filename, PACKAGE.name,
+                PACKAGE.version, PACKAGE.release
+                from RPM, PACKAGE, CHANNEL, CHANNEL_RPM
                 where PACKAGE.issource = 1
                 and CHANNEL.channel_id = CHANNEL_RPM.channel_id
                 and CHANNEL_RPM.rpm_id = RPM.rpm_id
                 and RPM.package_id = PACKAGE.package_id
                 and CHANNEL.label = %s''', (channel,))
-        query = self.cursor.fetchall()
         
-        return query
+        result = resultSet(self.cursor)
+        log("Creating getPacageSource symlinks", DEBUG)
+        dpath = os.path.join(self.config['current_dir'], 'www', channel, 
+                             'getPackageSource')
+        files = []
+        errors = 0
+        for row in result:
+            filename = "%s-%s-%s.src.rpm" % (row['name'], row['version'],
+                                             row['release'])
+            afn = os.path.join(dpath, filename)
+            if os.path.islink(afn) and os.readlink(afn) == row['filename']:
+                # Link is already in place and good
+                if filename in files:
+                    log("Duplicate source package NVR: %s" % row['filename'],
+                        VERBOSE)
+            else:
+                try:
+                    if os.path.exists(afn):
+                        os.unlink(afn)
+                    os.symlink(row['filename'], afn)
+                except OSError, e:
+                    log("OS Error %s occured symlinking source packages." %
+                        e.errno, MANDATORY)
+                    logException()
+                    errors = errors + 1
+                    
+            files.append(filename)
+
+        for file in os.listdir(dpath):
+            if file not in files:
+                try:
+                    os.unlink(os.path.join(dpath, file))
+                except OSError, e:
+                    log("Could not remove unknown file %s" % 
+                        os.path.join(dpath, file), VERBOSE)
+                    errors = errors + 1
+
+        return errors
    
 
-    def _getPackageList(self, channel):
+    def _doPackages(self, channel):
         """Blah, Blah, files for getPackage for this channel."""
 
-        self.cursor.execute('''select RPM.filename from RPM
-                    inner join CHANNEL_RPM_ACTIVE on (RPM.rpm_id = CHANNEL_RPM_ACTIVE.rpm_id)
-                    inner join CHANNEL on (CHANNEL_RPM_ACTIVE.channel_id = CHANNEL.channel_id)
-                    inner join PACKAGE on (RPM.package_id = PACKAGE.package_id)
-                    where CHANNEL.label = %s
-                    and PACKAGE.issource = 0''', (channel,))
-        query = self.cursor.fetchall()
+        self.cursor.execute('''select RPM.filename, PACKAGE.name,
+            PACKAGE.version, PACKAGE.release, RPM.arch
+            from RPM, CHANNEL_RPM, CHANNEL, PACKAGE
+            where RPM.rpm_id = CHANNEL_RPM.rpm_id
+            and CHANNEL_RPM.channel_id = CHANNEL.channel_id
+            and RPM.package_id = PACKAGE.package_id
+            and CHANNEL.label = %s
+            and PACKAGE.issource = 0''', (channel,))
         
-        return query
+        result = resultSet(self.cursor)
+        dpath = os.path.join(self.config['current_dir'], 'www', channel,
+                             'getPackage')
+        
+        files = []
+        errors = 0
+        for row in result:
+            filename = "%s-%s-%s.%s.rpm" % (row['name'], row['version'],
+                                             row['release'], row['arch'])
+            afn = os.path.join(dpath, filename)
+            if os.path.islink(afn) and os.readlink(afn) == row['filename']:
+                # Link is already in place and good
+                if filename in files:
+                    log("Duplicate binary package NVR: %s" % row['filename'],
+                        VERBOSE)
+            else:
+                try:
+                    if os.path.exists(afn):
+                        os.unlink(afn)
+                    os.symlink(row['filename'], afn)
+                except OSError, e:
+                    log("OS Error %s occured symlinking binary packages." %
+                        e.errno, MANDATORY)
+                    logException()
+                    errors = errors + 1
+                    
+            files.append(filename)
+
+        for file in os.listdir(dpath):
+            if file not in files:
+                try:
+                    os.unlink(os.path.join(dpath, file))
+                except OSError, e:
+                    log("Could not remove unknown file %s" % 
+                        os.path.join(dpath, file), VERBOSE)
+                    errors = errors + 1
+
+        return errors
 
         
     def _populateChannelDirs(self, channel):
@@ -641,6 +738,16 @@ class CurrentDB(object):
         log("listPackages file created successfully", TRIVIA)
         results['listPackages'] = "ok"
         
+        # listAllPackages info
+        log("Creating listAllPackages information", DEBUG)
+        pathname = os.path.join(self.config['current_dir'], 'www',
+                                 channel, 'listAllPackages', updatefilename)
+        if (os.path.exists(pathname)):
+            os.unlink(pathname)
+        self._doListAllPackages(channel, pathname)
+        log("listAllPackages file created successfully", TRIVIA)
+        results['listAllPackages'] = "ok"
+
         # Now populate the getObsoletes directory.
         log("Creating getObsoletes file", DEBUG)
         pathname = os.path.join(self.config['current_dir'], 'www', 
@@ -652,39 +759,18 @@ class CurrentDB(object):
         results['getObsoletes'] = "ok"
 
         # Now populate getPackageSource
-        log("grabbing getPackageSource information", TRIVIA)
-        query = self._getPackageSourceList(channel)
-
-        log("Creating getPacageSource symlinks", DEBUG)
-        dpath = os.path.join(self.config['current_dir'], 'www', channel, 'getPackageSource')
-        log("Unlinking old files...", TRIVIA)
-        for file in os.listdir(dpath):
-            os.unlink(os.path.join(dpath, file))
-        log("Creating symlinks...", DEBUG2)
-        for row in query:
-            src = row[0]
-            os.symlink(src, os.path.join(dpath, os.path.basename(src)))
-        log("getPackageSource synlinks created successfully", DEBUG)
-        results['getPackageSource'] = "ok"
+        ret = self._doSourcePackages(channel)
+        if ret:
+            results['getPackageSource'] = "%s Problems. See log file." % ret
+        else:
+            results['getPackageSource'] = "Ok"
 
         # now populate getPackage
-        log("grabbing getPackage information", TRIVIA)
-        query = self._getPackageList(channel)
-        
-        dpath = os.path.join (self.config['current_dir'], 'www', channel, 'getPackage')
-        log("Unlinking old files...", TRIVIA)
-        for file in os.listdir(dpath):
-            os.unlink(os.path.join (dpath, file))
-        log("Creating getPackage symlinks...", DEBUG2)
-        for row in query:
-            dir = os.path.join(dpath, os.path.basename(row[0]))
-            try:
-                os.symlink(row[0], dir)
-            except OSError, error:
-                log("OS Error number %s occurred - why?" % error, MANDATORY)
-                logException()
-        log("getPackage symlinks created", DEBUG)
-        results['getPackage'] = "ok"
+        ret = self._doPackages(channel)
+        if ret:
+            results['getPackage'] = "%s Problems. See log file." % ret
+        else:
+            results['getPackage'] = "Ok"
 
         # getPackageHeader ought to already be populated, so we're done.
         return results

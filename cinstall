@@ -14,7 +14,8 @@ Copyright 2003   Hunter Matthews  <thm@duke.edu>
 
 ## constants and defaults
 # These are replaced by make, so beware
-MODULES_DIR="/usr/share/current"
+MODULES_DIR = "src/"
+HTDOCS_DIR = "/usr/share/current/templates/htodcs"
 
 import sys
 import os
@@ -33,6 +34,7 @@ APACHE_CONFIG = """
 # Configuration added for Current  (up2date)
 #
 # We take over the /XMLRPC URL and all its sub urls
+# We take over the /current URL and all its sub urls
 # (<Location>)
 #
 # We take over the (configurable) /local/linux/ directory and all sub dirs.
@@ -45,6 +47,7 @@ APACHE_CONFIG = """
 #LogLevel debug              Set this for debugging
 
 Alias /XMLRPC/$RHN %(web_dir)s
+Alias /current/htdocs %(htdocs_dir)s
 
 <Directory %(web_dir)s>
     # Make certain these are set - current won't work without it
@@ -76,6 +79,17 @@ Alias /XMLRPC/$RHN %(web_dir)s
     PythonPath "sys.path + ['%(mod_dir)s']"
     PythonAccessHandler current_apache
 </Location>
+
+<Location "/current">
+    PythonPath "sys.path + ['%(mod_dir)s']"
+    SetHandler python-program
+    PythonHandler current_web
+</Location>
+
+<Location "/current/htdocs">
+    SetHandler None
+</Location>
+                
 
 ## END OF CURRENT ##
 """
@@ -119,6 +133,7 @@ def main():
         apache_config_file = config['apache_config_file']
         mod_dir = MODULES_DIR
         web_dir = os.path.join(config['current_dir'], 'www')
+        htdocs_dir = HTDOCS_DIR
 
         apache_config = open(apache_config_file, 'w')
 

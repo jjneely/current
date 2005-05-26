@@ -109,3 +109,14 @@ class resultSet(dict):
         return self.cursor.rowcount
 
 
+    def dump(self):
+        """Deep copy.  Return a list of dicts instead of a resultset.
+           This has the side effect of sucking everything in to python's
+           memory that was returned in this result set."""
+
+        ret = []
+        for row in self:
+            ret.append(row.copy())
+
+        return ret
+

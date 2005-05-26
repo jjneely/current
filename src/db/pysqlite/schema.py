@@ -60,6 +60,7 @@ create table CHANNEL (
     description     varchar(1024),
     lastupdate      varchar(64)
     );
+create index CHANNEL_LABEL_IDX on CHANNEL(label);
 
 create table CHANNEL_DIR (
     channel_dir_id  INTEGER PRIMARY KEY,
@@ -76,5 +77,31 @@ create table SESSIONS (
    data           text
 );
 create index SESSION_IDX on SESSIONS(sid);
+
+create table PROFILE (
+    profile_id      INTEGER PRIMAEY KEY,
+    architecture    varchar(64) not null,
+    os_release      varchar(32) not null,
+    name            varchar(128) not null,
+    release_name    varchar(64),
+    rhnuuid         varchar(32) not null,
+    username        varchar(32),
+    uuid            varchar(32)
+);
+
+create table HARDWARE (
+    hardware_id     INTEGER PRIMARY KEY,
+    profile_id      int not null,
+    class           varchar(32),
+    dict            text
+);
+
+create table INSTALLED (
+    installed_id    INTEGER PRIMARY KEY,
+    package_id      int not null,
+    profile_id      int not null
+);
+create index INSTALLED_PACKAGE_IDX on INSTALLED(package_id);
+create index INSTALLED_PROFILE_IDX on INSTALLED(profile_id);
 
 """

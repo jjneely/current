@@ -9,7 +9,7 @@
 import os
 import os.path
 
-from db.currentdb import CurrentDB
+from db.currentdb import specificDB
 from logger import *
 from exception import CurrentSQLite
 
@@ -17,7 +17,7 @@ import sqlite
 import schema
 
 
-class PySqliteDB(CurrentDB):
+class PySqliteDB(specificDB):
 
     def __init__(self, config):
         """ Initialize the new database object. """
@@ -80,10 +80,11 @@ class PySqliteDB(CurrentDB):
 
 
     def getCursor(self):
+        c = self.conn.cursor()
         if self.cursor == None:
             self.cursor = self.conn.cursor()
 
-        return self.cursor
+        return c
      
 
 ## END OF LINE ##

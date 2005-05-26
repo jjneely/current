@@ -38,8 +38,8 @@ from db.resultSet import resultSet
 class SessionDB(object):
 
     def __init__(self):
-        self.cursor = db.db.specific.getCursor()
-        self.conn   = db.db.specific.getConnection()
+        self.cursor = db.sdb.getCursor()
+        self.conn   = db.sdb.getConnection()
 
     def load(self, sid):
         q = """select createtime, timeout, data from SESSIONS where

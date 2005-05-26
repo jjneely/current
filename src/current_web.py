@@ -1,31 +1,59 @@
 from mod_python import apache
+from mod_python import util
 from sessions import *
 from logger import *
 from current_apache import init_backend
 import configure
 import db
+import os.path
+import web
+import traceback
+import sys
+import string
+import time
 
 def handler(req):
     if not configure.config:
         ret = init_backend()
+        log("Web handler: Init Backend!", DEBUG)
         if ret:
             return apache.HTTP_INTERNAL_SERVER_ERROR
         
     log("Inside Current Web handler", DEBUG)
+    req.content_type = "text/html"
 
-    req.content_type = "text/plain"
-
+    t = time.time()
     sess = CookieSession(req)
     if sess.isNew():
         sess['userid'] = "foobar"
-        sess.save()
-        req.write("New session!\n")
-    else:
-        sess.save()
-        req.write("Old session, userid = %s" % sess['userid'])
     
-    req.write("sid = %s\n" % sess.sid)
+    file = os.path.basename(req.uri)
+    mod = file.split('.')[0]
+    if mod in ["", "current"]:
+        # Request without specific python file to run.  Give user summary
+        mod = "summary"
+        
+    if mod in web.modules:
+        try:
+            page = web.modules[mod].WebPage(configure.config,
+                                            sess,
+                                            util.FieldStorage(req))
+            s, ret = page.run()
+            sess.save()
+            req.write(s)
+        except Exception, e:
+            # show exception on the browser
+            req.content_type = "text/plain"
+            req.write("A Python Exception has Occured:\n\n")
+            text = traceback.format_exception(sys.exc_type,
+                                              sys.exc_value,
+                                              sys.exc_traceback)
+            req.write(string.join(text, '\n'))
 
-    return apache.OK
+        req.write("Time: %s\n" % str(time.time()-t))
+        return apache.OK
+            
+    # Okay, we didn't find any code to run based of what was requested
+    return apache.HTTP_NOT_FOUND
 
 

@@ -1,5 +1,21 @@
                         Current Project Changelog
 
+* Wed May 24 2005 Jack Neely <jjneely@gmail.com>
+- Current 1.7.2 -- Developer's only release
+- Management of RPMs served out by Current handled much better.
+- Detection of duplicate NEVR in channels
+- More efficiant symlinking
+- The scan process should not traceback due to file issues but handle
+  the errors cleanly
+- RPM filenames are now always what up2date expects rather than what
+  you may have happened to name the file
+- Database has seprate modules for seprate functions.  currentdb handles
+  files.  web.py handles quries for the web interface.  profile.py
+  handles queries releated to individual clients.
+- A templated web frontend
+- web code in src/web
+- templates in templates/
+
 * Mon Apr 04 2005 Jack Neely <jjneely@gmail.com>
 - Current 1.7.1 -- Developer's only release
 - Re-work cadmin to have a modular inerface that's easily expanded.

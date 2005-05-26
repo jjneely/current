@@ -11,7 +11,7 @@ OBJECTS         = $(addsuffix .pyc, $(MODULES))
 
 INSTALL_DIRS	= $(DATA_DIR)
 
-SUBDIRS = db api simpletal admin
+SUBDIRS = db api simpletal admin web
 
 
 # default python rules:

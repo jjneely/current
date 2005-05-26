@@ -21,7 +21,7 @@ MISC            = Makefile support .cvsignore
 
 ALLFILES        = $(PROGRAMS) $(SRC) $(CONFIG) $(DOC) $(MISC)
 
-SUBDIRS			= src docs
+SUBDIRS			= src docs templates
 
 # Autoconf calls it data, but we're sticking python portable modules there.
 DATA_DIR		= $(PREFIX)/share/$(PROJECT)

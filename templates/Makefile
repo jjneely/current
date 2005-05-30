@@ -30,7 +30,8 @@ clean::
 	@rm -fv *.pyc *.pyo *~
 
 sedrules::
-	
+	@echo "Nothing to do here."
+
 # Now do the same in the subdirs
 all install clean:: $(SUBDIRS)
 	@for d in $(SUBDIRS) ; do $(MAKE) -C $$d $@ ; done

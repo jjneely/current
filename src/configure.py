@@ -32,6 +32,7 @@ defaults = {
     "apache_config_file": "/etc/httpd/conf.d/current.conf",
     "log_file":    LOG_DIR + "/current.log",
     "log_level":   0,
+    "template_dir": "/usr/share/current/templates",
 }
 
 

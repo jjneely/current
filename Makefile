@@ -17,7 +17,7 @@ PROGRAMS		= cinstall
 CONFIG			= current.conf
 SRC				= src
 DOC             = docs CHANGELOG LICENSE README TODO RELEASE-NOTES
-MISC            = Makefile support .cvsignore
+MISC            = Makefile support .cvsignore templates
 
 ALLFILES        = $(PROGRAMS) $(SRC) $(CONFIG) $(DOC) $(MISC)
 
@@ -90,6 +90,6 @@ clean::
 
 # Now do the same in the subdirs
 all install clean sedrules:: $(SUBDIRS)
-	@for d in $(SUBDIRS) ; do $(MAKE) -C $$d $@ ; done
+	for d in $(SUBDIRS) ; do $(MAKE) -C $$d $@ ; done
 
 # END OF LINE #

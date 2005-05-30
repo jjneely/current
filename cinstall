@@ -14,8 +14,8 @@ Copyright 2003   Hunter Matthews  <thm@duke.edu>
 
 ## constants and defaults
 # These are replaced by make, so beware
-MODULES_DIR = "src/"
-HTDOCS_DIR = "/usr/share/current/templates/htodcs"
+MODULES_DIR="/usr/share/current"
+HTDOCS_DIR="/usr/share/current/templates/htdocs"
 
 import sys
 import os

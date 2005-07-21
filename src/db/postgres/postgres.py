@@ -33,7 +33,7 @@ class PostgresDB(specificDB):
             log("Connected via user/password", TRACE)
         except Exception, e:
             log("Could not get DB connection!", MANDATORY)
-            logexception()
+            logException()
             # Do something useful here?
             raise
         

@@ -76,7 +76,12 @@ class CurrentDB(object):
            we need to be able to abore the transaction."""
         
         log("Database transaction aborted!", VERBOSE)
-        self.conn.rollback()
+        try:
+            self.conn.rollback()
+        except Exception, e:
+            log("Database Corruption! Cannot rollback database!",
+                MANDATORY)
+            log("Database said: %s" % str(e), MANDATORY)
 
 
     def makeChannel(self, channel):

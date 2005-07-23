@@ -20,15 +20,17 @@
 
 <h3>Mission</h3>
 
-<p>To completely implement a correct server for all of Red Hat's excellent
-up2date tools. Current is not expected to scale to the same mammoth
-proportions, but it should be fast enough and capable enough to support
-several hundred machines without driving the sysadmins mad.</p>
+<p>To create an open source Advanced Management System for Linux machines.  
+This is a web based system administrator's tool that is capable of deploying
+package updates and errata, monitoring the hardware and software state of each
+machine, and dispatching administrative tasks to each machine.
+A part of this is to implement a correct server for all of Red Hat's
+excellent up2date tools and be able to scale to thousands of machines.</p>
 
 
 <h3>Features</h3>
 <ul>
-    <li>Production quality for 2.7 to 4.3 clients with a Fedora Core 1, 2, 3, or Red Hat Enterprise Linux 3, or 4 server.</li>
+    <li>Production quality Up2date server for 2.7 to 4.4 clients with a Fedora Core 1, 2, 3, 4, or Red Hat Enterprise Linux 3, or 4 server.</li>
     <li>Full SQL database backend.</li>
     <li>Web Interface in the devel series.</li>
     <li>As easy to setup for the admin as we can make it.</li>
@@ -38,11 +40,17 @@ several hundred machines without driving the sysadmins mad.</p>
 <h3>Recent News</h3>
 <ul>
 
+    <li><b>[23 Jul 2005] Current 1.6.1</b>
+    <p>A new release in the stable 1.6 series.  This fixes a few bugs from
+    Issue Tracker and adds support for versions of Up2date that ship with Fedora
+    Core 4.</p></li>
+    
     <li><b>[29 May 2005] Current 1.7.2</b>
     <img src="screenshot01.jpg" align="right" />
     <p>This version lays out some examples, classes and templates for
     creating a web interface.  Even have some CSS.  Folks, this is where the 
-    fun starts.</p>
+    fun starts.</p></li>
+    
     <li><b>[04 Apr 2005] Current 1.7.1</b>
     <p>Kick off a new development branch with Current 1.7.1.  The code
     changes are mostly the beginnings of some ideas right now.  Most
@@ -61,16 +69,6 @@ several hundred machines without driving the sysadmins mad.</p>
     <p>I've beaten CVS head into submission and am releasing a new 
     development version 1.5.6 with a re-worked database layer.</p></li>
     
-<li><b>[24 Jun 2003] Added an FAQ to the website</b>
-<p>We now have an online <a href="faq.html">FAQ</a> from Scott Schmit! 
-Thanks Scott.</p></li>
-
-<li><b>[12 Jun 2003] Released 1.4.4</b>
-<p>
-Release 1.4.4 provides full compatibility with all recent versions of 
-Red Hat (both server and client)
-</p></li>
-
 </ul>
 
 
@@ -89,29 +87,33 @@ Red Hat (both server and client)
     <p><b>Releases -</b> All source code and RPM packages of Current 
     releases can be downloaded from the <a href="http://current.tigris.org/servlets/ProjectDocumentList">Documents and Files</a> section.</p></li>
 
-    
     <li><p><b>Source Code Control -</b>
-The source is stored in tigris.org's CVS system. Please see the help menu
-to the left (or click on the Source Code link at the top left) to get 
-or browse our CVS repository.</p>
-<p>As of October 4th, 2004 I have moved the main development over to a
-Subversion server.  To take part in active development you will want to 
-get the latest source code by pointing your web browser or your Subversion
-client to <a href="https://svn.linux.ncsu.edu/svn/slack/trunk/current">
-    https://svn.linux.ncsu.edu/svn/slack/trunk/current</a>.  Releases
-will still be committed to Tigris's CVS system.</p>
+    The source is stored in tigris.org's Subversion system. Please see the help 
+    menu or click on the "Subversion" link at the top left to  
+    browse our Subversion repository.  Read only access to the actual
+    SVN repository is granted to folks that have an Observer roll in this
+    project.</p>
 
-<li><p><b>FTP -</b>
-Hunter's Current ftp repository 
-<a href="ftp://ftp.biology.duke.edu/admin/current">here</a>.
-Jack's Current ftp repository is 
-<a href="ftp://ftp.quackmaster.net/current">here</a>.
+    <p>Between October 4, 2004 and July 22 2005 I did a lot of work with 
+    a personal Subversion server as I waited for Tigris to upgrade their 
+    systems.  If you would like access to the history and information stored
+    in that SVN server please go here:
+    <a href="https://svn.linux.ncsu.edu/svn/slack/trunk/current">https://svn.linux.ncsu.edu/svn/slack/trunk/current</a>.
+    As of July 22, 2005 the Tigris SVN resources are now the primary SCM for
+    Current.</p></li>
+
+    
+<li><p><b>Hunter's Current FTP repository: </b>
+<a href="ftp://ftp.biology.duke.edu/admin/current">ftp://ftp.biology.duke.edu/admin/current</a></p></li>
+
+<li><p><b>Jack's Current FTP repository: </b>
+<a href="ftp://ftp.quackmaster.net/current">ftp://ftp.quackmaster.net/current</a>
 </p></li>
 
 </ul>
 
 
-<h3>Dependancies</h3>
+<h3>Dependencies</h3>
 
 <p><b>New for Current 1.7 - </b> Current versions 1.7 and up require
 mod_python 3.1 and Python 2.3.  It should be possible to get Current
@@ -126,15 +128,13 @@ working in some form or another.  The above distributions all include
 Python, mod_python, RPM, Apache, and a database Current knows how to use.
 However, Current intends to support several different databases. 
 Below are the names of the databases that we intend to make
-Current work with.  Hyperlinks are used if these packages are missing
-from some distributions.  Also, Current only uses SQL databases
+Current work with.  Also, Current only uses SQL databases
 in version 1.5.x and above.</p>
 
 <ul>
     <li>PostgreSQL</li>
     <li>MySQL</li>
-    <li><a href="http://dag.wieers.com/packages/sqlite/">SQLite</a> and
-    <a href="http://dag.wieers.com/packages/python-sqlite/">pySQLite</a></li>
+    <li>SQLite and python-sqlite (See Fedora Extras)</li>
 </ul>
     
 
@@ -160,36 +160,45 @@ We'll add it.</p>
 
 <h3>Future Directions</h3>
 <p>
-Naturally, supporting new versions of the client and making current work
-on newer releases of Red Hat Linux are a priority. Other areas we look 
-forward to:</p>
+A lot of thought has gone into where to take Current.  The writing on the wall
+is clear that an RHN-alike is just not the way to go.  The Linux community 
+needs a tool that is to system administration as Yum/Up2date are to package
+deployment.  One of our primary goals will be to bring automated management
+to Yum based systems by providing an Action Agent similar to rhnsd that
+can work on non-up2date machines.  Here are some specifics to what we
+are working toward.
+</p>
 
 <ul>
-    <li> <p>Client Monitoring: <br />
-    Before we move into client management features, lets get a website 
-    working with Current and display of information and statistics of
-    all the clients we know about.
-    </p></li>
 
-<li><p> Basic client management: <br />
-Once we have the basics complete in the SQL backend (to support the same
-modes of use we have now) we naturally want to start supporting at least
-the basic client management features available in up2date. This includes 
-full push (rhnsd/rhn_check) and being able to "group" clients together.
-Naturally, this has to follow the 1.5.x/1.6.x release.</p></li>
+    <li>Yum Support</li>
 
-<li><p> To infinity, and beyond: <br />
+    <li>Action Agent: A client agent that communicates with the Current server.  
+    Able to
+    report the status of the machine and run a specific set of Actions. 
+    This client will be separate from Up2date and aimed at systems using
+    Yum.</li>
+    
+    <li>Client Monitoring:  Display in a web tool known information about
+    each system.
+    </li>
+
+    <li>Basic client management: 
+    This includes 
+    full push (rhnsd/rhn_check) and being able to "group" clients together.
+    </li>
+
+    <li>To infinity, and beyond: <br />
 Applet support, full HTML driven management interfaces, full errata
-annoucements, "proxy" server like support, there are literally dozens of
-really useful features in up2date that we can support, if only we write
-enough python. :)</p></li>
+announcements, "proxy" server like support, etc.  Similar support using
+the Current Action Agent instead of the up2date tools.</li>
 
 </ul>
-<p></p>
 
 
 <h3>Related Resources</h3>
 <ul>
+<li><a href="http://linuxczar.blogspot.com">Your Maintainer's Blog</a></li>
 <li><a href="http://rhn.redhat.com">Red Hat Network website</a> - If current doesn't meet your needs, go here. This WILL. Thanks to Red Hat for an excellent client.
 <li><a href="http://www.python.org">The Python home page</a></li>
 <li><a href="http://httpd.apache.org">The apache web server</a></li>

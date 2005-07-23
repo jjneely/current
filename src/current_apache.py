@@ -235,6 +235,11 @@ def sendClientResult(req, result):
     req.headers_out.add('Content-type', 'text/xml')
     req.headers_out.add('Content-length', str(len(data)))
 
+    # Define out Capabilities
+    # XXX: Sane way to do this?
+    caps = 'registration.extendedPackageProfile(1)=1'
+    req.headers_out.add('X-RHN-Server-Capability', caps)
+
     req.send_http_header()
     req.write(data)
     log('Data sent.', TRACE)

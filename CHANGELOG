@@ -1,5 +1,17 @@
                         Current Project Changelog
 
+* Fri Jul 22 2005 Jack Neely <jjneely@gmail.com>
+- Add register.extendedPackageProfile capability
+
+* Thu Jul 21 2005 Jack Neely <jjneely@gmail.com>
+- Make getCannonArch() more flexible.  Should support ia32e now as well
+  as make a close guess to what the Cannon Arch should be for any arch.
+  Bug #36.
+- Fix typo in postgres.py where I was trying to call logexception() instead
+  of logException().  Bug #33.
+- Bug #32.  If an exception happens during a rollback try to make nice
+  and keep going.  Log nasty error message.
+
 * Wed May 24 2005 Jack Neely <jjneely@gmail.com>
 - Current 1.7.2 -- Developer's only release
 - Management of RPMs served out by Current handled much better.

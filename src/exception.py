@@ -5,6 +5,8 @@ class CurrentException(Exception):
 
     pass
 
+class CurrentRPCError(CurrentException):
+    pass
 
 class CurrentDB(CurrentException):
     pass

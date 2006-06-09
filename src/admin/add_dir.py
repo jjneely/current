@@ -1,4 +1,5 @@
-from admin import CadminConfig, rpcServer
+from admin import CadminConfig
+import xmlrpc
 import pprint
 import optparse
 import sys
@@ -36,6 +37,6 @@ class Module(CadminConfig):
             parser.print_help()
             sys.exit()
             
-        result = rpcServer.doCall(server.cadmin.populateChannel, chan)
+        result = xmlrpc.doCall(server.cadmin.populateChannel, chan)
         pprint.pprint(result)
 

@@ -31,6 +31,7 @@ log = logger.log
 # Our config modules
 sys.path.append("/usr/share/current/")
 import admin
+from exception import CurrentRPCError
 
 def getServer(url=""):
     if url == "" and not os.access("/etc/sysconfig/rhn/up2date", os.R_OK):
@@ -112,10 +113,16 @@ def main():
     if command not in admin.modules.keys():
         parser.print_help()
         sys.exit()
-
+    
+    print
     server = getServer(opts.server)
     module = admin.modules[command].Module()
-    module.run(server, commandOpts)
+
+    try:
+        module.run(server, commandOpts)
+    except CurrentRPCError, e:
+        print "An error occured.  The error message is:"
+        print str(e)
 
 
 if __name__ == '__main__':

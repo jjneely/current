@@ -1,4 +1,5 @@
-from admin import CadminConfig, rpcServer
+from admin import CadminConfig
+import xmlrpc
 import pprint
 import optparse
 import sys
@@ -25,6 +26,6 @@ class Module(CadminConfig):
 
         chan = {}
         chan['channels'] = oChans + leftargs
-        result = rpcServer.doCall(server.cadmin.scanChannels, chan)
+        result = xmlrpcdoCall(server.cadmin.scanChannels, chan)
         pprint.pprint(result)
 

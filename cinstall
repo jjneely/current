@@ -12,20 +12,25 @@ Copyright 2003   Hunter Matthews  <thm@duke.edu>
 
 """
 
-## constants and defaults
-# These are replaced by make, so beware
-MODULES_DIR="/usr/share/current"
-HTDOCS_DIR="/usr/share/current/templates/htdocs"
-
 import sys
 import os
 import os.path
+
+## constants and defaults
+# XXX: Fix the make crap
+# These are replaced by make, so beware
+try:
+    import debug
+    MODULES_DIR = os.path.abspath("src/")
+    HTDOCS_DIR = os.path.abspath("templates/htdocs")
+except ImportError:
+    MODULES_DIR="/usr/share/current"
+    HTDOCS_DIR="/usr/share/current/templates/htdocs"
 
 sys.path.append(MODULES_DIR)
 
 import configure
 import db
-import sys
 from logger import *
 
 

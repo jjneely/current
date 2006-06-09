@@ -4,9 +4,7 @@ import glob
 import os.path
 import sys
 
-sys.path.append('/usr/share/rhn')
-from up2date_client import rpcServer
-
+# Abstract Object for cadmin modules
 class CadminConfig(object):
 
     shortHelp = "No help description avaliable."

@@ -10397,3 +10397,124 @@ Jun 11 17:56:08 API Result = 0
 Jun 11 17:56:08 Result is normal data: turn it into an XML chunk
 Jun 11 17:56:08 (/home/slack/projects/current/src/current_apache.py, sendClientResult(), 245): Data sent.
 Jun 11 17:56:08 sendClientResult() finished
+
+=========================================================================
+Some extra logs that should have been in the above.
+This shows user creation and the new_system() call.
+=========================================================================
+
+Jun 11 18:20:25 Current v1.6.1 starting up
+Jun 11 18:20:25 Inside Current main hander
+Jun 11 18:20:25 Requesting: registration.new_user
+Jun 11 18:20:25   with params = ['jjneely', 'foobar', 'shit@crap.org']
+Jun 11 18:20:25 method = registration.new_user
+Jun 11 18:20:25 module = registration
+Jun 11 18:20:25 function = new_user
+Jun 11 18:20:25 (/home/slack/projects/current/src/current_apache.py, callAPIMethod(), 293): params = ['jjneely', 'foobar', 'shit@crap.org']
+Jun 11 18:20:25 Dispatching: registration.new_user
+Jun 11 18:20:25 API Result = 0
+Jun 11 18:20:25 Result is normal data: turn it into an XML chunk
+Jun 11 18:20:25 (/home/slack/projects/current/src/current_apache.py, sendClientResult(), 245): Data sent.
+Jun 11 18:20:25 sendClientResult() finished
+Jun 11 18:20:25 Current v1.6.1 starting up
+Jun 11 18:20:26 Inside Current main hander
+Jun 11 18:20:26 Requesting: registration.new_system
+Jun 11 18:20:26   with params = [{'architecture': 'i686-redhat-linux',
+  'os_release': '4',
+  'password': 'foobar',
+  'profile_name': 'narsil.local.net',
+  'release_name': 'fedora-release',
+  'rhnuuid': 'ffddeeaabb',
+  'username': 'jjneely',
+  'uuid': ''}]
+Jun 11 18:20:26 method = registration.new_system
+Jun 11 18:20:26 module = registration
+Jun 11 18:20:26 function = new_system
+Jun 11 18:20:26 (/home/slack/projects/current/src/current_apache.py, callAPIMethod(), 293): params = [{'architecture': 'i686-redhat-linux',
+  'os_release': '4',
+  'password': 'foobar',
+  'profile_name': 'narsil.local.net',
+  'release_name': 'fedora-release',
+  'rhnuuid': 'ffddeeaabb',
+  'username': 'jjneely',
+  'uuid': ''}]
+Jun 11 18:20:26 Dispatching: registration.new_system
+Jun 11 18:20:26 API Result = '<?xml version="1.0"?>\n<params>\n<param>\n<value><struct>\n<member>\n<name>username</name>\n<value><string>jjneely</string></value>\n</member>\n<member>\n<name>operating_system</name>\n<value><string>Red Hat Linux</string></value>\n</member>\n<member>\n<name>description</name>\n<value><string>4 running on i686-redhat-linux</string></value>\n</member>\n<member>\n<name>checksum</name>\n<value><string>74b2d4847890f7a5db14d0de4c3054e9f01e858a</string></value>\n</member>\n<member>\n<name>profile_name</name>\n<value><string>narsil.local.net</string></value>\n</member>\n<member>\n<name>system_id</name>\n<value><string>Current-ANONYMOUS</string></value>\n</member>\n<member>\n<name>architecture</name>\n<value><string>i686-redhat-linux</string></value>\n</member>\n<member>\n<name>os_release</name>\n<value><string>4</string></value>\n</member>\n<member>\n<name>fields</name>\n<value><array><data>\n<value><string>username</string></value>\n<value><string>operating_system</string></value>\n<value><string>description</string></value>\n<value><string>checksum</string></value>\n<value><string>profile_name</string></value>\n<value><string>system_id</string></value>\n<value><string>architecture</string></value>\n<value><string>os_release</string></value>\n<value><string>type</string></value>\n</data></array></value>\n</member>\n<member>\n<name>type</name>\n<value><string>REAL</string></value>\n</member>\n</struct></value>\n</param>\n</params>\n'
+Jun 11 18:20:26 Result is normal data: turn it into an XML chunk
+Jun 11 18:20:26 (/home/slack/projects/current/src/current_apache.py, sendClientResult(), 245): Data sent.
+Jun 11 18:20:26 sendClientResult() finished
+Jun 11 18:20:26 Current v1.6.1 starting up
+Jun 11 18:20:26 Inside Current main hander
+Jun 11 18:20:26 Requesting: registration.register_product
+Jun 11 18:20:26   with params = ['<?xml version="1.0"?>\n<params>\n<param>\n<value><struct>\n<member>\n<name>username</name>\n<value><string>jjneely</string></value>\n</member>\n<member>\n<name>operating_system</name>\n<value><string>Red Hat Linux</string></value>\n</member>\n<member>\n<name>description</name>\n<value><string>4 running on i686-redhat-linux</string></value>\n</member>\n<member>\n<name>checksum</name>\n<value><string>74b2d4847890f7a5db14d0de4c3054e9f01e858a</string></value>\n</member>\n<member>\n<name>profile_name</name>\n<value><string>narsil.local.net</string></value>\n</member>\n<member>\n<name>system_id</name>\n<value><string>Current-ANONYMOUS</string></value>\n</member>\n<member>\n<name>architecture</name>\n<value><string>i686-redhat-linux</string></value>\n</member>\n<member>\n<name>os_release</name>\n<value><string>4</string></value>\n</member>\n<member>\n<name>fields</name>\n<value><array><data>\n<value><string>username</string></value>\n<value><string>operating_system</string></value>\n<value><string>description</string></value>\n<value><string>checksum</string></value>\n<value><string>profile_name</string></value>\n<value><string>system_id</string></value>\n<value><string>architecture</string></value>\n<value><string>os_release</string></value>\n<value><string>type</string></value>\n</data></array></value>\n</member>\n<member>\n<name>type</name>\n<value><string>REAL</string></value>\n</member>\n</struct></value>\n</param>\n</params>\n',
+ {'address1': 'a1',
+  'address2': 'a2',
+  'city': 'Raleigh',
+  'company': '',
+  'contact_email': True,
+  'country': 'United States',
+  'first_name': 'Jack',
+  'last_name': 'Neely',
+  'state': 'Alaska',
+  'zip': '666'}]
+Jun 11 18:20:26 method = registration.register_product
+Jun 11 18:20:26 module = registration
+Jun 11 18:20:26 function = register_product
+Jun 11 18:20:26 (/home/slack/projects/current/src/current_apache.py, callAPIMethod(), 293): params = ['<?xml version="1.0"?>\n<params>\n<param>\n<value><struct>\n<member>\n<name>username</name>\n<value><string>jjneely</string></value>\n</member>\n<member>\n<name>operating_system</name>\n<value><string>Red Hat Linux</string></value>\n</member>\n<member>\n<name>description</name>\n<value><string>4 running on i686-redhat-linux</string></value>\n</member>\n<member>\n<name>checksum</name>\n<value><string>74b2d4847890f7a5db14d0de4c3054e9f01e858a</string></value>\n</member>\n<member>\n<name>profile_name</name>\n<value><string>narsil.local.net</string></value>\n</member>\n<member>\n<name>system_id</name>\n<value><string>Current-ANONYMOUS</string></value>\n</member>\n<member>\n<name>architecture</name>\n<value><string>i686-redhat-linux</string></value>\n</member>\n<member>\n<name>os_release</name>\n<value><string>4</string></value>\n</member>\n<member>\n<name>fields</name>\n<value><array><data>\n<value><string>username</string></value>\n<value><string>operating_system</string></value>\n<value><string>description</string></value>\n<value><string>checksum</string></value>\n<value><string>profile_name</string></value>\n<value><string>system_id</string></value>\n<value><string>architecture</string></value>\n<value><string>os_release</string></value>\n<value><string>type</string></value>\n</data></array></value>\n</member>\n<member>\n<name>type</name>\n<value><string>REAL</string></value>\n</member>\n</struct></value>\n</param>\n</params>\n',
+ {'address1': 'a1',
+  'address2': 'a2',
+  'city': 'Raleigh',
+  'company': '',
+  'contact_email': True,
+  'country': 'United States',
+  'first_name': 'Jack',
+  'last_name': 'Neely',
+  'state': 'Alaska',
+  'zip': '666'}]
+Jun 11 18:20:26 Dispatching: registration.register_product
+Jun 11 18:20:26 API Result = 0
+Jun 11 18:20:26 Result is normal data: turn it into an XML chunk
+Jun 11 18:20:26 (/home/slack/projects/current/src/current_apache.py, sendClientResult(), 245): Data sent.
+Jun 11 18:20:26 sendClientResult() finished
+Jun 11 18:20:26 Current v1.6.1 starting up
+Jun 11 18:20:26 Inside Current main hander
+Jun 11 18:20:26 Requesting: up2date.login
+Jun 11 18:20:26   with params = ['<?xml version="1.0"?>\n<params>\n<param>\n<value><struct>\n<member>\n<name>username</name>\n<value><string>jjneely</string></value>\n</member>\n<member>\n<name>operating_system</name>\n<value><string>Red Hat Linux</string></value>\n</member>\n<member>\n<name>description</name>\n<value><string>4 running on i686-redhat-linux</string></value>\n</member>\n<member>\n<name>checksum</name>\n<value><string>74b2d4847890f7a5db14d0de4c3054e9f01e858a</string></value>\n</member>\n<member>\n<name>profile_name</name>\n<value><string>narsil.local.net</string></value>\n</member>\n<member>\n<name>system_id</name>\n<value><string>Current-ANONYMOUS</string></value>\n</member>\n<member>\n<name>architecture</name>\n<value><string>i686-redhat-linux</string></value>\n</member>\n<member>\n<name>os_release</name>\n<value><string>4</string></value>\n</member>\n<member>\n<name>fields</name>\n<value><array><data>\n<value><string>username</string></value>\n<value><string>operating_system</string></value>\n<value><string>description</string></value>\n<value><string>checksum</string></value>\n<value><string>profile_name</string></value>\n<value><string>system_id</string></value>\n<value><string>architecture</string></value>\n<value><string>os_release</string></value>\n<value><string>type</string></value>\n</data></array></value>\n</member>\n<member>\n<name>type</name>\n<value><string>REAL</string></value>\n</member>\n</struct></value>\n</param>\n</params>\n']
+Jun 11 18:20:26 method = up2date.login
+Jun 11 18:20:26 module = up2date
+Jun 11 18:20:26 function = login
+Jun 11 18:20:26 (/home/slack/projects/current/src/current_apache.py, callAPIMethod(), 293): params = ['<?xml version="1.0"?>\n<params>\n<param>\n<value><struct>\n<member>\n<name>username</name>\n<value><string>jjneely</string></value>\n</member>\n<member>\n<name>operating_system</name>\n<value><string>Red Hat Linux</string></value>\n</member>\n<member>\n<name>description</name>\n<value><string>4 running on i686-redhat-linux</string></value>\n</member>\n<member>\n<name>checksum</name>\n<value><string>74b2d4847890f7a5db14d0de4c3054e9f01e858a</string></value>\n</member>\n<member>\n<name>profile_name</name>\n<value><string>narsil.local.net</string></value>\n</member>\n<member>\n<name>system_id</name>\n<value><string>Current-ANONYMOUS</string></value>\n</member>\n<member>\n<name>architecture</name>\n<value><string>i686-redhat-linux</string></value>\n</member>\n<member>\n<name>os_release</name>\n<value><string>4</string></value>\n</member>\n<member>\n<name>fields</name>\n<value><array><data>\n<value><string>username</string></value>\n<value><string>operating_system</string></value>\n<value><string>description</string></value>\n<value><string>checksum</string></value>\n<value><string>profile_name</string></value>\n<value><string>system_id</string></value>\n<value><string>architecture</string></value>\n<value><string>os_release</string></value>\n<value><string>type</string></value>\n</data></array></value>\n</member>\n<member>\n<name>type</name>\n<value><string>REAL</string></value>\n</member>\n</struct></value>\n</param>\n</params>\n']
+Jun 11 18:20:26 Dispatching: up2date.login
+Jun 11 18:20:26 /home/slack/projects/current/src/api/up2date.py:login({'sysid_string': '<sysid_string not logged>'})
+Jun 11 18:20:26 src/archtab.py:getCannonArch({'arch': 'i686-redhat-linux'})
+Jun 11 18:20:26 arch: i386, rel: 4
+Jun 11 18:20:26 found: [('RawHIDE', 'rawhide', 'i386', '', '20050721223734', None)]
+Jun 11 18:20:26 API Result = {'X-RHN-Auth': '3b84f96216acb530366785c11fc681b067471e6d',
+ 'X-RHN-Auth-Channels': [['rawhide', '20050721223734']],
+ 'X-RHN-Auth-Expiration': '1150068026',
+ 'X-RHN-Auth-User-Id': 'jjneely',
+ 'X-RHN-Server-Id': '<REPLACE ME!>'}
+Jun 11 18:20:26 Result is normal data: turn it into an XML chunk
+Jun 11 18:20:27 (/home/slack/projects/current/src/current_apache.py, sendClientResult(), 245): Data sent.
+Jun 11 18:20:27 sendClientResult() finished
+Jun 11 18:20:27 Current v1.6.1 starting up
+Jun 11 18:20:27 Inside Current main hander
+Jun 11 18:20:27 Requesting: up2date.listChannels
+Jun 11 18:20:27   with params = ['<?xml version="1.0"?>\n<params>\n<param>\n<value><struct>\n<member>\n<name>username</name>\n<value><string>jjneely</string></value>\n</member>\n<member>\n<name>operating_system</name>\n<value><string>Red Hat Linux</string></value>\n</member>\n<member>\n<name>description</name>\n<value><string>4 running on i686-redhat-linux</string></value>\n</member>\n<member>\n<name>checksum</name>\n<value><string>74b2d4847890f7a5db14d0de4c3054e9f01e858a</string></value>\n</member>\n<member>\n<name>profile_name</name>\n<value><string>narsil.local.net</string></value>\n</member>\n<member>\n<name>system_id</name>\n<value><string>Current-ANONYMOUS</string></value>\n</member>\n<member>\n<name>architecture</name>\n<value><string>i686-redhat-linux</string></value>\n</member>\n<member>\n<name>os_release</name>\n<value><string>4</string></value>\n</member>\n<member>\n<name>fields</name>\n<value><array><data>\n<value><string>username</string></value>\n<value><string>operating_system</string></value>\n<value><string>description</string></value>\n<value><string>checksum</string></value>\n<value><string>profile_name</string></value>\n<value><string>system_id</string></value>\n<value><string>architecture</string></value>\n<value><string>os_release</string></value>\n<value><string>type</string></value>\n</data></array></value>\n</member>\n<member>\n<name>type</name>\n<value><string>REAL</string></value>\n</member>\n</struct></value>\n</param>\n</params>\n']
+Jun 11 18:20:27 method = up2date.listChannels
+Jun 11 18:20:27 module = up2date
+Jun 11 18:20:27 function = listChannels
+Jun 11 18:20:27 (/home/slack/projects/current/src/current_apache.py, callAPIMethod(), 293): params = ['<?xml version="1.0"?>\n<params>\n<param>\n<value><struct>\n<member>\n<name>username</name>\n<value><string>jjneely</string></value>\n</member>\n<member>\n<name>operating_system</name>\n<value><string>Red Hat Linux</string></value>\n</member>\n<member>\n<name>description</name>\n<value><string>4 running on i686-redhat-linux</string></value>\n</member>\n<member>\n<name>checksum</name>\n<value><string>74b2d4847890f7a5db14d0de4c3054e9f01e858a</string></value>\n</member>\n<member>\n<name>profile_name</name>\n<value><string>narsil.local.net</string></value>\n</member>\n<member>\n<name>system_id</name>\n<value><string>Current-ANONYMOUS</string></value>\n</member>\n<member>\n<name>architecture</name>\n<value><string>i686-redhat-linux</string></value>\n</member>\n<member>\n<name>os_release</name>\n<value><string>4</string></value>\n</member>\n<member>\n<name>fields</name>\n<value><array><data>\n<value><string>username</string></value>\n<value><string>operating_system</string></value>\n<value><string>description</string></value>\n<value><string>checksum</string></value>\n<value><string>profile_name</string></value>\n<value><string>system_id</string></value>\n<value><string>architecture</string></value>\n<value><string>os_release</string></value>\n<value><string>type</string></value>\n</data></array></value>\n</member>\n<member>\n<name>type</name>\n<value><string>REAL</string></value>\n</member>\n</struct></value>\n</param>\n</params>\n']
+Jun 11 18:20:27 Dispatching: up2date.listChannels
+Jun 11 18:20:27 /home/slack/projects/current/src/api/up2date.py:listChannels({'sysid_string': '<sysid_string not logged>'})
+Jun 11 18:20:27 src/archtab.py:getCannonArch({'arch': 'i686-redhat-linux'})
+Jun 11 18:20:27 arch: i386, rel: 4
+Jun 11 18:20:27 found: [('RawHIDE', 'rawhide', 'i386', '', '20050721223734', None)]
+Jun 11 18:20:27 API Result = [{'arch': 'i386',
+  'description': '',
+  'label': 'rawhide',
+  'name': 'RawHIDE',
+  'parent_channel': ''}]
+Jun 11 18:20:27 Result is normal data: turn it into an XML chunk
+Jun 11 18:20:27 (/home/slack/projects/current/src/current_apache.py, sendClientResult(), 245): Data sent.
+Jun 11 18:20:27 sendClientResult() finished

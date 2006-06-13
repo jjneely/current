@@ -20,11 +20,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-from exception import CurrentException
+from exception import *
 import db
 from db.resultSet import resultSet
 
-class CurrentProfileDB(CurrentException):
+class CurrentProfileDB(CurrentDB):
     pass
 
 class ProfileDB(object):
@@ -34,28 +34,33 @@ class ProfileDB(object):
         self.conn   = db.sdb.getConnection()
 
 
-    def addProfile(self, systemDict):
-        # systemDict should be the same dict passed to register.new_system
-        # return system_id
-        
-        s = systemDict
-        q = """insert into PROFILE (architecture, os_release, name,
-               release_name, rhnuuid, username) values
-               (%s, %s, %s, %s, %s, %s)"""
+    def addProfile(self, arch, os_release, name, release_name, uuid):
+        q = """insert into PROFILE (profile_id, architecture, 
+               os_release, name,
+               release_name, uuid) values
+               (NULL, %s, %s, %s, %s, %s)"""
                
-        t = (s['architecture'],
-             s['os_release'], s['profile_name'], s['release_name'],
-             s['rhnuuid'], s['username'])
+        t = (arch, os_release, name, release_name, uuid)
 
         self.cursor.execute(q, t)
         self.conn.commit()
 
-        return self.getProfileID(s['profile_name'])
+        return self.getProfileID(uuid)
 
 
-    def getProfileID(self, profileName):
-        q = "select profile_id from PROFILE where name = %s"
-        self.cursor.execute(q, (profileName,))
+    def getProfileID(self, uuid):
+        q = "select profile_id from PROFILE where uuid = %s"
+        self.cursor.execute(q, (uuid,))
         
         return resultSet(self.cursor)['profile_id']
     
+    def getProfile(self, id):
+        q = """select architecture, os_release, name, release_name, uuid
+               from PROFILE where profile_id = %s"""
+
+        self.cursor.execute(q, (id,))
+        r = self.cursor.fetchone()
+        
+        # if r is None that's what we want
+        return r
+

@@ -79,14 +79,14 @@ create table SESSIONS (
 create index SESSION_IDX on SESSIONS(sid);
 
 create table PROFILE (
-    profile_id      INTEGER PRIMAEY KEY,
+    profile_id      INTEGER PRIMARY KEY,
     architecture    varchar(64) not null,
     os_release      varchar(32) not null,
     name            varchar(128) not null,
     release_name    varchar(64),
-    rhnuuid         varchar(32) not null,
-    username        varchar(32),
-    uuid            varchar(32)
+--    rhnuuid         varchar(32) not null,
+--    username        varchar(32),
+    uuid            varchar(32) not null
 );
 
 create table HARDWARE (

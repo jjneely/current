@@ -13,6 +13,7 @@ import pprint
 
 import auth
 import configure
+import profiles
 from logger import *
 
 
@@ -68,6 +69,12 @@ def new_system(system_dict, packages=None):
     # or 'type' to us? Should we pare this down to what current needs?
     si = auth.SysId()
 
+    # Create Profile
+    p = profiles.Profile()
+    p.newProfile(system_dict['architecture'], system_dict['os_release'],
+                 system_dict['profile_name'], system_dict['release_name'],
+                 system_dict['rhnuuid'])
+
     # Copy all the relevant fields out of system_dict
     for attr in ['username', 'profile_name', 'architecture', 'os_release' ]:
         si.setattr(attr, system_dict[attr])
@@ -75,7 +82,9 @@ def new_system(system_dict, packages=None):
     # Add the fields strictly from the server side
     si.setattr('type', 'REAL')
     si.setattr('checksum', '')   # dumpstring sets final value for this
-    si.setattr('system_id', 'Current-ANONYMOUS')
+
+    # The system_id is a little different than what RHN does. Use the uuid.
+    si.setattr('system_id', p.uuid)
     si.setattr('operating_system', 'Red Hat Linux')
     si.setattr('description', 
                '%(os_release)s running on %(architecture)s' % system_dict)

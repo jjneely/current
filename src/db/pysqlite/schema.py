@@ -40,7 +40,7 @@ create index CHANNEL_RPM_ACTIVE_CHANNEL_ID_IDX on CHANNEL_RPM_ACTIVE(channel_id)
 
 create table DEPENDANCIES (
     dep_id          INTEGER PRIMARY KEY,
-    dep             varchar(4096) not null,
+    dep             text not null,
     rpm_id          int not null,
     type            int not null,
     flags           varchar(64),
@@ -84,9 +84,14 @@ create table PROFILE (
     os_release      varchar(32) not null,
     name            varchar(128) not null,
     release_name    varchar(64),
---    rhnuuid         varchar(32) not null,
---    username        varchar(32),
     uuid            varchar(32) not null
+);
+create index PROFILE_IDX on PROFILE(uuid);
+
+create table SUBSCRIPTIONS (
+    sub_id          INTEGER PRIMARY KEY,
+    profile_id      int not null,
+    channel_id      int not null
 );
 
 create table HARDWARE (

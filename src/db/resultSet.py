@@ -22,12 +22,14 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 # A fancy zip() replacement that's way cool.  Stolen from Andrae Muys
-# Ick...this is good for large memory rows, which I don't have and
-# requires python 2.3...let's stay with 2.2 for now
-#def xzip(*args):
-#    iters = [iter(a) for a in args]
-#    while 1:
-#        yield tuple([i.next() for i in iters])
+# This is good for large memory rows
+
+# We now require python 2.3, lets not be silly here.
+
+def xzip(*args):
+    iters = [iter(a) for a in args]
+    while True:
+        yield tuple([i.next() for i in iters])
 
 
 class resultSet(dict):
@@ -80,7 +82,7 @@ class resultSet(dict):
             self.clear()
         else:
             # Load data from new row into dict
-            for desc, element in zip(self._desc, self._row):
+            for desc, element in xzip(self._desc, self._row):
                 # Make sure desc is NOT of form 'table.field'
                 field = desc[0].split(".")[-1]
                 dict.__setitem__(self, field, element)

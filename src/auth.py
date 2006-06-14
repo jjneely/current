@@ -27,7 +27,7 @@ class AuthException(exception.CurrentException):
     pass
 
     
-class SysId:
+class SysId(object):
     """ Individual client hosts are identified by a sysid structure.
 
     This object manages, creates new sysid's and provides access to 
@@ -132,18 +132,17 @@ class SysId:
         # We don't support sysid's from other server systems, and
         # we only support anonymous clients. (at the moment).
         system_id = self._data['system_id']
-        (server_software, number) = string.split(system_id, '-')
-        if server_software != 'Current':
-            return (0, "Sysid is from some other server software")
+        if system_id.endswith('ANONYMOUS'):
+            return (0, "Current no longer accepts anonymous clients")
 
-        if number != 'ANONYMOUS':
-            return (0, "Sysid does not have a valid system_id number")
-
+        if len(system_id.split('-')) is not 5:
+            return (0, "The system UUID (system_id) is not valid")
+        
         # Everythings ok
         return (1, "Sysid is valid")
 
 
-class SysHeaders:
+class SysHeaders(object):
     
     def __init__(self, headers=None):
         self.data = {}
@@ -280,7 +279,7 @@ class SysHeaders:
         return (1, "SysHeaders are valid")
 
 
-class Authorization:
+class Authorization(object):
     """ Similar to packagedb, a single, program wide object that provides
     authorization services.
 

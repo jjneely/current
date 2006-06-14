@@ -27,8 +27,11 @@ from sessions import Session
 __current_api__ = [
     'status',
     'createChannel',
-    'populateChannel',
+    'addChannelPath',
     'scanChannels',
+    'deleteSystem'
+    'subscribe'
+    'findProfile'
     'login',
     ]
 
@@ -81,7 +84,7 @@ def createChannel(channel):
         
     return result
 
-def populateChannel(channel):
+def addChannelPath(channel):
     result = {}
     logfunc(locals())
 
@@ -95,7 +98,6 @@ def populateChannel(channel):
 
     result['status'] = "ok"
     return result
-
 
 def status():
     """ Get some information about the server itself. """
@@ -121,5 +123,18 @@ def status():
 
     return status
 
+def deleteSystem(uuid):
+    # Remove the related system profile
+    pass
 
+def subscribe(uuid, channel):
+    # Subscribe the system identifyed by uuid to the given textual channel
+    # label
+    pass
+
+def findProfile(profile_name):
+    # Return UUIDs of systems with matching profile name
+    # XXX: a regex or something?
+    pass
+    
 ## END OF LINE ##

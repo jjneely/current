@@ -64,3 +64,26 @@ class ProfileDB(object):
         # if r is None that's what we want
         return r
 
+    def getChannels(self, pid):
+        """Returns channel IDs of the channels this machine (pid) is
+           subscribed to.  An empty set is returned for no channels."""
+
+        q = "select channel_id from SUBSCRIPTIONS where profile_id = %s"
+        self.cursor.execute(q, (pid,))
+
+        result = resultSet(self.cursor)
+        ret = []
+        for row in result:
+            ret.append(row['channel_id'])
+
+        return ret
+
+    def addChannel(self, pid, channel_id):
+        """Subscribe a profile to a channel."""
+
+        q = """insert into SUBSCRIPTIONS (profile_id, channel_id) values
+               (%s, %s)"""
+
+        self.cursor.execute(q, (pid, channel_id))
+        self.conn.commit()
+        

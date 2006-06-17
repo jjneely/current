@@ -3,7 +3,7 @@
 Notice that these API calls have nothing to do with up2date or RHN - they
 are purely an invention of current.
 
-Copyright 2002 Hunter Matthews
+Copyright 2002, 2006 Hunter Matthews, Jack Neely
 
 This software may be freely redistributed under the terms of the GNU Public
 License (GPL) v2.
@@ -17,10 +17,12 @@ import sys
 import pprint
 
 from logger import *
+from sessions import Session
+from exception import *
+import profiles
 import auth
 import configure
 import db
-from sessions import Session
 
 # Special array of exported functionality. 
 # Idea stolen from up2date/getMethod.py
@@ -29,9 +31,10 @@ __current_api__ = [
     'createChannel',
     'addChannelPath',
     'scanChannels',
-    'deleteSystem'
-    'subscribe'
-    'findProfile'
+    'deleteSystem',
+    'subscribe',
+    'unsubscribe',
+    'findProfile',
     'login',
     ]
 
@@ -125,16 +128,40 @@ def status():
 
 def deleteSystem(uuid):
     # Remove the related system profile
-    pass
+    try:
+        p = profiles.Profile(uuid)
+        p.delete()
+    except CurrentException, e:
+        return (1, {'error':str(e)})
+    
+    return (0, {})
+
+def unsubscribe(uuid, channel):
+    # Subscribe the system identifyed by uuid to the given textual channel
+    # label
+    try:
+        p = profiles.Profile(uuid)
+        p.unsubscribe(channel)
+    except CurrentException, e:
+        return (1, {'error':str(e)})
+    
+    return (0, {})
 
 def subscribe(uuid, channel):
     # Subscribe the system identifyed by uuid to the given textual channel
     # label
-    pass
+    try:
+        p = profiles.Profile(uuid)
+        p.subscribe(channel)
+    except CurrentException, e:
+        return (1, {'error':str(e)})
+    
+    return (0, {})
 
-def findProfile(profile_name):
+def findProfile():
     # Return UUIDs of systems with matching profile name
     # XXX: a regex or something?
-    pass
+    systems = profiles.Systems()
+    return systems.search()
     
 ## END OF LINE ##

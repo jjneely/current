@@ -33,15 +33,12 @@ class Profile(object):
             # New object
             return
 
-        # What is our ID?
-        if id.startswith("Current-"):
-            # Current-style id from systemid
-            self.pid = int(id[8:])
-        else:
-            # We assume uuid
-            self.pid = self.db.getProfileID(id)
-            if self.pid == None:
-                raise CurrentException("No profile found for id: %s" % id)
+        if len(id.split('-')) is not 5:
+            raise CurrentException("Badly formed UUID.")
+        
+        self.pid = self.db.getProfileID(id)
+        if self.pid == None:
+            raise CurrentException("No profile found for id: %s" % id)
 
         self.__load()
 
@@ -55,6 +52,10 @@ class Profile(object):
         (self.architecture, self.os_release, self.name, self.release_name, 
             self.uuid) = tup
             
+    def __sanity(self):
+        if self.pid is None:
+            raise CurrentExeception("Cannot delete unknown profile.")
+
     def newProfile(self, architecture, os_release, name, release_name, uuid):
         """Create a new profile:
             architecture = platform (ie i686-redhat-linux)
@@ -70,4 +71,36 @@ class Profile(object):
         self.pid = self.db.addProfile(architecture, os_release, 
                                       name, release_name, uuid)
         self.__load()
+       
+    def delete(self):
+        """Remove profile from database."""
         
+        self.__sanity()
+        
+        self.db.delete(self.pid)
+        self.pid = None
+
+    def subscribe(self, channel):
+        # channel may be the label or the ID
+        self.__sanity()
+        
+        # XXX: is channel valid?  Are we already subscribed?
+        self.db.subscribe(self.pid, channel)
+
+    def ubsubscribe(self, channel):
+        self.__sanity()
+        
+        self.db.unsubscribe(self.pid, channel)
+
+
+class Systems(object):
+
+    def __init__(self):
+        self.db = db.profile.ProfileDB()
+
+    def search(self):
+        # What else does this do?
+        # Only systems that a user can see/access to?
+
+        return self.db.listSystems()
+

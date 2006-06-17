@@ -64,6 +64,19 @@ class ProfileDB(object):
         # if r is None that's what we want
         return r
 
+    def delete(self, pid):
+        "Remove a profile"
+
+        qlist = [
+            "delete from PROFILE where profile_id = %s",
+            "delete from SUBSCRIPTIONS where profile_id = %s",
+            ]
+
+        for q in qlist:
+            self.cursor.execute(q, (pid,))
+
+        self.conn.commit()
+        
     def getChannels(self, pid):
         """Returns channel IDs of the channels this machine (pid) is
            subscribed to.  An empty set is returned for no channels."""
@@ -78,12 +91,43 @@ class ProfileDB(object):
 
         return ret
 
-    def addChannel(self, pid, channel_id):
+    def subscribe(self, pid, channel):
         """Subscribe a profile to a channel."""
 
-        q = """insert into SUBSCRIPTIONS (profile_id, channel_id) values
-               (%s, %s)"""
+        if type(channel) == type(1):
+            q = """insert into SUBSCRIPTIONS (profile_id, channel_id) values
+                   (%s, %s)"""
+        else:
+            q = """insert into SUBSCRIPTIONS (profile_id, channel_id)
+                   select %s, channel_id from CHANNEL where label = %s"""
 
-        self.cursor.execute(q, (pid, channel_id))
+        self.cursor.execute(q, (pid, channel))
         self.conn.commit()
         
+    def unsubscribe(self, pid, channel):
+        """Unsubscribe a profile from a channel."""
+
+        if type(channel) == type(1):
+            q = """delete from SUBSCRIPTIONS where profile_id = %s 
+                   and channel_id = %s"""
+        else:
+            q = """delete from SUBSCRIPTIONS, CHANNEL where 
+                    SUBSCRIPTIONS.profile_id = %s and
+                    SUBSCRIPTIONS.channel_id = CHANNEL.channel_id and
+                    CHANNEL.label = %s"""
+                    
+        self.cursor.execute(q, (pid, channel))
+        self.conn.commit()
+
+    def listSystems(self):
+        q = """select name, uuid from PROFILE"""
+
+        self.cursor.execute(q)
+        r = resultSet(self.cursor)
+        
+        l = []
+        for row in r:
+            l.append((r['name'], r['uuid']))
+
+        return l
+

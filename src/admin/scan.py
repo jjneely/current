@@ -26,6 +26,6 @@ class Module(CadminConfig):
 
         chan = {}
         chan['channels'] = oChans + leftargs
-        result = xmlrpcdoCall(server.cadmin.scanChannels, chan)
+        result = xmlrpc.doCall(server.cadmin.scanChannels, chan)
         pprint.pprint(result)
 

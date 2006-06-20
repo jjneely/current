@@ -58,7 +58,8 @@ create table CHANNEL (
     arch            varchar(64) not null,
     osrelease       varchar(64) not null,
     description     varchar(1024),
-    lastupdate      varchar(64)
+    lastupdate      varchar(64),
+    base            int
     );
 create index CHANNEL_LABEL_IDX on CHANNEL(label);
 

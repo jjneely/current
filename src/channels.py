@@ -48,7 +48,10 @@ class Channels(object):
         # XXX: Used in the API layer!  BAD!
         log("GAH: Don't call this function!!", MANDATORY)
         return self.db.abort()
-    
+   
+    def addDir(self, label, dirs):
+        return self.db.addDir(label, dirs)
+
     def makeChannel(self, channel):
         self.db.makeChannel(channel)
         

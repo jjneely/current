@@ -119,18 +119,6 @@ class CurrentDB(object):
         self.conn.commit()
         log("New channel created and committed.", DEBUG)
 
-        # Now create the directories on disk for this channel
-        webdir = os.path.join(self.config['current_dir'], 'www')
-        chan_dir = os.path.join(webdir, channel['label'])
-        if not os.access(chan_dir, os.W_OK):
-            os.mkdir(chan_dir)
-            for dir in ['getObsoletes', 'getPackage', 'getPackageHeader',
-                        'getPackageSource', 'listPackages', 'listAllPackages']:
-                os.mkdir(os.path.join(chan_dir, dir))
-        # FIXME: need an else here for error handling
-
-        log("New channel and dirs created.", DEBUG)
-
         return 0
 
 

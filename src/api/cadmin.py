@@ -20,9 +20,9 @@ from logger import *
 from sessions import Session
 from exception import *
 import profiles
+import channels
 import auth
 import configure
-import db
 
 # Special array of exported functionality. 
 # Idea stolen from up2date/getMethod.py
@@ -53,13 +53,14 @@ def login(username, password):
 def scanChannels(chanlist):
     result = {}
     logfunc(locals())
-
+    chanlib = channels.Channels()
+    
     for chan in chanlist['channels']:
         try:
-            result[chan] = db.db.updateChannel(chan)
+            result[chan] = chanlib.updateChannel(chan)
         except Exception, e:
             # Hmmm...what about excetions we generate or already deal with?
-            db.db.abort()
+            chanlib.abort()
             
             # Don't know what happened, let the generic handler have it
             raise
@@ -69,10 +70,11 @@ def scanChannels(chanlist):
 def createChannel(channel):
     result = {}
     logfunc(locals())
+    chanlib = channels.Channels()
 
     # Here we might do some sanity checking, but I'm not sure what we'd need.
     try:
-        result['msg'] = db.db.makeChannel(channel)
+        result['msg'] = chanlib.makeChannel(channel)
         result['call'] = "Backend call returned without error"
         result['status'] = "ok"
         log("Exiting mkchannel")
@@ -81,7 +83,7 @@ def createChannel(channel):
     except Exception, e:
         result['call'] = "Function call blew up.  Bad day."
         result['status'] = e
-        db.db.abort()
+        chanlib.abort()
 
         raise
         
@@ -90,13 +92,14 @@ def createChannel(channel):
 def addChannelPath(channel):
     result = {}
     logfunc(locals())
+    chanlib = channels.Channels()
 
     # We'll definitely want to do some sanity checking here (eventually)
     for dir in channel['dirs']:
         try:
-            result[dir] = db.db.addDir(channel['label'], dir)
+            result[dir] = chanlib.addDir(channel['label'], dir)
         except Exception, e:
-            db.db.abort()
+            chanlib.abort()
             raise
 
     result['status'] = "ok"
@@ -128,35 +131,26 @@ def status():
 
 def deleteSystem(uuid):
     # Remove the related system profile
-    try:
-        p = profiles.Profile(uuid)
-        p.delete()
-    except CurrentException, e:
-        return (1, {'error':str(e)})
+    p = profiles.Profile(uuid)
+    p.delete()
     
-    return (0, {})
+    return True
 
 def unsubscribe(uuid, channel):
     # Subscribe the system identifyed by uuid to the given textual channel
     # label
-    try:
-        p = profiles.Profile(uuid)
-        p.unsubscribe(channel)
-    except CurrentException, e:
-        return (1, {'error':str(e)})
+    p = profiles.Profile(uuid)
+    p.unsubscribe(channel)
     
-    return (0, {})
+    return True
 
 def subscribe(uuid, channel):
     # Subscribe the system identifyed by uuid to the given textual channel
     # label
-    try:
-        p = profiles.Profile(uuid)
-        p.subscribe(channel)
-    except CurrentException, e:
-        return (1, {'error':str(e)})
+    p = profiles.Profile(uuid)
+    p.subscribe(channel)
     
-    return (0, {})
+    return True
 
 def findProfile():
     # Return UUIDs of systems with matching profile name

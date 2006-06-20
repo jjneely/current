@@ -7,7 +7,7 @@ Dsitributed under GPL.
 For details on this (admittedly short) API, please see the rhn_api.txt file.
 """
 
-import db
+import channels
 import archtab
 from logger import *
 
@@ -31,8 +31,9 @@ def poll_packages(release, arch, last_checkin, uuid):
     # last_checkin is the last time this client got an updated list.
     # uuid seems to be totally unimportant at this stage.
 
+    chanlib = channels.Channels()
     carch = archtab.getCannonArch(arch)
-    channel_update_time = db.db.getLastUpdate(release, carch)
+    channel_update_time = chanlib.getLastUpdate(release, carch)
     
     # If our last_checkin is 0, we need to send a cache regardless of the
     # outcome of the two 'short circuit' if's.
@@ -49,7 +50,7 @@ def poll_packages(release, arch, last_checkin, uuid):
     result = {}
     result['last_modified'] = channel_update_time
     result['contents'] = []
-    pkgs = db.db.listAppletPackages(release, carch)
+    pkgs = chanlib.listAppletPackages(release, carch)
     log ('%s packages returned.' % len(pkgs) )
     for row in pkgs:
         dict = {}

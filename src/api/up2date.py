@@ -17,7 +17,7 @@ import stat
 import string
 import sys
 
-import db
+import channels
 import configure
 import auth
 from logger import *
@@ -34,6 +34,7 @@ __current_api__ = [
 def login(sysid_string):
 
     logfunc(locals())
+    chanlib = channels.Channels()
 
     # Authorize the client
     si = auth.SysId(sysid_string)   
@@ -49,7 +50,7 @@ def login(sysid_string):
     
     # Need a list of channels this client is authorized for 
     # FIXME: we assume only one channel right now is returned...
-    channels = db.db.getCompatibleChannels(si.getattr('architecture'), 
+    channels = chanlib.getCompatibleChannels(si.getattr('architecture'), 
                                                   si.getattr('os_release'))    
     if len(channels) == 0:
         log("Fault! - no channels")
@@ -77,6 +78,7 @@ def listChannels(sysid_string):
     """ Send a list of all compatible channels back to client. """
 
     logfunc(locals())
+    chanlib = channels.Channels()
 
     # Authorize the client
     si = auth.SysId(sysid_string)   
@@ -87,7 +89,7 @@ def listChannels(sysid_string):
 
     # Need a list of channels this client is authorized for 
     # FIXME: we assume only one channel right now is returned...
-    channels = db.db.getCompatibleChannels(si.getattr('architecture'),
+    channels = chanlib.getCompatibleChannels(si.getattr('architecture'),
                                                   si.getattr('os_release'))
     if len(channels) == 0:
         return xmlrpclib.Fault(1000, 
@@ -119,6 +121,7 @@ def solveDependencies(sysid_string, unknowns):
     """
 
     logfunc({'unknowns': unknowns})    ## cheat: sysid is boring
+    chanlib = channels.Channels()
 
     # Authorize the client
     si = auth.SysId(sysid_string)   
@@ -126,7 +129,7 @@ def solveDependencies(sysid_string, unknowns):
     if not valid:
         return xmlrpclib.Fault(1000, reason)
 
-    channels = db.db.getCompatibleChannels(si.getattr('architecture'),
+    channels = chanlib.getCompatibleChannels(si.getattr('architecture'),
                                            si.getattr('os_release'))
     if len(channels) == 0:
         return xmlrpclib.Fault(1000, 
@@ -150,7 +153,7 @@ def solveDependencies(sysid_string, unknowns):
 
 	# iterate over all channels available to the client
         for chan in channels:
-            pkgs = db.db.solveDependancy(chan['label'], 
+            pkgs = chanlib.solveDependancy(chan['label'], 
                                          si.getattr('architecture'),
                                          unk)
 

@@ -76,6 +76,27 @@ class ProfileDB(object):
             self.cursor.execute(q, (pid,))
 
         self.conn.commit()
+       
+    def setupBaseChannels(self, pid):
+        """Subscribe profile to all matching base channels."""
+
+        # XXX: Schema here isn't consistant
+        # Do this completely in SQL?  What about duplicate subscriptions?
+        q = """select CHANNEL.channel_id from CHANNEL, PROFILE where
+               CHANNEL.base != 0 and
+               PROFILE.profile_id = %s and
+               PROFILE.architecture = CHANNEL.arch and
+               PROFILE.release = CHANNEL.osrelease"""
+
+        self.cursor.execute(q, (pid,))
+        result = resultSet(self.cursor)
+        chans = []
+        for row in result:
+            chans.append(row['channel_id'])
+
+        for c in chans:
+            self.subscribe(pid, c)
+        
         
     def getChannels(self, pid):
         """Returns channel IDs of the channels this machine (pid) is

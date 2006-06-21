@@ -46,14 +46,24 @@ class Channels(object):
 
     def abort(self):
         # XXX: Used in the API layer!  BAD!
-        log("GAH: Don't call this function!!", MANDATORY)
+        log("BUG: Don't call this function!!", MANDATORY)
         return self.db.abort()
    
     def addDir(self, label, dirs):
-        return self.db.addDir(label, dirs)
+        try:
+            self.db.addDir(label, dirs)
+        except Exception, e:
+            self.db.abort()
+            raise
+        
+        return 0
 
     def makeChannel(self, channel):
-        self.db.makeChannel(channel)
+        try:
+            self.db.makeChannel(channel)
+        except Exception, e:
+            self.db.abort()
+            raise
         
         # Now create the directories on disk for this channel
         webdir = os.path.join(self.config['current_dir'], 'www')
@@ -70,7 +80,11 @@ class Channels(object):
         return 0
 
     def updateChannel(self, channel):
-        return self.db.updateChannel(channel)
+        try:
+            return self.db.updateChannel(channel)
+        except Exception, e:
+            self.db.abort()
+            raise
 
     def getCompatibleChannels(self, arch, release):
         return self.db.getCompatibleChannels(self, arch, release)

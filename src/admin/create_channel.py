@@ -28,6 +28,8 @@ class Module(CadminConfig):
                           dest="channelparent")
         parser.add_option("-d", "--description", action="store", type="string",
                           dest="channeldesc", default="")
+        parser.add_option("-b", "--base", action="store_true",
+                          dest="base", default=False)
         (opts, leftargs) = parser.parse_args(argv)
         
         if len(leftargs) != 0:
@@ -43,6 +45,7 @@ class Module(CadminConfig):
             sys.exit()
 
         chan['desc'] = str(opts.channeldesc)
+        chan['base'] = opts.base
 
         if opts.channelparent:
             log(1, "Sub-Channels are not yet supported.")

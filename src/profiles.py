@@ -70,6 +70,8 @@ class Profile(object):
         
         self.pid = self.db.addProfile(architecture, os_release, 
                                       name, release_name, uuid)
+        self.db.setupBaseChannels(self.pid)
+
         self.__load()
        
     def delete(self):

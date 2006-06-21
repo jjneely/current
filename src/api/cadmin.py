@@ -56,14 +56,7 @@ def scanChannels(chanlist):
     chanlib = channels.Channels()
     
     for chan in chanlist['channels']:
-        try:
-            result[chan] = chanlib.updateChannel(chan)
-        except Exception, e:
-            # Hmmm...what about excetions we generate or already deal with?
-            chanlib.abort()
-            
-            # Don't know what happened, let the generic handler have it
-            raise
+        result[chan] = chanlib.updateChannel(chan)
 
     return result
 
@@ -73,20 +66,12 @@ def createChannel(channel):
     chanlib = channels.Channels()
 
     # Here we might do some sanity checking, but I'm not sure what we'd need.
-    try:
-        result['msg'] = chanlib.makeChannel(channel)
-        result['call'] = "Backend call returned without error"
-        result['status'] = "ok"
-        log("Exiting mkchannel")
-        log(str(result))
+    result['msg'] = chanlib.makeChannel(channel)
+    result['call'] = "Backend call returned without error"
+    result['status'] = "ok"
+    log("Exiting mkchannel", TRACE)
+    log(str(result))
 
-    except Exception, e:
-        result['call'] = "Function call blew up.  Bad day."
-        result['status'] = e
-        chanlib.abort()
-
-        raise
-        
     return result
 
 def addChannelPath(channel):
@@ -96,11 +81,7 @@ def addChannelPath(channel):
 
     # We'll definitely want to do some sanity checking here (eventually)
     for dir in channel['dirs']:
-        try:
-            result[dir] = chanlib.addDir(channel['label'], dir)
-        except Exception, e:
-            chanlib.abort()
-            raise
+        result[dir] = chanlib.addDir(channel['label'], dir)
 
     result['status'] = "ok"
     return result

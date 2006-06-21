@@ -107,7 +107,7 @@ class CurrentDB(object):
 
         self.cursor.execute('''insert into CHANNEL
                                (name, label, arch, osrelease, description, 
-                               lastupdate, parentchannel_id)
+                               lastupdate, parentchannel_id, base)
                                values (%s, %s, %s, %s, %s, %s, %s)''', 
                             (channel['name'],
                              channel['label'],
@@ -115,7 +115,8 @@ class CurrentDB(object):
                              osrelease,
                              channel['desc'],
                              None,    # we haven't done our first update ...
-                             parentchannel_id))
+                             parentchannel_id,
+                             int(channel['base'])))
         self.conn.commit()
         log("New channel created and committed.", DEBUG)
 

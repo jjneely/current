@@ -97,7 +97,26 @@ class ProfileDB(object):
         for c in chans:
             self.subscribe(pid, c)
         
+    def getAuthorizedChannels(self, uuid):
+        """Return a channel struct of the subscribed channels for this pid."""
+
+        q = """select CHANNEL.name, CHANNEL.label, CHANNEL.arch, 
+                 CHANNEL.description, CHANNEL.lastupdate, 
+                 CHANNEL.parentchannel_id 
+                 from CHANNEL, PROFILE, SUBSCRIPTIONS where
+                 PROFILE.profile_id = SUBSCRIPTIONS.profile_id and
+                 CHANNEL.channel_ID = SUBSCRIPTIONS.channel_id and
+                 PROFILE.uuid = %s"""
         
+        self.cursor.execute(q, (uuid,))
+        chanList = resultSet(self.cursor).dump()
+        for c in chanList:
+            log("AuthorizedChannels: : %s" % str(c), DEBUG2)
+            if c['parent_channel'] == None:
+                c['parent_channel'] = ''
+
+        return chanList
+
     def getChannels(self, pid):
         """Returns channel IDs of the channels this machine (pid) is
            subscribed to.  An empty set is returned for no channels."""

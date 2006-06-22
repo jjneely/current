@@ -43,6 +43,14 @@ def login(sysid_string):
         log("Fault! - sysid not valid")
         return xmlrpclib.Fault(1000, reason)
 
+    # Get client's profile
+    try:
+        p = profiles.Profile(si.getattr('system_id'))
+    except CurrentException, e:
+        log("Fault! Sysid does not refer to a valid profile", VERBOSE)
+        log("Error: %s" % str(e), VERBOSE)
+        return xmlrpclib.Fault(1000, "Invalid system credentials.")
+    
     # Setup the basic SysHeaders stuff
     hi = auth.SysHeaders()
     hi.loadSysId(si)
@@ -60,7 +68,7 @@ def login(sysid_string):
     # This is mostly here as a marker - we'd pass in a list of all possible
     #   (compatible) channels, and get back a list (pos. empty) of the ones
     #   this client was authorized to to touch.
-    channels = auth.authorize.getAuthorizedChannels(si, channels)
+    channels = p.getAuthorizedChannels()
     if len(channels) == 0:
         log ("Fault! - not authorized for channels")
         return xmlrpclib.Fault(1000, 
@@ -87,6 +95,14 @@ def listChannels(sysid_string):
         log("sysid not valid in listChannels()")
         return xmlrpclib.Fault(1000, reason)
 
+    # Get client's profile
+    try:
+        p = profiles.Profile(si.getattr('system_id'))
+    except CurrentException, e:
+        log("Fault! Sysid does not refer to a valid profile", VERBOSE)
+        log("Error: %s" % str(e), VERBOSE)
+        return xmlrpclib.Fault(1000, "Invalid system credentials.")
+    
     # Need a list of channels this client is authorized for 
     # FIXME: we assume only one channel right now is returned...
     channels = chanlib.getCompatibleChannels(si.getattr('architecture'),
@@ -98,7 +114,7 @@ def listChannels(sysid_string):
     # This is mostly here as a marker - we'd pass in a list of all possible
     #   (compatible) channels, and get back a list (pos. empty) of the ones
     #   this client was authorized to to touch.
-    channels = auth.authorize.getAuthorizedChannels(si, channels)
+    channels = p.getAuthorizedChannels()
     if len(channels) == 0:
         return xmlrpclib.Fault(1000, 
             "Client is not authorized for any channels")
@@ -129,6 +145,14 @@ def solveDependencies(sysid_string, unknowns):
     if not valid:
         return xmlrpclib.Fault(1000, reason)
 
+    # Get client's profile
+    try:
+        p = profiles.Profile(si.getattr('system_id'))
+    except CurrentException, e:
+        log("Fault! Sysid does not refer to a valid profile", VERBOSE)
+        log("Error: %s" % str(e), VERBOSE)
+        return xmlrpclib.Fault(1000, "Invalid system credentials.")
+    
     channels = chanlib.getCompatibleChannels(si.getattr('architecture'),
                                            si.getattr('os_release'))
     if len(channels) == 0:
@@ -138,7 +162,7 @@ def solveDependencies(sysid_string, unknowns):
     # This is mostly here as a marker - we'd pass in a list of all possible
     #   (compatible) channels, and get back a list (pos. empty) of the ones
     #   this client was authorized to to touch.
-    channels = auth.authorize.getAuthorizedChannels(si, channels)
+    channels = p.getAuthorizedChannels()
     if len(channels) == 0:
         return xmlrpclib.Fault(1000, 
             "Client is not authorized for any channels")
@@ -151,7 +175,7 @@ def solveDependencies(sysid_string, unknowns):
         # the client expects.
         provides[unk] = []
 
-	# iterate over all channels available to the client
+        # iterate over all channels available to the client
         for chan in channels:
             pkgs = chanlib.solveDependancy(chan['label'], 
                                          si.getattr('architecture'),

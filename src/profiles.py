@@ -53,7 +53,7 @@ class Profile(object):
             self.uuid) = tup
             
     def __sanity(self):
-        if self.pid is None:
+        if self.pid is None or self.uuid is None:
             raise CurrentExeception("Cannot delete unknown profile.")
 
     def newProfile(self, architecture, os_release, name, release_name, uuid):
@@ -94,6 +94,10 @@ class Profile(object):
         
         self.db.unsubscribe(self.pid, channel)
 
+    def getAuthorizedChannels(self):
+        self.__sanity()
+        return self.db.getAuthorizedChannels(self.uuid)
+    
 
 class Systems(object):
 

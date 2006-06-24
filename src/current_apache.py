@@ -70,7 +70,7 @@ def init_backend():
     # This is a common error - The user apache runs as either can't create
     # or can't append to the current.log file.
     try:
-        logconfig(level, open(logfile, "a", 0))
+        logconfig(level, logfile)
     except IOError, e:
         apacheLog("Cannot open the %s log file. Usually a permissions problem." % logfile, 'ALERT')
         apacheLog("This is going to hinder all current operation - please fix", 'ALERT')

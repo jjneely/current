@@ -13,63 +13,66 @@ import sys
 import traceback
 import time
 import os
+import logging
 
-MANDATORY = 0
-VERBOSE   = 1
-DEBUG     = 2
-DEBUG2    = 3
-TRIVIA    = 4 
-TRACE     = 5    # at this level and above, log the source file and line #
-MAX       = 10
-    
-logging_config = {
-    'current_level': MANDATORY,
-    'file': None,
-    'prefix': "",
-    'default_level': DEBUG2,
-    }
+MANDATORY = CRITICAL = 100
+ERROR     = 60
+VERBOSE = WARNING  = 50
+DEBUG     = 40
+DEBUG2    = 30
+TRIVIA    = 20
+TRACE     = 10    # at this level and above, log the source file and line #
+MAX       = 1
     
 
-def logconfig(current_level=None, file=None, prefix=None, indent=None,
-           default_level=None):
+def logconfig(level, file):
+    "Initialize the python logger for Current."   
+    logger = logging.getLogger()
 
-    for item in logging_config.keys():
-        ref = eval(item)        # is eval() expensive?
-        if ref:                 # this test is to see if it was None
-            if item in ['current_level', 'default_level']:
-                logging_config[item] = int(ref)
-            else:
-                logging_config[item] = ref
+    # Levels
+    logging.addLevelName(100, "CRITICAL")
+    logging.addLevelName(60, "ERROR")
+    logging.addLevelName(50, "WARNING")
+    logging.addLevelName(40, "DEBUG")
+    logging.addLevelName(30, "DEBUG2")
+    logging.addLevelName(20, "TRIVIA")
+    logging.addLevelName(10, "TRACE")
+    logging.addLevelName(0, "")
+    
+    handler = logging.FileHandler(file)
+    # Time format: Jun 24 10:16:54
+    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s',
+                                  '%b %2d %H:%M:%S')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(level)
+
+    logger.info("Logging initialized.")
       
-def log(message, level=None):
-    # This is very heavyweight - do we want "fast path" somehow?
+def log(a, b=WARNING):
+    logger = logging.getLogger()
+
+    # *sigh* Current has always used (message, level) while python's
+    # logging module uses (level, message)....just make it up
+    if isinstance(a, int):
+        level = a
+        message = b
+    else:
+        level = b
+        message = a
     
-    if level == None:
-        level = logging_config['default_level']
-
-    if level > logging_config['current_level']:
-        return
-
-    # Our timestamp format is:  MMM DD hh:mm:ss (this reproduces syslog format
-    # in all but one way - the day is zero-padded, in syslog it's space-padded)
-    tmp = time.strftime("%b %2d %H:%M:%S ", time.localtime(time.time()))
-    
-    # handle a common prefix attached to a series of logs
-    if logging_config['prefix']:
-        tmp = tmp + logging_config['prefix'] + ": "
-
     # If we are tracing, add that in
-    if level >= TRACE:
+    if level <= TRACE:
         file, line, func, txt = traceback.extract_stack(None, 2)[0]
-        tmp = tmp + '(%(file)s, %(func)s(), %(line)s): ' % locals()
+        trace = '(File: %s, Method: %s(), Line: %s) ' % (file, func, line)
+        message = trace + message
         
     # Log the darn message
-    tmp = tmp + message + "\n"
-    logging_config['file'].write(tmp)
-                           
+    logger.log(level, message)
 
-def logException(level=MANDATORY):
-    if level > logging_config['current_level']:
+def logException(level=CRITICAL):
+    logger = logging.getLogger()
+    if level < logger.getEffectiveLevel():
         return
 
     logfile = logging_config['file']
@@ -77,13 +80,13 @@ def logException(level=MANDATORY):
     # even though tracing is not normally done at lower logging levels,
     # we add trace data for exceptions
     file, line, func, txt = traceback.extract_stack(None, 2)[0]
-    logfile.write('%s: EXCEPTION in %s, %s(), %s [%s]\n' %
-                  (time.strftime("%b %2d %H:%M%S ", time.localtime(time.time())),
-                   file, func, line, txt))
+    trace = 'EXCEPTION (File: %s, Method: %s(), Line: %s): [%s]\n' % \
+            (file, func, line, txt)
+    logger.log(level, trace)
     
     (type, value, tb) = sys.exc_info()
     for line in traceback.format_exception(type, value, tb):
-        logfile.write(line)
+        logger.log(level, line)
 
                   
 def logfunc(args, level=DEBUG2):
@@ -95,15 +98,9 @@ def logfunc(args, level=DEBUG2):
     We ignore the 'self' local, if any, for methods.
     """
 
-    if level > logging_config['current_level']:
+    logger = logging.getLogger()
+    if level > logger.getEffectiveLevel():
         return
-
-    # Add a timestamp first
-    tmp = time.strftime("%b %2d %H:%M:%S ", time.localtime(time.time()))
-
-    # handle a common prefix attached to a series of logs
-    if logging_config['prefix']:
-        tmp = tmp + logging_config['prefix'] + ": "
 
     file, line, func, txt = traceback.extract_stack(None, 2)[0]
 
@@ -117,13 +114,12 @@ def logfunc(args, level=DEBUG2):
     if args and args.has_key('sysid_string'):
         args['sysid_string'] = '<sysid_string not logged>'
 
-    tmp = tmp + '%(file)s:%(func)s(%(args)s)\n' % locals()
+    message = '%(file)s:%(func)s(%(args)s)\n' % locals()
 
-    logging_config['file'].write(tmp)
-
+    logger.log(level, message)
 
 def _main():
-    logconfig(current_level=MAX, file=sys.stderr, prefix="PRF", indent=1)
+    logconfig(MAX, "/tmp/logger")
 
     def testfunc(a, b, c):
         """ This is a docstring """

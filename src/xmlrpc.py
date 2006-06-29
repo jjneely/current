@@ -30,8 +30,8 @@ import socket
 import httplib
 import urllib2
 
-from logger import *
-from exception import *
+from current.logger import *
+from current.exception import *
 
 def fileDump(cursor, filename, gz=0, encoding=None):
     """

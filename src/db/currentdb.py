@@ -16,15 +16,15 @@ import pprint
 import string 
 import sys
 import time
-
-from db.resultSet import resultSet
-from logger import *
-import db
-import exception
-import archtab
-import RPM
 import sets
-import xmlrpc
+
+from current.db.resultSet import resultSet
+from current.logger import *
+from current import db
+from current import exception
+from current import archtab
+from current import RPM
+from current import xmlrpc
 
 # Constants used in data base schema
 PROVIDES  = 0

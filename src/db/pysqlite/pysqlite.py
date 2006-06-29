@@ -8,14 +8,12 @@
 
 import os
 import os.path
-
-from db.currentdb import specificDB
-from logger import *
-from exception import CurrentSQLite
-
 import sqlite
-import schema
 
+from current.db.currentdb import specificDB
+from current.logger import *
+from current.exception import CurrentSQLite
+from current.db.pysqlite import schema
 
 class PySqliteDB(specificDB):
 

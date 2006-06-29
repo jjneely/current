@@ -29,9 +29,8 @@ logger.setLevel(2)
 log = logger.log
 
 # Our config modules
-sys.path.append("/usr/share/current/")
-import admin
-from exception import CurrentRPCError
+from current import admin
+from current.exception import CurrentRPCError
 
 def getServer(url=""):
     if url == "" and not os.access("/etc/sysconfig/rhn/up2date", os.R_OK):

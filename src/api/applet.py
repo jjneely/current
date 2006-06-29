@@ -7,9 +7,9 @@ Dsitributed under GPL.
 For details on this (admittedly short) API, please see the rhn_api.txt file.
 """
 
-import channels
-import archtab
-from logger import *
+from current import channels
+from current import archtab
+from current.logger import *
 
 
 __current_api__ = [

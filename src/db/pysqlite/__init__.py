@@ -1,5 +1,5 @@
 """ Adapter for pysqlite backend """
 
-from pysqlite import PySqliteDB
+from current.db.pysqlite.pysqlite import PySqliteDB
 
 ## END OF LINE ##

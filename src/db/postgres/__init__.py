@@ -1,4 +1,4 @@
 """ Adapter for Postgres backend """
 
-from postgres import PostgresDB
+from current.db.postgres.postgres import PostgresDB
 

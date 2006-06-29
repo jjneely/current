@@ -1,4 +1,4 @@
 """ Adapter for MySql backend """
 
-from mysql import MysqlDB
+from current.db.mysql.mysql import MysqlDB
 

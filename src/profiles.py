@@ -20,8 +20,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-from exception import *
-import db.profile
+from current.exception import *
+from current import db.profile
 
 class Profile(object):
 

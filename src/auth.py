@@ -14,11 +14,11 @@ import string
 import sha
 import time
 
-import exception
-import configure
+from current import exception
+from current import configure
 
-from headerParse import *
-from logger import *
+from current.headerParse import *
+from current.logger import *
 
 # Program global authorization object setup by main().
 authorize = None

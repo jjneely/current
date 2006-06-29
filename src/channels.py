@@ -20,11 +20,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-from exception import *
-from logger import *
-
-import configure
-import db
+from current.exception import *
+from current.logger import *
+from current import configure
+from current import db
 
 # XXX:
 # Big design goal for Current is to have 3 layers:

@@ -26,17 +26,15 @@ import sys
 
 from mod_python import apache
 
-from logger import *
-from exception import CurrentException
-import configure
-import auth
-import db
+from current.logger import *
+from current.exception import CurrentException
+from current import configure
+from current import auth
+from current import db
+from current import api
 
 # Here are the recognized RHN api modules
 __modules__ = ['errata', 'queue', 'registration', 'up2date', 'cadmin', 'applet']
-
-#from api import *
-import api
 
 def apacheLog(message, level='NOTICE'):
     """ log a message to the apache error log. pretties up an ugly api """

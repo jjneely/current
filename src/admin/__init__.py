@@ -16,10 +16,10 @@ class CadminConfig(object):
         return "AbstractConfigClass"
 
 
-import test
-import scan
-import create_channel
-import add_dir
+from current.admin import test
+from current.admin import scan
+from current.admin import create_channel
+from current.admin import add_dir
 
 modules = {}
 modules['test'] = test

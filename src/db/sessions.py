@@ -31,9 +31,9 @@
 
 import time
 
-from exception import CurrentSession
-import db
-from db.resultSet import resultSet
+from current.exception import CurrentSession
+from current import db
+from current.db.resultSet import resultSet
 
 class SessionDB(object):
 

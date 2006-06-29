@@ -16,13 +16,13 @@ import string
 import sys
 import pprint
 
-from logger import *
-from sessions import Session
-from exception import *
-import profiles
-import channels
-import auth
-import configure
+from current.logger import *
+from current.sessions import Session
+from current.exception import *
+from current import profiles
+from current import channels
+from current import auth
+from current import configure
 
 # Special array of exported functionality. 
 # Idea stolen from up2date/getMethod.py

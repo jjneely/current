@@ -11,8 +11,8 @@ import xmlrpclib
 import rpm 
 import pprint
 
-import auth
-from logger import *
+from current import auth
+from current.logger import *
 
 
 # Special array of exported functionality. 

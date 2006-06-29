@@ -2,10 +2,9 @@
 
 import MySQLdb
 
-from db.currentdb import specificDB
-from logger import *
-
-import schema
+from current.db.currentdb import specificDB
+from current.logger import *
+from current.db.mysql import schema
 
 class MysqlDB(specificDB):
     

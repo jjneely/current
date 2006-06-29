@@ -11,10 +11,10 @@ import xmlrpclib
 import rpm 
 import pprint
 
-import auth
-import configure
-import profiles
-from logger import *
+from current import auth
+from current import configure
+from current import profiles
+from current.logger import *
 
 
 # Special array of exported functionality. 

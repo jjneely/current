@@ -16,7 +16,7 @@ Parts of the code taken from archwork.py in Yum Copyright 2002 Duke University.
 import os
 import re
 
-from logger import *
+from current.logger import *
 
 def getArch(arch=None):
     if not arch:

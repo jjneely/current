@@ -10,12 +10,12 @@ License (GPL) v2.
 See http://www.biology.duke.edu/computer/unix/current
 """
 
-import cadmin
-import errata
-import queue
-import registration
-import up2date
-import applet
+from current.api import cadmin
+from current.api import errata
+from current.api import queue
+from current.api import registration
+from current.api import up2date
+from current.api import applet
 
 ## END OF LINE ##
 

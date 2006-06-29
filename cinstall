@@ -21,17 +21,13 @@ import os.path
 # These are replaced by make, so beware
 try:
     import debug
-    MODULES_DIR = os.path.abspath("src/")
     HTDOCS_DIR = os.path.abspath("templates/htdocs")
 except ImportError:
-    MODULES_DIR="/usr/share/current"
     HTDOCS_DIR="/usr/share/current/templates/htdocs"
 
-sys.path.append(MODULES_DIR)
-
-import configure
-import db
-from logger import *
+from current import configure
+from current import db
+from current.logger import *
 
 
 APACHE_CONFIG = """

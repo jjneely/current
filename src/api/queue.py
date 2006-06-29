@@ -20,8 +20,8 @@ Started figuring out some way to get rid of that pesky cron job in 1.5.0.
 
 import xmlrpclib
 
-from logger import *
-import auth
+from current.logger import *
+from current import auth
 
 
 # Special array of exported functionality. 

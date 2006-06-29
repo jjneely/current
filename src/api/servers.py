@@ -10,9 +10,9 @@ please see the rhn_api.txt file.
 import xmlrpclib
 import pprint
 
-import auth
-import config
-from logger import *
+from current import auth
+from current import config
+from current.logger import *
 
 
 # Special array of exported functionality. 

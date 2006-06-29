@@ -26,8 +26,8 @@ import time
 import random
 import pickle
 from mod_python import Cookie
-import db.sessions
-import exception
+from current import db.sessions
+from current import exception
 
 class Session(dict):
 

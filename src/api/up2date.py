@@ -17,10 +17,10 @@ import stat
 import string
 import sys
 
-import channels
-import configure
-import auth
-from logger import *
+from current import channels
+from current import configure
+from current import auth
+from current.logger import *
 
 __current_api__ = [
     'login',                               ## These are the newer 2.7 API

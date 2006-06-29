@@ -1,5 +1,5 @@
-from admin import CadminConfig
-import xmlrpc
+from current.admin import CadminConfig
+from current import xmlrpc
 import pprint
 import optparse
 import sys

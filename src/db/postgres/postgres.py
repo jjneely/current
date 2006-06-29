@@ -2,10 +2,9 @@
 
 import pgdb
 
-from db.currentdb import specificDB
-from logger import *
-
-import schema
+from current.db.currentdb import specificDB
+from current.logger import *
+from current.db.postgres import schema
 
 class PostgresDB(specificDB):
     

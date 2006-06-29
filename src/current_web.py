@@ -1,12 +1,12 @@
 from mod_python import apache
 from mod_python import util
-from sessions import *
-from logger import *
-from current_apache import init_backend
-import configure
-import db
+from current.sessions import *
+from current.logger import *
+from current.current_apache import init_backend
+from current import configure
+from current import db
 import os.path
-import web
+from current import web
 import traceback
 import sys
 import string

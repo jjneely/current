@@ -7,8 +7,8 @@ Copyright (c) 2002 Hunter Matthews    Distributed under GPL.
 """
 
 
-from logger import *
-from currentdb import *
+from current.logger import *
+from current.db.currentdb import *
 
 # This single global insures that all anyone else needs to know is 
 # I hate doubled names like this, but I couldn't think of anything else

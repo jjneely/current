@@ -65,26 +65,26 @@ Alias /current/htdocs %(htdocs_dir)s
 </Directory>
 
 <Location ~ "/XMLRPC$">
-    PythonPath "sys.path + ['%(mod_dir)s']"
+    #PythonPath "sys.path + ['%(mod_dir)s']"
     SetHandler python-program
-    PythonHandler current_apache
+    PythonHandler current.current_apache
 </Location>
 
 <Location ~ "/APPLET$">
-    PythonPath "sys.path + ['%(mod_dir)s']"
+    #PythonPath "sys.path + ['%(mod_dir)s']"
     SetHandler python-program
-    PythonHandler current_apache
+    PythonHandler current.current_apache
 </Location>
 
 <Location /XMLRPC/$RHN>
-    PythonPath "sys.path + ['%(mod_dir)s']"
-    PythonAccessHandler current_apache
+    #PythonPath "sys.path + ['%(mod_dir)s']"
+    PythonAccessHandler current.current_apache
 </Location>
 
 <Location "/current">
-    PythonPath "sys.path + ['%(mod_dir)s']"
+    #PythonPath "sys.path + ['%(mod_dir)s']"
     SetHandler python-program
-    PythonHandler current_web
+    PythonHandler current.current_web
 </Location>
 
 <Location "/current/htdocs">
@@ -132,7 +132,7 @@ def main():
     if args[0] == 'create_apache_config':
         # Make sure these strings are local, to make the % come out right.
         apache_config_file = config['apache_config_file']
-        mod_dir = MODULES_DIR
+        mod_dir = '/testing/path'
         web_dir = os.path.join(config['current_dir'], 'www')
         htdocs_dir = HTDOCS_DIR
 

@@ -8,13 +8,14 @@ Copyright (c) 2002 Hunter Matthews    Distributed under GPL.
 
 
 from current.logger import *
-from current.db.currentdb import *
+from current.db.currentdb import CurrentDB
 
 # This single global insures that all anyone else needs to know is 
 # I hate doubled names like this, but I couldn't think of anything else
 # that was short.
 db = None
 sdb = None
+
 
 def selectBackend(config):
     """ Factory function to start the db type specified. """
@@ -25,13 +26,13 @@ def selectBackend(config):
 
     global db, sdb
     if config['db_type'] == 'postgres':
-        import postgres
+        from current.db import postgres
         sdb = postgres.PostgresDB(config)
     elif config['db_type'] == 'mysql':
-        import mysql
+        from current.db import mysql
         sdb = mysql.MysqlDB(config)
     elif config['db_type'] == 'pysqlite':
-        import pysqlite
+        from current.db import pysqlite
         sdb = pysqlite.PySqliteDB(config)
     else:
         raise Exception("unknown backend type")

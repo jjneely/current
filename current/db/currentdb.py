@@ -18,9 +18,10 @@ import sys
 import time
 import sets
 
+import current.db
 from current.db.resultSet import resultSet
 from current.logger import *
-from current import db
+#from current import db
 from current import exception
 from current import archtab
 from current import RPM
@@ -51,14 +52,13 @@ class specificDB(object):
         pass
 
 
-
 class CurrentDB(object):
     
     def __init__(self, config):
         # Copy in the config information - we need it to connect, and we 
         # need it when creating and updating channels.
         self.config = config
-        self.specific = db.sdb
+        self.specific = current.db.sdb
 
         self.conn = self.specific.getConnection()
         self.cursor = self.specific.getCursor()

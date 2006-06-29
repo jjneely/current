@@ -6,10 +6,15 @@ management decisions.
 
 Here are the rules so far. 
 
+Developing and Testing Current:
+    *) Current is ment to be a python package as of the 1.7 series.
+       Set the PYTHONPATH environment variable to the top level
+       of the tarball/checkout of Current and use the PythonPath
+       options in the Apache config.
+
 Notes about logging:
-    *) At this point in time we are still using Hunter's logging.py
-       module, which I think works overly well.  In the future we may 
-       wish to move to the Python logging stuff in 2.3
+    *) At this point in time we are still using Hunter's logger.py which
+       backends into Python's logging module.
 
     *) The more I think about it the more I'm convinced that logging
        well never be 'clean.'  But we do as much as posslible.
@@ -26,9 +31,9 @@ Notes about logging:
        need to be reported.  Otherwise the main handler will do that for 
        you.  Avoid duplicate log messages.
 
-       MANDATORY - Cirtical errors.  Current blew up here.
+       CRITICLE  - Cirtical errors.  Current blew up here.
        
-       VERBOSE   - Information the user should know about but is not
+       WARNING   - Information the user should know about but is not
                    impeding doom for Current
 
        DEBUG     - Logging of a major step in program flow.  Ie: dispatching
@@ -72,7 +77,7 @@ For people who want to submit general patches to Current:
     6. Don't change the CHANGELOG or the version number in your patch- 
        I'll deal with that when I apply your patch.
 
-    7. We use CVS at current.tigris.org
+    7. We use Subversion at current.tigris.org
                      
     8. Each patch should be ONE change, and ONE change only. Don't send
        two features or a feature and bugfix in one patch - send two 
@@ -83,10 +88,10 @@ For people who want to submit general patches to Current:
 For people who are working on backends for Current:
     *. Python DB API V2.0. Developed with PostgreSQL (for now)
 
-       I will accept no other backend patches UNTIL we have a stable,
-       sane postgres backend. Functionality FIRST, portability SECOND.
-       Patches against the postgres work to make later porting easier
-       will be carefully considered.
+       During development I will normally focus on making new stuff
+       work with ONE database backend, probably SQLite.  I will not
+       accept patches for the other database backends until the 
+       development series stabalizes.
        
     *. Sane handling of multiple rpm name/version/release/epoch (NVRE) and
        arch (A) per channel.
@@ -131,10 +136,17 @@ your peril.
   or just compatible (IE, everything the client expects, but leave out the 
   RHN stuff we don't use, and add anything we want.) I can see benefits/
   problems either way. Comments welcome.
+
+    06/06/28 - I am now making some changes that are compatible with
+    RHN/up2date but do not act the same as RHN.  Example, I use the client's
+    UUID to identify the client rather than internal database numbers.
   
 * One of the fundamental goals of Current is to never modify the client
   software. This software does a critical task, and modifying the client
   frankly implies I don't know what I'm doing. 
+
+* Current will support Yum metadata repositories as well with added ability
+  to track Yum clients and possibly deploy actions to Yum clients.
 
   
 Comments? What do YOU want the server to look like?  

@@ -10,12 +10,7 @@ Copyright (c) 2002 Hunter Matthews    Distributed under GPL.
 from current.logger import *
 from current.db.currentdb import CurrentDB
 
-# This single global insures that all anyone else needs to know is 
-# I hate doubled names like this, but I couldn't think of anything else
-# that was short.
-db = None
 sdb = None
-
 
 def selectBackend(config):
     """ Factory function to start the db type specified. """
@@ -24,7 +19,7 @@ def selectBackend(config):
     #   return globals()["%s_DB" % name]()
     # but for now, we keep it simple and stupid
 
-    global db, sdb
+    global sdb
     if config['db_type'] == 'postgres':
         from current.db import postgres
         sdb = postgres.PostgresDB(config)
@@ -36,8 +31,6 @@ def selectBackend(config):
         sdb = pysqlite.PySqliteDB(config)
     else:
         raise Exception("unknown backend type")
-
-    db = CurrentDB(config)
 
 
 ## END OF LINE ##

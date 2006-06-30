@@ -23,7 +23,7 @@
 from current.exception import *
 from current.logger import *
 from current import configure
-from current import db
+from current.db import currentdb
 
 # XXX:
 # Big design goal for Current is to have 3 layers:
@@ -40,8 +40,8 @@ from current import db
 class Channels(object):
     
     def __init__(self):
-        self.db = db.db
         self.config = configure.config      # initiated by init_backend()
+        self.db = currentdb.CurrentDB(self.config)
 
     def abort(self):
         # XXX: Used in the API layer!  BAD!

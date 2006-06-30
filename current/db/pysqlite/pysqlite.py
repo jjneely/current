@@ -78,11 +78,13 @@ class PySqliteDB(specificDB):
 
 
     def getCursor(self):
-        c = self.conn.cursor()
+        if self.conn == None:
+            self.getConnection()
+            
         if self.cursor == None:
             self.cursor = self.conn.cursor()
 
-        return c
+        return self.cursor
      
 
 ## END OF LINE ##

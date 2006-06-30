@@ -21,12 +21,12 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 from current.exception import *
-from current import db.profile
+from current.db import profile
 
 class Profile(object):
 
     def __init__(self, id=None):
-        self.db = db.profile.ProfileDB()
+        self.db = profile.ProfileDB()
         self.pid = None
         
         if id == None:

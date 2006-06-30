@@ -26,7 +26,7 @@ import time
 import random
 import pickle
 from mod_python import Cookie
-from current import db.sessions
+from current.db import sessions
 from current import exception
 
 class Session(dict):
@@ -36,7 +36,7 @@ class Session(dict):
            session from the store."""
 
         dict.__init__(self)
-        self.db = db.sessions.SessionDB()
+        self.db = sessions.SessionDB()
 
         if sid == None:
             # create new object

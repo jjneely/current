@@ -14,6 +14,7 @@ import string
 import sha
 import time
 
+from current import profiles
 from current import exception
 from current import configure
 
@@ -129,14 +130,17 @@ class SysId(object):
         if self._data['type'] != 'REAL':
             return (0, "Sysid type is incorrect")
 
-        # We don't support sysid's from other server systems, and
-        # we only support anonymous clients. (at the moment).
+        # We don't support sysid's from other server systems
         system_id = self._data['system_id']
         if system_id.endswith('ANONYMOUS'):
             return (0, "Current no longer accepts anonymous clients")
 
         if len(system_id.split('-')) is not 5:
             return (0, "The system UUID (system_id) is not valid")
+
+        # Does the UUID exist in db?
+        if not profiles.Systems().validUUID(system_id):
+            return (0, "This system is not registered with this server")
         
         # Everythings ok
         return (1, "Sysid is valid")

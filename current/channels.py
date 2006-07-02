@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# channelss.py - Manage channels
+# channels.py - Manage channels
 #
 # Copyright 2006 Jack Neely <jjneely@gmail.com>
 #

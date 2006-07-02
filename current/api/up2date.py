@@ -9,18 +9,16 @@ returns, please see the rhn_api.txt file.
 """
 
 import copy
-import os
 import pprint
-import rpm
 import xmlrpclib
-import stat
-import string
 import sys
 
+from current import profiles
 from current import channels
 from current import configure
 from current import auth
 from current.logger import *
+from current.exception import *
 
 __current_api__ = [
     'login',                               ## These are the newer 2.7 API
@@ -58,9 +56,9 @@ def login(sysid_string):
     
     # Need a list of channels this client is authorized for 
     # FIXME: we assume only one channel right now is returned...
-    channels = chanlib.getCompatibleChannels(si.getattr('architecture'), 
+    chans = chanlib.getCompatibleChannels(si.getattr('architecture'), 
                                                   si.getattr('os_release'))    
-    if len(channels) == 0:
+    if len(chans) == 0:
         log("Fault! - no channels")
         return xmlrpclib.Fault(1000, 
             "No compatible channels found for client")
@@ -68,14 +66,14 @@ def login(sysid_string):
     # This is mostly here as a marker - we'd pass in a list of all possible
     #   (compatible) channels, and get back a list (pos. empty) of the ones
     #   this client was authorized to to touch.
-    channels = p.getAuthorizedChannels()
-    if len(channels) == 0:
+    chans = p.getAuthorizedChannels()
+    if len(chans) == 0:
         log ("Fault! - not authorized for channels")
         return xmlrpclib.Fault(1000, 
             "Client is not authorized for any channels")
 
     # Actually append that information to our headerId
-    for chan in channels:
+    for chan in chans:
         hi.addAuthChannel(chan)
 
     hi.setChecksum()            
@@ -105,22 +103,22 @@ def listChannels(sysid_string):
     
     # Need a list of channels this client is authorized for 
     # FIXME: we assume only one channel right now is returned...
-    channels = chanlib.getCompatibleChannels(si.getattr('architecture'),
+    chans = chanlib.getCompatibleChannels(si.getattr('architecture'),
                                                   si.getattr('os_release'))
-    if len(channels) == 0:
+    if len(chans) == 0:
         return xmlrpclib.Fault(1000, 
             "No compatible channels found for client")
 
     # This is mostly here as a marker - we'd pass in a list of all possible
     #   (compatible) channels, and get back a list (pos. empty) of the ones
     #   this client was authorized to to touch.
-    channels = p.getAuthorizedChannels()
-    if len(channels) == 0:
+    chans = p.getAuthorizedChannels()
+    if len(chans) == 0:
         return xmlrpclib.Fault(1000, 
             "Client is not authorized for any channels")
 
     # Must not alter the in-memory copy - we need a temp form
-    result = copy.deepcopy(channels)
+    result = copy.deepcopy(chans)
 
     # Transfer chanInfo structure into API result
     for chan in result:
@@ -153,17 +151,17 @@ def solveDependencies(sysid_string, unknowns):
         log("Error: %s" % str(e), VERBOSE)
         return xmlrpclib.Fault(1000, "Invalid system credentials.")
     
-    channels = chanlib.getCompatibleChannels(si.getattr('architecture'),
+    chans = chanlib.getCompatibleChannels(si.getattr('architecture'),
                                            si.getattr('os_release'))
-    if len(channels) == 0:
+    if len(chans) == 0:
         return xmlrpclib.Fault(1000, 
             "No compatible channels found for client")
 
     # This is mostly here as a marker - we'd pass in a list of all possible
     #   (compatible) channels, and get back a list (pos. empty) of the ones
     #   this client was authorized to to touch.
-    channels = p.getAuthorizedChannels()
-    if len(channels) == 0:
+    chans = p.getAuthorizedChannels()
+    if len(chans) == 0:
         return xmlrpclib.Fault(1000, 
             "Client is not authorized for any channels")
 
@@ -176,7 +174,7 @@ def solveDependencies(sysid_string, unknowns):
         provides[unk] = []
 
         # iterate over all channels available to the client
-        for chan in channels:
+        for chan in chans:
             pkgs = chanlib.solveDependancy(chan['label'], 
                                          si.getattr('architecture'),
                                          unk)
@@ -188,7 +186,7 @@ def solveDependencies(sysid_string, unknowns):
     return provides
 
 
-def subscribeChannels(sysid_string, channels, username, password):
+def subscribeChannels(sysid_string, chans, username, password):
 
     # Authorize the client
     si = auth.SysId(sysid_string)
@@ -202,7 +200,7 @@ def subscribeChannels(sysid_string, channels, username, password):
     return 0                                                                                 
 
 
-def unsubscribeChannels(sysid_string, channels, username, password):
+def unsubscribeChannels(sysid_string, chans, username, password):
 
     # Authorize the client
     si = auth.SysId(sysid_string)

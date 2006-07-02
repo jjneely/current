@@ -75,8 +75,6 @@ def logException(level=CRITICAL):
     if level < logger.getEffectiveLevel():
         return
 
-    logfile = logging_config['file']
-
     # even though tracing is not normally done at lower logging levels,
     # we add trace data for exceptions
     file, line, func, txt = traceback.extract_stack(None, 2)[0]
@@ -86,7 +84,7 @@ def logException(level=CRITICAL):
     
     (type, value, tb) = sys.exc_info()
     for line in traceback.format_exception(type, value, tb):
-        logger.log(level, line)
+        logger.log(level, line.strip())
 
                   
 def logfunc(args, level=DEBUG2):
@@ -99,7 +97,7 @@ def logfunc(args, level=DEBUG2):
     """
 
     logger = logging.getLogger()
-    if level > logger.getEffectiveLevel():
+    if level < logger.getEffectiveLevel():
         return
 
     file, line, func, txt = traceback.extract_stack(None, 2)[0]

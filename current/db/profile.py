@@ -52,7 +52,11 @@ class ProfileDB(object):
         q = "select profile_id from PROFILE where uuid = %s"
         self.cursor.execute(q, (uuid,))
         
-        return resultSet(self.cursor)['profile_id']
+        result = resultSet(self.cursor)
+        if result.rowcount() is 0:
+            return None
+        
+        return result['profile_id']
     
     def getProfile(self, id):
         q = """select architecture, os_release, name, release_name, uuid

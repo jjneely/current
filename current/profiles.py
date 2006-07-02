@@ -102,11 +102,17 @@ class Profile(object):
 class Systems(object):
 
     def __init__(self):
-        self.db = db.profile.ProfileDB()
+        self.db = profile.ProfileDB()
 
     def search(self):
         # What else does this do?
         # Only systems that a user can see/access to?
 
         return self.db.listSystems()
+
+    def validUUID(self, uuid):
+        if self.db.getProfileID(uuid) == None:
+            return False
+        else:
+            return True
 

@@ -5,6 +5,7 @@ import os
 import os.path
 import sys
 import logging
+import optparse
 
 modules = None
 
@@ -18,6 +19,14 @@ class CadminConfig(object):
 
     def name(self):
         return "AbstractConfigClass"
+
+    def defaultParser(self, usage):
+        parser = optparse.OptionParser(usage)
+        parser.add_option("-l", "--label", action="append", 
+                          type="string", dest="channels")
+        parser.add_option("-u", "--uuid", action="append", 
+                          type="string", dest="uuid")
+        return parser
 
 
 def getModules():

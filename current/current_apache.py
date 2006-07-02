@@ -288,7 +288,7 @@ def callAPIMethod(method, params):
     # OK, Everything should be good to go.
     log('module = %s' % module, TRIVIA)
     log('function = %s' % function, TRIVIA)
-    log('params = %s' % pprint.pformat(params), TRACE)
+    log('params = %s' % pprint.pformat(params), DEBUG2)
 
     log('Dispatching: %s' % method, DEBUG)
     try:
@@ -301,7 +301,7 @@ def callAPIMethod(method, params):
         log('ERROR: Recognized function %s called with wrong arg count '
             'or other TypeError exception occured' % method, MANDATORY)
         logException()
-        log('  params were: %s' % pprint.pformat(params), DEBUG2)
+        #log('  params were: %s' % pprint.pformat(params), DEBUG2)
         return xmlrpclib.Fault(1000, 'Function %s called with wrong arg count'
                                % function)
         
@@ -310,7 +310,7 @@ def callAPIMethod(method, params):
         log("ERROR: A CurrentException was raised -- alert user.", 
             MANDATORY)
         logException()
-        log('  params were: %s' % pprint.pformat(params), DEBUG2)
+        #log('  params were: %s' % pprint.pformat(params), DEBUG2)
         return xmlrpclib.Fault(1000, str(e))
     
     except Exception, e:
@@ -318,6 +318,6 @@ def callAPIMethod(method, params):
         log('ERROR: Recognized function %s blew up with undefined error'
             % method, MANDATORY)
         logException()
-        log('  params were: %s' % pprint.pformat(params), DEBUG2)
+        #log('  params were: %s' % pprint.pformat(params), DEBUG2)
         return xmlrpclib.Fault(1000, 'Function %s call blew up.  Bad week.'
                                % function)

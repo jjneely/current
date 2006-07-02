@@ -23,12 +23,11 @@ import xmlrpclib
 
 import logging
 
-logger = logging.getLogger("cadmin")
-logger.addHandler(logging.StreamHandler(sys.stdout))
-logger.setLevel(2)
-log = logger.log
+log = logging.getLogger("cadmin")
+log.addHandler(logging.StreamHandler(sys.stdout))
+log.setLevel(logging.INFO)
 
-# Our config modules
+# Our modules
 from current import admin
 from current.exception import CurrentRPCError
 
@@ -76,15 +75,15 @@ def commandSummary():
     s = ""
     for key in admin.modules.keys():
         s = "%s\n   %s - %s" % (s, key, 
-                admin.modules[key].Module.shortHelp)
+                admin.modules[key].shortHelp)
 
     return s
 
     
 def main():
 
-    log(2, "CADMIN - Current Administration Text Interface")
-    log(2, "Licensed under the GNU GPL version 2.0 or greater.")
+    log.info("CADMIN - Current Administration Text Interface")
+    log.info("Licensed under the GNU GPL version 2.0 or greater.")
 
     cadminOpts, command, commandOpts = getArguments()
     usage = "usage: %prog [options] COMMAND [options] [arguments]\n"
@@ -104,10 +103,10 @@ def main():
         sys.exit()
 
     if opts.verbose:
-        logger.setLevel(1)
+        log.setLevel(logging.DEBUG)
 
     if opts.quiet:
-        logger.setLevel(3)
+        log.setLevel(logging.WARNING)
 
     if command not in admin.modules.keys():
         parser.print_help()
@@ -115,10 +114,12 @@ def main():
     
     print
     server = getServer(opts.server)
-    module = admin.modules[command].Module()
+    module = admin.modules[command]
 
     try:
-        module.run(server, commandOpts)
+        log.debug("Running module: %s, %s" % (command, module))
+        ret = module.run(server, commandOpts)
+        log.debug("Module returned: %s" % ret)
     except CurrentRPCError, e:
         print "An error occured.  The error message is:"
         print str(e)

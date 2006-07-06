@@ -71,6 +71,7 @@ def new_system(system_dict, packages=None):
 
     # Create Profile
     p = profiles.Profile()
+    # XXX: Reactivation of old profile with matching uuid?
     p.newProfile(system_dict['architecture'], system_dict['os_release'],
                  system_dict['profile_name'], system_dict['release_name'],
                  system_dict['rhnuuid'])

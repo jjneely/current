@@ -108,7 +108,7 @@ class CurrentDB(object):
         self.cursor.execute('''insert into CHANNEL
                                (name, label, arch, osrelease, description, 
                                lastupdate, parentchannel_id, base)
-                               values (%s, %s, %s, %s, %s, %s, %s)''', 
+                               values (%s, %s, %s, %s, %s, %s, %s, %s)''', 
                             (channel['name'],
                              channel['label'],
                              arch,

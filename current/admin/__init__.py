@@ -7,6 +7,8 @@ import sys
 import logging
 import optparse
 
+from current import xmlrpc
+
 modules = None
 
 # Abstract Object for cadmin modules
@@ -20,11 +22,14 @@ class CadminConfig(object):
     def name(self):
         return "AbstractConfigClass"
 
+    def call(self, method, *args):
+        return xmlrpc.doCall(method, *args)
+
     def defaultParser(self, usage):
         parser = optparse.OptionParser(usage)
-        parser.add_option("-l", "--label", action="append", 
+        parser.add_option("-l", "--label", action="append", default=[],
                           type="string", dest="channels")
-        parser.add_option("-u", "--uuid", action="append", 
+        parser.add_option("-u", "--uuid", action="append", default=[],
                           type="string", dest="uuid")
         return parser
 

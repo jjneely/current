@@ -85,7 +85,7 @@ create table PROFILE (
     os_release      varchar(32) not null,
     name            varchar(128) not null,
     release_name    varchar(64),
-    uuid            varchar(32) not null
+    uuid            varchar(32) not null unique
 );
 create index PROFILE_IDX on PROFILE(uuid);
 

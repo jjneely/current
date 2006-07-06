@@ -86,13 +86,13 @@ class Channels(object):
             raise
 
     def getCompatibleChannels(self, arch, release):
-        return self.db.getCompatibleChannels(self, arch, release)
+        return self.db.getCompatibleChannels(arch, release)
 
     def solveDependancy(self, label, arch, unknown):
-        return self.db.solveDependancy(self, label, arch, unknown)
+        return self.db.solveDependancy(label, arch, unknown)
 
     def getLastUpdate(self, release, arch):
-        return self.db.getLastUpdate(self, release, arch)
+        return self.db.getLastUpdate(release, arch)
 
     def listAppletPackages(self, release, arch):
         return self.db.listAppletPackages(self, release, arch)

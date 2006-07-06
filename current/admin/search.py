@@ -1,5 +1,4 @@
 from current.admin import CadminConfig
-from current import xmlrpc
 import pprint
 import sys
 
@@ -13,7 +12,7 @@ class Module(CadminConfig):
             print usage
             sys.exit(1)
             
-        result = xmlrpc.doCall(server.cadmin.findProfile)
+        result = self.call(server.cadmin.findProfile)
         pprint.pprint(result)
     
     def name(self):

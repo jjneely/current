@@ -23,6 +23,7 @@
 from current.exception import *
 from current import db
 from current.db.resultSet import resultSet
+from current.logger import *
 
 class CurrentProfileDB(CurrentDB):
     pass
@@ -90,7 +91,7 @@ class ProfileDB(object):
                CHANNEL.base != 0 and
                PROFILE.profile_id = %s and
                PROFILE.architecture = CHANNEL.arch and
-               PROFILE.release = CHANNEL.osrelease"""
+               PROFILE.release_name = CHANNEL.osrelease"""
 
         self.cursor.execute(q, (pid,))
         result = resultSet(self.cursor)
@@ -116,8 +117,8 @@ class ProfileDB(object):
         chanList = resultSet(self.cursor).dump()
         for c in chanList:
             log("AuthorizedChannels: : %s" % str(c), DEBUG2)
-            if c['parent_channel'] == None:
-                c['parent_channel'] = ''
+            if c['parentchannel_id'] == None:
+                c['parentchannel_id'] = ''
 
         return chanList
 

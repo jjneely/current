@@ -8,8 +8,10 @@ import logging
 import optparse
 
 from current import xmlrpc
+from current import exception
 
 modules = None
+log = logging.getLogger("cadmin")
 
 # Abstract Object for cadmin modules
 class CadminConfig(object):
@@ -23,8 +25,16 @@ class CadminConfig(object):
         return "AbstractConfigClass"
 
     def call(self, method, *args):
-        return xmlrpc.doCall(method, *args)
-
+        try:
+            return xmlrpc.doCall(method, *args)
+        except xmlrpc.Fault, e:
+            log.error("A Server Fault occured: %s" % str(e))
+            sys.exit(2)
+        except exception.CurrentRPCError, e:
+            log.error("An error occured communicating with the server: %s" \
+                      % str(e))
+            sys.exit(3)
+            
     def defaultParser(self, usage):
         parser = optparse.OptionParser(usage)
         parser.add_option("-l", "--label", action="append", default=[],
@@ -35,7 +45,6 @@ class CadminConfig(object):
 
 
 def getModules():
-    log = logging.getLogger("cadmin")
     list = []
     modules = {}
     path = os.path.dirname(__file__)

@@ -29,6 +29,7 @@ import gzip
 import socket
 import httplib
 import urllib2
+from xmlrpclib import Fault
 
 from current.logger import *
 from current.exception import *

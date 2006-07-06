@@ -89,7 +89,7 @@ class Profile(object):
         # XXX: is channel valid?  Are we already subscribed?
         self.db.subscribe(self.pid, channel)
 
-    def ubsubscribe(self, channel):
+    def unbsubscribe(self, channel):
         self.__sanity()
         
         self.db.unsubscribe(self.pid, channel)

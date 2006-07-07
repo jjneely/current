@@ -20,7 +20,6 @@ BuildRequires:  docbook-utils docbook-utils-pdf
 Requires: python-abi = %(%{__python} -c "import sys ; print sys.version[:3]")
 Requires: rpm-python mod_ssl
 Requires: mod_python >= 3.1
-Requires: python >= 2.3
 Requires: rpm >= 4.0.2-8
 Requires: httpd
 

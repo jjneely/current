@@ -45,7 +45,7 @@ locals().update(tagnames)
 __all__ = tagnames.keys()
 __all__.append('Header')
 
-from logger import *
+from current.logger import *
 
 class RPMException(Exception):
     pass

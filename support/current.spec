@@ -1,26 +1,28 @@
-##
-# This package can no longer easily be built for RHL 7x, due to needing a 
-# python 2.2 built with rpm support.
-# 
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 
-Summary: A server for Red Hat's up2date tools.
-Name: current
-Version: 1.7.2
-Release: 1
-License: GPL
-Group: System Environment/Daemons
-URL: http://current.tigris.org
-Source0: ftp://ftp.biology.duke.edu/pub/admin/current/%{name}-%{version}.tar.gz
-Requires: rpm-python mod_ssl 
+Name:           current
+Version:        1.7.3
+Release:        1%{?dist}
+Summary:        A server for Red Hat's up2date tools.
+
+Group:          System Environment/Daemons
+License:        GPL
+URL:            http://current.tigris.org
+Source0:        ftp://ftp.linuxczar.net/pub/current/%{name}-%{version}.tar.gz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+BuildArch:      noarch
+BuildRequires:  python-devel
+BuildRequires:  docbook-style-xsl docbook-style-dsssl docbook-dtds
+BuildRequires:  docbook-utils docbook-utils-pdf
+
+Requires: python-abi = %(%{__python} -c "import sys ; print sys.version[:3]")
+Requires: rpm-python mod_ssl
 Requires: mod_python >= 3.1
 Requires: python >= 2.3
 Requires: rpm >= 4.0.2-8
-Requires: httpd 
-BuildRequires: docbook-style-xsl docbook-style-dsssl docbook-dtds
-BuildRequires: docbook-utils docbook-utils-pdf
-BuildArchitectures: noarch
-BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
-
+Requires: httpd
 
 %description
 Current is a server implementation for Red Hat's up2date tools. It's
@@ -28,38 +30,46 @@ designed for small to medium departments to be able to set up and run their
 own up2date server, feeding new applications and security patches to
 workstations/servers.
 
-
-%prep 
-[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+%prep
 %setup -q
 
 
 %build
-make all
+CFLAGS="$RPM_OPT_FLAGS" %{__python} setup.py build
 
 
 %install
-make install INSTALL_ROOT=$RPM_BUILD_ROOT
+rm -rf $RPM_BUILD_ROOT
+%{__python} setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT
 
-
+ 
 %clean
-[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+rm -rf $RPM_BUILD_ROOT
+
 
 %files
-%defattr(-,root,root)
+%defattr(-,root,root,-)
+# Include files and dirs below %{python_sitelib} (for noarch packages) and
+# %{python_sitearch} (for arch-dependent packages) as appropriate, and mark
+# *.pyo as %ghost (do not include in package).
 %doc CHANGELOG LICENSE README RELEASE-NOTES TODO
 %doc docs/*.txt docs/FAQ
 %doc docs/client
 %doc docs/developer_docs
 %doc docs/current-guide
+
 %config(noreplace) /etc/current/current.conf
 %dir /etc/current
-%dir /usr/share/current
-/usr/sbin/*
-/usr/share/current/*
 
+%{_bindir}/*
+%{python_sitelib}/current/*
+%ghost %{python_sitelib}/current/*.pyo
 
 %changelog
+* Thu Jul 06 2006 Jack Neely <jjneely@gmail.com>
+- Rework package to use python distutils
+- Attempt to comply with Fedora packaging standards
+
 * Mon Sep 27 2004 Jack Neely <jjneely@gmail.com>
 - Much cleanup of code.  The database code is very muched changed for
   the better and moved to the currentdb module.
@@ -76,7 +86,7 @@ make install INSTALL_ROOT=$RPM_BUILD_ROOT
   1.4.x branch to trunk (7.x vs 8.x builds)
 
 * Sat Feb 15 2003 Hunter Matthews <thm@duke.edu> 1.4.3-1
-- Changes to dependancies to correct for Red Hat 8.0 
+- Changes to dependancies to correct for Red Hat 8.0
 
 * Thu Oct 17 2002 Hunter Matthews <thm@duke.edu>
 - Took out old code bits
@@ -111,4 +121,3 @@ make install INSTALL_ROOT=$RPM_BUILD_ROOT
 * Sun Dec 09 2001 Ivan F. Martinez <ivanfm@ecodigit.com.br>
 - Initial release
 
-# END OF LINE #

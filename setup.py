@@ -24,6 +24,9 @@ import os
 import os.path
 from distutils.core import setup
 
+# Replaced by "make archive"
+VERSION="VERSIONSUBST"
+
 def getDirs(path):
     # Split up a directory listing of files and directories
     dirs = [path.replace('/', '.')]
@@ -40,7 +43,7 @@ def getDirs(path):
 
 print getDirs('current')
 
-setup(  version="1.7.3",
+setup(  version=VERSION,
 
         name="Current",
         description="An Open Source Up2date Server.",

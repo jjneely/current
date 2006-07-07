@@ -41,8 +41,6 @@ X-Cache: MISS from xmlrpc.rhn.redhat.com
 Connection: close
 
 
-* Convert to use python's logging module
-
 * Support the capabilities in capabilities.py in the up2date code base.
   See Issue #29
 
@@ -64,9 +62,6 @@ Connection: close
 * In the new web based, database backed current administrative system
   (which does't exist) it would be cool to include mod_status and 
   mod_config information.
-
-  HTML templating: http://www.owlfish.com/software/simpleTAL/index.html
-                   http://www.entrian.com/PyMeld/
 
 
 1.8.0 ship checklist

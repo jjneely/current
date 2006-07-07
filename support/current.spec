@@ -39,7 +39,7 @@ CFLAGS="$RPM_OPT_FLAGS" %{__python} setup.py build
 
 cd docs
 xmlto html -o current-guide  current-guide.xml
-xmlto ps   -o current-guide.ps current-guide.xml
+#xmlto ps   -o current-guide.ps current-guide.xml
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -59,15 +59,16 @@ rm -rf $RPM_BUILD_ROOT
 %doc docs/*.txt docs/FAQ
 %doc docs/client
 %doc docs/developer_docs
-%doc docs/current-guide.ps
+#%doc docs/current-guide.ps
 %doc docs/current-guide
 
 %config(noreplace) /etc/current/current.conf
 %dir /etc/current
 
 %{_bindir}/*
+# XXX: this is broken
 %{python_sitelib}/current/*
-%ghost %{python_sitelib}/current/*.pyo
+#%ghost %{python_sitelib}/current/*.pyo
 
 %changelog
 * Thu Jul 06 2006 Jack Neely <jjneely@gmail.com>

@@ -152,14 +152,11 @@ class ProfileDB(object):
     def unsubscribe(self, pid, channel):
         """Unsubscribe a profile from a channel."""
 
-        if type(channel) == type(1):
-            q = """delete from SUBSCRIPTIONS where profile_id = %s 
-                   and channel_id = %s"""
-        else:
-            q = """delete from SUBSCRIPTIONS, CHANNEL where 
-                    SUBSCRIPTIONS.profile_id = %s and
-                    SUBSCRIPTIONS.channel_id = CHANNEL.channel_id and
-                    CHANNEL.label = %s"""
+        q = """delete from SUBSCRIPTIONS where profile_id = %s 
+               and channel_id = %s"""
+
+        if type(channel) != type(1):
+            channel = self._getChanID(channel)
                     
         self.cursor.execute(q, (pid, channel))
         self.conn.commit()
@@ -175,4 +172,19 @@ class ProfileDB(object):
             l.append((r['name'], r['uuid']))
 
         return l
+    
+    def _getChanID(self, channel):
+        """Take a channel label and return the chan id from the DB."""
+
+        self.cursor.execute("""select channel_id from CHANNEL
+            where label = %s""", (channel,))
+
+        r = resultSet(self.cursor)
+
+        if r.rowcount() == 0:
+            log("Tried to get channel ID for %s which doesn't exist" % channel,
+                VERBOSE)
+            return None
+        
+        return r['channel_id']
 

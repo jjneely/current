@@ -214,8 +214,9 @@ def sendClientResult(req, result):
 
     if isinstance(result, xmlrpclib.Fault):
         log("Fault: %s" % str(result), VERBOSE)
+        faultString = base64.encodestring(result.faultString).strip()
         req.headers_out.add('X-RHN-Fault-Code', str(result.faultCode))
-        req.headers_out.add('X-RHN-Fault-String', string.strip(base64.encodestring(result.faultString)))
+        req.headers_out.add('X-RHN-Fault-String', faultString.replace('\n', ''))
         data = xmlrpclib.dumps(result, methodresponse=1)
     else:
         log('Result is normal data: turn it into an XML chunk', DEBUG)

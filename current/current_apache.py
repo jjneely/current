@@ -34,7 +34,10 @@ from current import db
 from current import api
 
 # Here are the recognized RHN api modules
-__modules__ = ['errata', 'queue', 'registration', 'up2date', 'cadmin', 'applet']
+__modules__ = ['errata', 'queue', 'registration', 
+               'up2date', 'applet',
+               # Current Specific modules
+               'cadmin', 'yum']
 
 def apacheLog(message, level='NOTICE'):
     """ log a message to the apache error log. pretties up an ugly api """

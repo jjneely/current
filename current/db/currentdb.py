@@ -21,11 +21,13 @@ import sets
 import current.db
 from current.db.resultSet import resultSet
 from current.logger import *
-#from current import db
 from current import exception
 from current import archtab
 from current import RPM
 from current import xmlrpc
+
+sys.path.append("/usr/share/createrepo/")
+import genpkgmetadata # from the createrepo package
 
 # Constants used in data base schema
 PROVIDES  = 0
@@ -180,6 +182,14 @@ class CurrentDB(object):
         self.conn.commit()
 
         return result
+
+
+    def _yumMetaData(self, channel):
+        log("Creating Yum Metadata", DEBUG)
+        pathname = os.path.join(self.config['current_dir'], 'www', channel)
+        genpkgmetadata.main(["-q", pathname])
+
+        return 0
 
 
     def _updateChannelTimeStamp(self, channel):
@@ -766,7 +776,15 @@ class CurrentDB(object):
         else:
             results['getPackage'] = "Ok"
 
-        # getPackageHeader ought to already be populated, so we're done.
+        # getPackageHeader ought to already be populated
+
+        # Yum Stuff
+        ret = self._yumMetaData(channel)
+        if ret:
+            results['repoMD'] = "Error creating Yum metadata."
+        else:
+            results['repoMD'] = "Yum metadata created successfully."
+
         return results
 
 

@@ -20,6 +20,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import sys
+
 from current.exception import *
 from current.logger import *
 from current import configure
@@ -80,10 +82,12 @@ class Channels(object):
 
     def updateChannel(self, channel):
         try:
-            return self.db.updateChannel(channel)
+            ret = self.db.updateChannel(channel)
         except Exception, e:
             self.db.abort()
             raise
+
+        return ret
 
     def getCompatibleChannels(self, arch, release):
         return self.db.getCompatibleChannels(arch, release)

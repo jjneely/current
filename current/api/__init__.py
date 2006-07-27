@@ -16,6 +16,7 @@ from current.api import queue
 from current.api import registration
 from current.api import up2date
 from current.api import applet
+from current.api import yum
 
 ## END OF LINE ##
 

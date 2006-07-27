@@ -26,7 +26,9 @@ except ImportError:
     HTDOCS_DIR="/usr/share/current/templates/htdocs"
 
 from current import configure
+from current import configure
 from current import db
+from current.db import currentdb
 from current.logger import *
 
 
@@ -48,7 +50,7 @@ APACHE_CONFIG = """
 #LogLevel debug              Set this for debugging
 
 Alias /XMLRPC/$RHN %(web_dir)s
-Alias /current/htdocs %(htdocs_dir)s
+#Alias /current/htdocs %(htdocs_dir)s
 
 <Directory %(web_dir)s>
     # Make certain these are set - current won't work without it
@@ -81,15 +83,15 @@ Alias /current/htdocs %(htdocs_dir)s
     PythonAccessHandler current.current_apache
 </Location>
 
-<Location "/current">
-    #PythonPath "sys.path + ['%(mod_dir)s']"
-    SetHandler python-program
-    PythonHandler current.current_web
-</Location>
-
-<Location "/current/htdocs">
-    SetHandler None
-</Location>
+#<Location "/current">
+#    #PythonPath "sys.path + ['%(mod_dir)s']"
+#    SetHandler python-program
+#    PythonHandler current.current_web
+#</Location>
+#
+#<Location "/current/htdocs">
+#    SetHandler None
+#</Location>
                 
 
 ## END OF CURRENT ##
@@ -123,7 +125,7 @@ def main():
         sys.exit('ERROR: You must edit the config file to start')
         
     ## Logging system must be operational for the other modules to work.
-    logconfig(config['log_level'], sys.stdout)
+    logconfig(config['log_level'], None)
 
     if len(args) == 0:
         print_help()
@@ -172,7 +174,8 @@ def main():
         # we can just pass in the config object, since it looks like a 
         # a dictionary.
         db.selectBackend(config)
-        db.db.initdb()
+        maindb = currentdb.CurrentDB(config)
+        maindb.initdb()
 
         # Then change the perms
         if config['access_type'] == 'user':

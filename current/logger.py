@@ -25,7 +25,7 @@ TRACE     = 10    # at this level and above, log the source file and line #
 MAX       = 1
     
 
-def logconfig(level, file):
+def logconfig(level, file=None):
     "Initialize the python logger for Current."   
     logger = logging.getLogger()
 
@@ -39,7 +39,11 @@ def logconfig(level, file):
     logging.addLevelName(10, "TRACE")
     logging.addLevelName(0, "")
     
-    handler = logging.FileHandler(file)
+    if file == None:
+        handler = logging.StreamHandler(sys.stdout)
+    else:
+        handler = logging.FileHandler(file)
+
     # Time format: Jun 24 10:16:54
     formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s',
                                   '%b %2d %H:%M:%S')

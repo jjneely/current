@@ -114,6 +114,8 @@ def doCall(method, *args, **kwargs):
     return ret
     
 def getSysID(path):
+    "Return the sysID XML blob or None if it doesn't exist (not registerd)"
+
     dir, file = os.path.split(path)
     if not os.path.exists(dir):
         os.makedirs(dir, 0755)
@@ -168,13 +170,13 @@ def register(c, server, path, secret):
     return ret
 
 def runPlugin(c):
+    # Get configuration 
     url = c.confString('main', 'url', None)
     systemidpath = c.confString('main', 'systemid', 
                                 "/etc/sysconfig/current/systemid")
 
     if url == None:
-        disableCurrent("URL for Current server not found")
-        return
+        raise CurrentRPCError("URL for Current server not found")
 
     server = xmlrpclib.Server(url)
     sysid = getSysID(systemidpath)
@@ -182,18 +184,28 @@ def runPlugin(c):
         # Register the system
         sysid = register(c, server, systemidpath, None)
 
+    # Login to Current and get the magic HTTP headers to download packages
+    currentHeaders = doCall(server.up2date.login, sysid)
+
+    # Suck down the channels we have access to
     fd = TemporaryFile()
     fd.write(doCall(server.yum.getYumConfig, sysid))
     fd.seek(0)
 
+    # Create a parser for a channel config blob
     cfg = ConfigParser.ConfigParser()
     cfg.readfp(fd)
     fd.close()
 
+    # Create repo objects for each channel
     for section in cfg.sections():
         if section == "main":
             continue
         repo = readRepoConfig(cfg, section, c.getConf())
+        # Current gives us a header dict, that's what the YumRepo wants
+        # XXX: I don't believe http_headers is populated before this
+        repo.http_headers = currentHeaders
+
         c.getRepos().add(repo)
 
 def init_hook(c):

@@ -69,6 +69,9 @@ def new_system(system_dict, packages=None):
     # or 'type' to us? Should we pare this down to what current needs?
     si = auth.SysId()
 
+    # Authenticate request.  system_dict with either contain a username and
+    # password fields OR a "token" field that will contain the activationkey
+
     # Create Profile
     p = profiles.Profile()
     # XXX: Reactivation of old profile with matching uuid?

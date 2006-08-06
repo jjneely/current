@@ -1,4 +1,4 @@
-VERSION=1.7.3
+VERSION=1.7.4
 NAME=current
 TAG = $(VERSION)
 REPO = http://current.tigris.org/svn/current
@@ -15,6 +15,6 @@ archive:
 	@cd /tmp/$(NAME)-$(VERSION); sed "s/VERSIONSUBST/$(VERSION)/" < support/$(NAME).spec.in > support/$(NAME).spec
 	@cd /tmp/$(NAME)-$(VERSION); sed "s/VERSIONSUBST/$(VERSION)/" < setup.py.in > setup.py
 	@dir=$$PWD; cd /tmp; tar -cvzf $$dir/$(NAME)-$(VERSION).tar.gz $(NAME)-$(VERSION)
-	#@rm -rf /tmp/$(NAME)-$(VERSION)
+	@rm -rf /tmp/$(NAME)-$(VERSION)
 	@echo "The archive is in $(NAME)-$(VERSION).tar.bz2"
 

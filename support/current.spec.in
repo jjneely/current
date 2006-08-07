@@ -21,7 +21,7 @@ Requires: python-abi = %(%{__python} -c "import sys ; print sys.version[:3]")
 Requires: rpm-python mod_ssl
 Requires: mod_python >= 3.1
 Requires: rpm >= 4.0.2-8
-Requires: httpd
+Requires: httpd createrepo
 
 %description
 Current is a server implementation for Red Hat's up2date tools. It's

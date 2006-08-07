@@ -33,7 +33,7 @@ from current.exception import CurrentRPCError
 
 def getServer(url=""):
     if url == "" and not os.access("/etc/sysconfig/rhn/up2date", os.R_OK):
-        log(2, "Cannot find a server to contact.")
+        log.critical("Cannot find a server to contact.")
         sys.exit(1)
     elif url != "":
         server = xmlrpclib.ServerProxy(url)

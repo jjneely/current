@@ -92,9 +92,6 @@ def init_backend():
         logException()
         return 1
 
-    # Authentication
-    auth.authorize = auth.Authorization()
-
     return 0
 
 

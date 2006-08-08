@@ -283,30 +283,4 @@ class SysHeaders(object):
         return (1, "SysHeaders are valid")
 
 
-class Authorization(object):
-    """ Similar to packagedb, a single, program wide object that provides
-    authorization services.
-
-    """
-
-    def __init__(self):
-        pass
-
-    
-    def getAuthorizedChannels(self, sysid, channels):
-        """ Return a list of channels a client is allowed to access.
-
-        Arguments are the sysid of the client and a list of channelInfo dicts (from the 
-        packagedb). 
-
-        Basically right now we return whatever we get. But in the future,
-        STUFF, big important STUFF could happen here.
-
-        I can't wait for someone to tell me what that stuff might be.
-        """
-
-        return channels
-
-
 ## END OF LINE ##    
- 

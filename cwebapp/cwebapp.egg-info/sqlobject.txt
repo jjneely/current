@@ -1,0 +1,2 @@
+db_module=cwebapp.model
+history_dir=$base/cwebapp/sqlobject-history

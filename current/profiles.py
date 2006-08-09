@@ -110,6 +110,9 @@ class Systems(object):
 
         return self.db.listSystems()
 
+    def systemCount(self):
+        return self.db.getSystemCount()
+
     def validUUID(self, uuid):
         if self.db.getProfileID(uuid) == None:
             return False

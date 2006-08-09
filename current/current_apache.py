@@ -37,7 +37,7 @@ from current import api
 __modules__ = ['errata', 'queue', 'registration', 
                'up2date', 'applet',
                # Current Specific modules
-               'cadmin', 'yum']
+               'cadmin', 'yum', 'channels', 'systems']
 
 def apacheLog(message, level='NOTICE'):
     """ log a message to the apache error log. pretties up an ugly api """

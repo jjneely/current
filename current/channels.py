@@ -100,4 +100,4 @@ class Channels(object):
 
     def listAppletPackages(self, release, arch):
         return self.db.listAppletPackages(self, release, arch)
-    
+   

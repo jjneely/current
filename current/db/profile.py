@@ -167,11 +167,15 @@ class ProfileDB(object):
         self.cursor.execute(q)
         r = resultSet(self.cursor)
         
-        l = []
-        for row in r:
-            l.append((r['name'], r['uuid']))
+        return r.dump()
 
-        return l
+    def getSystemCount(self):
+        q = """select count(*) from PROFILE"""
+        
+        self.cursor.execute(q)
+        r = self.cursor.fetchone()
+
+        return r[0]
     
     def _getChanID(self, channel):
         """Take a channel label and return the chan id from the DB."""

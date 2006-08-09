@@ -17,6 +17,8 @@ from current.api import registration
 from current.api import up2date
 from current.api import applet
 from current.api import yum
+from current.api import systems
+from current.api import channels
 
 ## END OF LINE ##
 

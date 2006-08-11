@@ -49,14 +49,14 @@ class Profile(object):
             raise CurrentException("Tried to load an invaild profile id: %s" \
                                    % self.pid)
             
-        (self.architecture, self.os_release, self.name, self.release_name, 
+        (self.user_id, self.architecture, self.os_release, self.name, self.release_name, 
             self.uuid) = tup
             
     def __sanity(self):
         if self.pid is None or self.uuid is None:
             raise CurrentExeception("Cannot delete unknown profile.")
 
-    def newProfile(self, architecture, os_release, name, release_name, uuid):
+    def newProfile(self, user, architecture, os_release, name, release_name, uuid):
         """Create a new profile:
             architecture = platform (ie i686-redhat-linux)
             os_release = Major version of OS (ie 3ES)
@@ -68,7 +68,7 @@ class Profile(object):
         if self.pid != None:
             raise CurrentException("Profile object already contains profile.")
         
-        self.pid = self.db.addProfile(architecture, os_release, 
+        self.pid = self.db.addProfile(user, architecture, os_release, 
                                       name, release_name, uuid)
         self.db.setupBaseChannels(self.pid)
 
@@ -98,6 +98,18 @@ class Profile(object):
         self.__sanity()
         return self.db.getAuthorizedChannels(self.uuid)
     
+    def getChannels(self):
+        self.__sanity()
+        return self.db.getChannels(self.pid)
+    
+    def addPackage(self, subChans, name, version, release, epoch):
+        self.__sanity()
+        return self.db.addPackage(self.pid, subChans, name, version, release, epoch)
+
+    def deletePackage(self, name, version=None, release=None, epoch=None):
+        self.__sanity()
+        return self.db.deletePackage(self.pid, name, version, release, epoch)
+
 
 class Systems(object):
 

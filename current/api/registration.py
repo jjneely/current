@@ -11,9 +11,11 @@ import xmlrpclib
 import rpm 
 import pprint
 
+from current.exception import *
 from current import auth
 from current import configure
 from current import profiles
+from current import users
 from current.logger import *
 
 
@@ -53,12 +55,40 @@ def terms_and_conditions():
 
 
 def reserve_user(username, password):
-    return xmlrpclib.False
+
+    try:
+        u = users.Users(username)
+    except CurrentException, e:
+        return xmlrpclib.False
+
+    if u.isValid(password):
+        return xmlrpclib.True
+    else:
+        return xmlrpclib.False
 
 
 def new_user(username, password, email_address=None,
              org_id=None, org_password=None):
     # org_id and org_password only in 2.7+
+
+    # Some limit checks
+    if len(password)<5:
+        return xmlrpclib.Fault(14, 'Password too short')
+    if len(username)<5:
+        return xmlrpclib.Fault(15, 'Username too short')
+
+    # see if the user exits. If so, do nothing if passwd match
+    try:
+        u = users.Users(username)
+        if u.isValid(password):
+            return 0
+        else:
+	    return xmlrpclib.Fault(3, 'User exists, but password mismatch')
+    except CurrentException, e:
+        pass
+
+    u = users.Users()
+    u.newUser(username, password)
     return 0
     
             
@@ -72,10 +102,19 @@ def new_system(system_dict, packages=None):
     # Authenticate request.  system_dict with either contain a username and
     # password fields OR a "token" field that will contain the activationkey
 
+    try:
+        u = users.Users(system_dict['username'])
+    except CurrentException, e:
+        return xmlrpclib.False
+    if not u.isValid(system_dict['password']):
+        return xmlrpclib.False
+
     # Create Profile
     p = profiles.Profile()
+
     # XXX: Reactivation of old profile with matching uuid?
-    p.newProfile(system_dict['architecture'], system_dict['os_release'],
+    p.newProfile(u.pid,
+                 system_dict['architecture'], system_dict['os_release'],
                  system_dict['profile_name'], system_dict['release_name'],
                  system_dict['rhnuuid'])
 
@@ -148,6 +187,27 @@ def add_packages(sysid_string, package_list):
     if not valid:
         return xmlrpclib.Fault(1000, reason)
 
+    # Get client's profile
+    try:
+        p = profiles.Profile(si.getattr('system_id'))
+    except CurrentException, e:
+        log("Fault! Sysid does not refer to a valid profile", VERBOSE)
+        log("Error: %s" % str(e), VERBOSE)
+        return xmlrpclib.Fault(1000, "Invalid system credentials.")
+
+    subscribedChans = p.getChannels()
+    first = 1
+    for (pkg) in package_list:
+        if first:
+            try:
+	        (name,version,release,epoch,arch,cookie) = pkg
+	    except Exception, e:
+		first = 0
+	        (name,version,release,epoch) = pkg
+	else:
+	    (name,version,release,epoch) = pkg
+
+	p.addPackage(subscribedChans,name,version,release,epoch)
     return 0
 
     
@@ -159,6 +219,17 @@ def delete_packages(sysid_string, package_list):
     if not valid:
         return xmlrpclib.Fault(1000, reason)
 
+    # Get client's profile
+    try:
+        p = profiles.Profile(si.getattr('system_id'))
+    except CurrentException, e:
+        log("Fault! Sysid does not refer to a valid profile", VERBOSE)
+        log("Error: %s" % str(e), VERBOSE)
+        return xmlrpclib.Fault(1000, "Invalid system credentials.")
+
+    for (pkg) in package_list:
+	(name,version,release,epoch) = pkg
+	p.deletePackage(name,version,release,epoch)
     return 0
 
     
@@ -170,6 +241,20 @@ def update_packages(sysid_string, package_list):
     if not valid:
         return xmlrpclib.Fault(1000, reason)
 
+    # Get client's profile
+    try:
+        p = profiles.Profile(si.getattr('system_id'))
+    except CurrentException, e:
+        log("Fault! Sysid does not refer to a valid profile", VERBOSE)
+        log("Error: %s" % str(e), VERBOSE)
+        return xmlrpclib.Fault(1000, "Invalid system credentials.")
+
+    #clear out the current list of packages and re-add them
+    subscribedChans = p.getChannels()
+    p.deletePackage(None)
+    for (pkg) in package_list:
+	(name,version,release,epoch) = pkg
+	p.addPackage(subscribedChans,name,version,release,epoch)
     return 0
 
     

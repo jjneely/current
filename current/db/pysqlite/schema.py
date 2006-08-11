@@ -81,6 +81,7 @@ create index SESSION_IDX on SESSIONS(sid);
 
 create table PROFILE (
     profile_id      INTEGER PRIMARY KEY,
+    user_id	    int not null,
     architecture    varchar(64) not null,
     os_release      varchar(32) not null,
     name            varchar(128) not null,
@@ -95,6 +96,12 @@ create table SUBSCRIPTIONS (
     channel_id      int not null
 );
 
+create table USER (
+    user_id         INTEGER PRIMARY KEY,
+    username        varchar(32) not null,
+    password        varchar(32) not null
+);
+
 create table HARDWARE (
     hardware_id     INTEGER PRIMARY KEY,
     profile_id      int not null,
@@ -104,8 +111,12 @@ create table HARDWARE (
 
 create table INSTALLED (
     installed_id    INTEGER PRIMARY KEY,
-    package_id      int not null,
-    profile_id      int not null
+    profile_id      int not null,
+    package_id      int,
+    name            varchar(64) not null,
+    version         varchar(64) not null,
+    release         varchar(64) not null,
+    epoch           varchar(8) not null
 );
 create index INSTALLED_PACKAGE_IDX on INSTALLED(package_id);
 create index INSTALLED_PROFILE_IDX on INSTALLED(profile_id);

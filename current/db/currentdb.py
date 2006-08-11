@@ -282,6 +282,9 @@ class CurrentDB(object):
                 # We know there are no more refferences to this PACKAGE
                 self.cursor.execute("""delete from PACKAGE where 
                                        package_id = %s""", (package_id,))
+		# (PM2006) And remove the reference from INSTALLED 
+                self.cursor.execute("""update INSTALLED set package_id=NULL
+				       where package_id = %s""", (package_id,))
             
             # Now the fun part...detect possibly stale channels
             self.cursor.execute("""select distinct CHANNEL.label from 
@@ -412,12 +415,21 @@ class CurrentDB(object):
                          header[RPM.RELEASE], header[RPM.EPOCH],
                          header[RPM.SOURCEPACKAGE]))
 
-        package_id = self._getPackageId(header[RPM.NAME], header[RPM.VERSION],
-                                header[RPM.RELEASE], header[RPM.EPOCH],
-                                header[RPM.SOURCEPACKAGE])
-        if not package_id:
-            log("Inserted package but could not lookup package_id", VERBOSE)
+            package_id = self._getPackageId(header[RPM.NAME], header[RPM.VERSION],
+                                            header[RPM.RELEASE], header[RPM.EPOCH],
+                                            header[RPM.SOURCEPACKAGE])
+            if not package_id:
+                log("Inserted package but could not lookup package_id", VERBOSE)
             
+	    else:
+                # (PM2006) if it's a binary rpm, check if a system has it installed 
+                if header[RPM.SOURCEPACKAGE] == 0:
+                      self.cursor.execute('''update INSTALLED set package_id = %s
+				where name = %s and version = %s and release = %s
+				and epoch = %s''', (package_id, 
+					header[RPM.NAME], header[RPM.VERSION],
+					header[RPM.RELEASE], header[RPM.EPOCH]))
+
         return package_id
 
                 

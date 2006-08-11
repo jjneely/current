@@ -24,6 +24,7 @@ from current.exception import *
 from current import db
 from current.db.resultSet import resultSet
 from current.logger import *
+from current.archtab import *
 
 class CurrentProfileDB(CurrentDB):
     pass
@@ -33,15 +34,18 @@ class ProfileDB(object):
     def __init__(self):
         self.cursor = db.sdb.getCursor()
         self.conn   = db.sdb.getConnection()
+        self.conn.create_function("getArch", 1, getArch)
 
+    def getArch(arch):
+	return getCannonArch(arch)
 
-    def addProfile(self, arch, os_release, name, release_name, uuid):
-        q = """insert into PROFILE (profile_id, architecture, 
+    def addProfile(self, user, arch, os_release, name, release_name, uuid):
+        q = """insert into PROFILE (profile_id, user_id, architecture, 
                os_release, name,
                release_name, uuid) values
-               (NULL, %s, %s, %s, %s, %s)"""
+               (NULL, %s, %s, %s, %s, %s, %s)"""
                
-        t = (arch, os_release, name, release_name, uuid)
+        t = (user, arch, os_release, name, release_name, uuid)
 
         self.cursor.execute(q, t)
         self.conn.commit()
@@ -60,7 +64,7 @@ class ProfileDB(object):
         return result['profile_id']
     
     def getProfile(self, id):
-        q = """select architecture, os_release, name, release_name, uuid
+        q = """select user_id, architecture, os_release, name, release_name, uuid
                from PROFILE where profile_id = %s"""
 
         self.cursor.execute(q, (id,))
@@ -75,6 +79,8 @@ class ProfileDB(object):
         qlist = [
             "delete from PROFILE where profile_id = %s",
             "delete from SUBSCRIPTIONS where profile_id = %s",
+            "delete from INSTALLED where profile_id = %s",
+            "delete from HARDWARE where profile_id = %s",
             ]
 
         for q in qlist:
@@ -90,8 +96,8 @@ class ProfileDB(object):
         q = """select CHANNEL.channel_id from CHANNEL, PROFILE where
                CHANNEL.base != 0 and
                PROFILE.profile_id = %s and
-               PROFILE.architecture = CHANNEL.arch and
-               PROFILE.release_name = CHANNEL.osrelease"""
+               getArch(PROFILE.architecture) = CHANNEL.arch and
+               PROFILE.os_release = CHANNEL.osrelease"""
 
         self.cursor.execute(q, (pid,))
         result = resultSet(self.cursor)
@@ -171,7 +177,7 @@ class ProfileDB(object):
 
     def getSystemCount(self):
         q = """select count(*) from PROFILE"""
-        
+
         self.cursor.execute(q)
         r = self.cursor.fetchone()
 
@@ -192,3 +198,40 @@ class ProfileDB(object):
         
         return r['channel_id']
 
+    def addPackage(self, pid, subchans, name, version, release, epoch):
+        """Add a package to the profile."""
+
+	fmt = """select distinct PACKAGE.package_id from PACKAGE,RPM,CHANNEL_RPM_ACTIVE
+	       where ("""
+	for chan in subchans:
+	  fmt = fmt + "CHANNEL_RPM_ACTIVE.channel_id=%d or " % (chan)
+	fmt = fmt + """0) AND CHANNEL_RPM_ACTIVE.rpm_id = RPM.rpm_id AND
+		RPM.package_id = PACKAGE.package_id AND
+		name=%s AND version=%s AND release=%s and epoch=%s"""
+	self.cursor.execute(fmt, (name, version, release, epoch))
+	pkg = resultSet(self.cursor)
+	if pkg.rowcount() <> 0:
+		pkg = pkg['package_id']
+	else:
+		pkg = None
+
+        q = """insert into INSTALLED (profile_id, package_id,
+		name, version, release, epoch) values
+               (%s, %s, %s, %s, %s, %s)"""
+
+        self.cursor.execute(q, (pid, pkg, name, version, release, epoch))
+        self.conn.commit()
+
+    def deletePackage(self, pid, name, version, release, epoch):
+        """Remove a package from the profile."""
+
+	if name == None:
+	   q = """delete from INSTALLED where profile_id = %s"""
+           self.cursor.execute(q, (pid))
+	else:
+           q = """delete from INSTALLED where profile_id = %s AND
+                name = %s AND version = %s AND release = %s AND
+		epoch = %s"""
+           self.cursor.execute(q, (pid, name, version, release, epoch))
+
+        self.conn.commit()

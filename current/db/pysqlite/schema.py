@@ -99,7 +99,26 @@ create table SUBSCRIPTIONS (
 create table USER (
     user_id         INTEGER PRIMARY KEY,
     username        varchar(32) not null,
-    password        varchar(32) not null
+    password        varchar(40) not null,
+    email           varchar(40) not null,
+    company         varchar(32),
+    position        varchar(32),
+    title           varchar(32),
+    first_name      varchar(32) ,
+    last_name       varchar(32),
+    address1        varchar(32),
+    address2        varchar(32),
+    city            varchar(32),
+    zip             varchar(32),
+    state           varchar(32),
+    country         varchar(32),
+    fax             varchar(32),
+    phone           varchar(32),
+    contact_email   boolean,
+    contact_fax     boolean,
+    contact_mail    boolean,
+    contact_newsletter boolean,
+    contact_phone   boolean
 );
 
 create table HARDWARE (

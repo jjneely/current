@@ -88,7 +88,7 @@ def new_user(username, password, email_address=None,
         pass
 
     u = users.Users()
-    u.newUser(username, password)
+    u.newUser(username, password, email_address)
     return 0
     
             
@@ -143,6 +143,23 @@ def register_product(sysid_string, product_info):
     if not valid:
         return xmlrpclib.Fault(1000, reason)
 
+    # Get client's profile
+    try:
+        p = profiles.Profile(si.getattr('system_id'))
+    except CurrentException, e:
+        log("Fault! Sysid does not refer to a valid profile", VERBOSE)
+        log("Error: %s" % str(e), VERBOSE)
+        return xmlrpclib.Fault(1000, "Invalid system credentials.")
+
+    # locate user
+    try:
+        u = users.Users(p.user_id)
+    except CurrentException, e:
+        log("Fault! Profile does not refer to a valid user", VERBOSE)
+        log("Error: %s" % str(e), VERBOSE)
+        return xmlrpclib.Fault(1000,'User does not exist')
+
+    u.addInfo(product_info)
     return 0
     
             

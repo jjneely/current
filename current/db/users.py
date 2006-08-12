@@ -46,7 +46,7 @@ class UserDB(object):
         return result['user_id']
     
     def getUser(self, id):
-        q = """select username, password
+        q = """select username, password, email
                from USER where user_id = %s"""
 
         self.cursor.execute(q, (id,))
@@ -64,10 +64,41 @@ class UserDB(object):
 
         self.conn.commit()
 
-    def addUser(self, user, passwd):
+    def addUser(self, user, passwd, email):
         "Add a user"
 
-	self.cursor.execute('''insert into USER (username,password)
-			       values(%s,%s)''', (user, passwd))
+	self.cursor.execute('''insert into USER (username,password,email)
+			       values(%s,%s,%s)''', (user, passwd, email))
         self.conn.commit()
 	return self.getUserID(user)
+
+    def addInfo(self, id, product_info):
+        "Add extra information to the user"
+
+        q = ""
+	fs = []
+	# strings
+        for f in ('company', 'title', 'first_name', 'last_name', 'zip',
+                  'address1', 'address2', 'city', 'state', 'country',
+		  'fax', 'phone', 'position'):
+            if product_info.has_key(f):
+		if len(q) != 0:
+                    q = q + ", "
+                q = q + f + " = %s"
+                fs.append(product_info[f])
+	# bools
+        for f in ('contact_email', 'contact_fax', 'contact_mail',
+                  'contact_newsletter', 'contact_phone'):
+            if len(q) != 0:
+                q = q + ", "
+            q = q + f + " = %s"
+            if product_info.has_key(f) and product_info[f]:
+                fs.append(1)
+            else:
+                fs.append(0)
+
+        q = "update USER set " + q + " where user_id = %s"
+        fs.append(id)
+
+        self.cursor.execute(q, tuple(fs))
+        self.conn.commit()

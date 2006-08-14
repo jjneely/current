@@ -3,13 +3,10 @@
 # program configuration module
 #
 
-import string
 import pprint
-import sys
-import exceptions
-import getopt
+import exception
 import os
-import re
+import os.path
 import ConfigParser
 
 ## Program wide config object
@@ -36,21 +33,7 @@ defaults = {
 }
 
 
-# Configuration Exceptions
-class Error(exceptions.Exception):
-    pass
-
-class FormatError(Error):
-    """ Passed wrong _type_ of for a command line argument, or the config
-    file is bogus. """
-    pass
-
-class MissingError(Error):    
-    """ A required configuration value wasn't found after all processing."""
-    pass
-
-
-class Config:
+class Config(object):
     """ The configuration object for the current server. 
     
     The config objects precedence from most important to least is 
@@ -115,5 +98,99 @@ class Config:
         tmp = "Configuration:\n" + pprint.pformat(self._data) + "\n"
         file.write(tmp)
 
-## END OF LINE ##
+
+class Configuration(object):
+
+    type = None
+
+    def __init__(self, cf="", defaults=None):
+        self.cfg = ConfigParser.ConfigParser(defaults)
+        self.configFiles = [cf, '/etc/current/current.conf']
+        files = self.cfg.read(self.configFiles)
+        
+        if files == None:
+            raise Exception("Configuration file not found.")
+
+    def get(self, key, default=None, check=None):
+        try:
+            ret = self.cfg.get(self.type, key)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError), e:
+            if default != None:
+                ret = default
+            else:
+                s = "Missing Configuration Item: Secion %s, Option %s"
+                raise exception.ConfigurationError(s % (self.type, key))
+
+        if check:
+            check(ret)
+
+        return ret
+
+    def record(self, key, value):
+        if not self.cfg.has_section(self.type):
+            self.cfg.add_section(self.type)
+
+        self.cfg.set(self.type, key, value)
+
+        for file in self.configFiles:
+            if os.access(file, os.W_OK):
+                fd = open(file, 'w')
+                self.cfg.write(fd)
+                fd.close()
+                logging.getLogger().info("Wrote config file: %s" % file)
+                return
+
+        raise exception.ConfigurationError(     \
+                "Could not save %s=%s in configuration file" % (key, value))
+
+    def checkFile(self, file, message="Missing file: %s"):
+        if not os.access(file, os.R_OK):
+            raise exception.ConfigurationError(message % file)
+    
+
+class Current(Configuration):
+
+    type = "current"
+
+    def __init__(self):
+        global defaults
+        Configuration.__init__(self, defaults=defaults)
+
+    def getApacheConfigFile(self):
+        return self.get("apache_config_file")
+
+    def getLogFile(self):
+        return self.get("log_file")
+
+    def getLogLevel(self):
+        return self.get("log_level")
+
+
+class AbstractPreferences(Configuration):
+
+    filename = ".cadmin"
+
+    def __init__(self):
+        fn = os.path.join(os.environ['HOME'], self.filename)
+        if not os.path.exists(fn):
+            # Create file if needed
+            fd = open(fn, 'w')
+            fd.close()
+            
+        self.cfg = ConfigParser.ConfigParser()
+        self.configFiles = [fn]
+        files = self.cfg.read(self.configFiles)
+        
+        # !!Always, use defaults in this class!!
+    
+
+class Preferences(AbstractPreferences):
+
+    type = "preferences"
+    
+    def getLogin(self):
+        return self.get("session", default="Bad Session")
+
+    def setLogin(self, session):
+        self.record("session", session)
 

@@ -17,3 +17,5 @@ class CurrentSQLite(CurrentDB):
 class CurrentSession(CurrentException):
     pass
 
+class ConfigurationError(CurrentException):
+    pass

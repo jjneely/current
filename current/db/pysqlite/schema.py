@@ -83,10 +83,11 @@ create table PROFILE (
     profile_id      INTEGER PRIMARY KEY,
     user_id	    int not null,
     architecture    varchar(64) not null,
+    cannon_arch     varchar(32) not null,
     os_release      varchar(32) not null,
     name            varchar(128) not null,
     release_name    varchar(64),
-    uuid            varchar(32) not null unique
+    uuid            varchar(40) not null unique
 );
 create index PROFILE_IDX on PROFILE(uuid);
 

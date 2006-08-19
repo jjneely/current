@@ -31,8 +31,8 @@ class CurrentProfileDB(CurrentDB):
 class UserDB(object):
 
     def __init__(self):
-        self.cursor = db.sdb.getCursor()
         self.conn   = db.sdb.getConnection()
+        self.cursor = db.sdb.getCursor()
 
 
     def getUserID(self, user):
@@ -40,7 +40,7 @@ class UserDB(object):
         self.cursor.execute(q, (user,))
         
         result = resultSet(self.cursor)
-        if result.rowcount() is 0:
+        if result.rowcount() == 0:
             return None
         
         return result['user_id']

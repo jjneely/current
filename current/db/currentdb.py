@@ -389,7 +389,7 @@ class CurrentDB(object):
         self.cursor.execute(''' select package_id from PACKAGE
                 where name = %s
                 and version = %s
-                and release = %s
+                and PACKAGE.release = %s
                 and epoch = %s
                 and issource = %s''', (name, version, release, 
                                        epoch, str(issource)))
@@ -425,7 +425,7 @@ class CurrentDB(object):
                 # (PM2006) if it's a binary rpm, check if a system has it installed 
                 if header[RPM.SOURCEPACKAGE] == 0:
                       self.cursor.execute('''update INSTALLED set package_id = %s
-				where name = %s and version = %s and release = %s
+				where name = %s and version = %s and INSTALLED.release = %s
 				and epoch = %s''', (package_id, 
 					header[RPM.NAME], header[RPM.VERSION],
 					header[RPM.RELEASE], header[RPM.EPOCH]))

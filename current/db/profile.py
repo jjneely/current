@@ -32,20 +32,15 @@ class CurrentProfileDB(CurrentDB):
 class ProfileDB(object):
 
     def __init__(self):
-        self.cursor = db.sdb.getCursor()
         self.conn   = db.sdb.getConnection()
-        self.conn.create_function("getArch", 1, getArch)
-
-    def getArch(arch):
-	return getCannonArch(arch)
+        self.cursor = db.sdb.getCursor()
 
     def addProfile(self, user, arch, os_release, name, release_name, uuid):
         q = """insert into PROFILE (profile_id, user_id, architecture, 
-               os_release, name,
-               release_name, uuid) values
-               (NULL, %s, %s, %s, %s, %s, %s)"""
+               cannon_arch, os_release, name, release_name, uuid)
+               values (NULL, %s, %s, %s, %s, %s, %s, %s)"""
                
-        t = (user, arch, os_release, name, release_name, uuid)
+        t = (user, arch, getCannonArch(arch), os_release, name, release_name, uuid)
 
         self.cursor.execute(q, t)
         self.conn.commit()
@@ -58,7 +53,7 @@ class ProfileDB(object):
         self.cursor.execute(q, (uuid,))
         
         result = resultSet(self.cursor)
-        if result.rowcount() is 0:
+        if result.rowcount() == 0:
             return None
         
         return result['profile_id']
@@ -96,7 +91,7 @@ class ProfileDB(object):
         q = """select CHANNEL.channel_id from CHANNEL, PROFILE where
                CHANNEL.base != 0 and
                PROFILE.profile_id = %s and
-               getArch(PROFILE.architecture) = CHANNEL.arch and
+               PROFILE.cannon_arch = CHANNEL.arch and
                PROFILE.os_release = CHANNEL.osrelease"""
 
         self.cursor.execute(q, (pid,))
@@ -145,12 +140,14 @@ class ProfileDB(object):
     def subscribe(self, pid, channel):
         """Subscribe a profile to a channel."""
 
-        if type(channel) == type(1):
-            q = """insert into SUBSCRIPTIONS (profile_id, channel_id) values
-                   (%s, %s)"""
-        else:
+	# PM2006: type(channel) == type(1) does not work. With mysql
+        # as DB backend, type(channel) becomes long, and type(1) is int.
+        if type(channel) == type('a'):
             q = """insert into SUBSCRIPTIONS (profile_id, channel_id)
                    select %s, channel_id from CHANNEL where label = %s"""
+        else:
+            q = """insert into SUBSCRIPTIONS (profile_id, channel_id) values
+                   (%s, %s)"""
 
         self.cursor.execute(q, (pid, channel))
         self.conn.commit()
@@ -207,7 +204,7 @@ class ProfileDB(object):
 	  fmt = fmt + "CHANNEL_RPM_ACTIVE.channel_id=%d or " % (chan)
 	fmt = fmt + """0) AND CHANNEL_RPM_ACTIVE.rpm_id = RPM.rpm_id AND
 		RPM.package_id = PACKAGE.package_id AND
-		name=%s AND version=%s AND release=%s and epoch=%s"""
+		name=%s AND version=%s AND PACKAGE.release=%s and epoch=%s"""
 	self.cursor.execute(fmt, (name, version, release, epoch))
 	pkg = resultSet(self.cursor)
 	if pkg.rowcount() <> 0:
@@ -230,7 +227,7 @@ class ProfileDB(object):
            self.cursor.execute(q, (pid))
 	else:
            q = """delete from INSTALLED where profile_id = %s AND
-                name = %s AND version = %s AND release = %s AND
+                name = %s AND version = %s AND INSTALLED.release = %s AND
 		epoch = %s"""
            self.cursor.execute(q, (pid, name, version, release, epoch))
 

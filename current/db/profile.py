@@ -23,8 +23,16 @@
 from current.exception import *
 from current import db
 from current.db.resultSet import resultSet
+from current import RPM
 from current.logger import *
 from current.archtab import *
+
+# Constants used in database schema
+OLDIE     = 0
+UP2DATE   = 1
+WEIRD     = 2
+UPDATABLE = 3
+ORPHANED  = 4
 
 class CurrentProfileDB(CurrentDB):
     pass
@@ -150,6 +158,7 @@ class ProfileDB(object):
                    (%s, %s)"""
 
         self.cursor.execute(q, (pid, channel))
+        self._updateInstalledPackages(pid)
         self.conn.commit()
         
     def unsubscribe(self, pid, channel):
@@ -162,6 +171,7 @@ class ProfileDB(object):
             channel = self._getChanID(channel)
                     
         self.cursor.execute(q, (pid, channel))
+        self._updateInstalledPackages(pid)
         self.conn.commit()
 
     def listSystems(self):
@@ -195,40 +205,164 @@ class ProfileDB(object):
         
         return r['channel_id']
 
-    def addPackage(self, pid, subchans, name, version, release, epoch):
-        """Add a package to the profile."""
+    def addInstalledPackages(self, pid, package_list):
+        """Add a list of packages to the profile."""
 
-	fmt = """select distinct PACKAGE.package_id from PACKAGE,RPM,CHANNEL_RPM_ACTIVE
-	       where ("""
-	for chan in subchans:
-	  fmt = fmt + "CHANNEL_RPM_ACTIVE.channel_id=%d or " % (chan)
-	fmt = fmt + """0) AND CHANNEL_RPM_ACTIVE.rpm_id = RPM.rpm_id AND
-		RPM.package_id = PACKAGE.package_id AND
-		name=%s AND version=%s AND PACKAGE.release=%s and epoch=%s"""
-	self.cursor.execute(fmt, (name, version, release, epoch))
-	pkg = resultSet(self.cursor)
-	if pkg.rowcount() <> 0:
-		pkg = pkg['package_id']
-	else:
-		pkg = None
+        for (name,version,release,epoch) in package_list:
+            q = """insert into INSTALLED (profile_id,
+                           name, version, release, epoch) values
+                           (%s, %s, %s, %s, %s)"""
+            self.cursor.execute(q, (pid, name, version, release, epoch))
 
-        q = """insert into INSTALLED (profile_id, package_id,
-		name, version, release, epoch) values
-               (%s, %s, %s, %s, %s, %s)"""
-
-        self.cursor.execute(q, (pid, pkg, name, version, release, epoch))
+        self._updateInstalledPackages(pid)
         self.conn.commit()
 
-    def deletePackage(self, pid, name, version, release, epoch):
-        """Remove a package from the profile."""
+    def deleteInstalledPackages(self, pid, package_list):
+        """Remove a list of packages from the profile."""
 
-	if name == None:
-	   q = """delete from INSTALLED where profile_id = %s"""
-           self.cursor.execute(q, (pid))
+	if package_list == None:
+	    q = """delete from INSTALLED where profile_id = %s"""
+            self.cursor.execute(q, (pid))
 	else:
-           q = """delete from INSTALLED where profile_id = %s AND
-                name = %s AND version = %s AND INSTALLED.release = %s AND
-		epoch = %s"""
-           self.cursor.execute(q, (pid, name, version, release, epoch))
+            for pkg in package_list:
+                (name,version,release,epoch) = pkg
+                q = """delete from INSTALLED where profile_id = %s and
+                       name = %s and version = %s and INSTALLED.release = %s
+		       and epoch = %s"""
+                self.cursor.execute(q, (pid, name, version, release, epoch))
+            self._updateInstalledPackages(pid)
 
         self.conn.commit()
+
+    def updateAllInstallPackages(self):
+        """ Update the installed base for all profiles"""
+
+        self.cursor.execute('select profile_id from PROFILE')
+        for r in resultSet(self.cursor):
+            self._updateInstalledPackages(r)
+
+    def _updateInstalledPackages(self, pid):
+        """Update the INSTALLED packages for specified profile.
+           Instead of the previous versions, we build a list of
+           all nvre tuples, and run RPM.versioncompare over it.
+           This means we only have 1 or 2 database queries te fetch
+           all the needed information. O(n) -> O(1).
+
+           Oh, memory requirements are not so bad. The list contains
+           only the nvre tuples a profile is subscribed to and the
+           tuples it has installed. (appr. 2x1500 for a full install)"""
+
+        # Q: do we still need to generate the package_id information?
+        # It seems to me the newly added info field tells us already
+        # if the package is something we have to deal with. The reference
+        # to the internal package_id seems superflucios.
+#        log('Starting calculations for INSTALLED.package_id',DEBUG)
+#
+#        # Build a list of all INSTALLED package_id's which need to be changed
+#        self.cursor.execute("""select installed_id,PACKAGE.package_id
+#                               from SUBSCRIPTIONS
+#                                    inner join CHANNEL_RPM using(channel_id)
+#                                    inner join RPM using(rpm_id)
+#                                    inner join PACKAGE using(package_id),
+#                                    INSTALLED
+#                               where SUBSCRIPTIONS.profile_id = %s and
+#                                    PACKAGE.name = INSTALLED.name and
+#                                    PACKAGE.version = INSTALLED.version and
+#                                    PACKAGE.release = INSTALLED.release and
+#                                    PACKAGE.epoch = INSTALLED.epoch and
+#                                    INSTALLED.profile_id = SUBSCRIPTIONS.profile_id and
+#                                    not (PACKAGE.package_id <=> INSTALLED.package_id)
+#                               """, (pid,))
+#
+#        log('Doing the update thing',DEBUG)
+#
+#        # iterate over them and change INSTALLED.package_id
+#        for (id,pkg) in list(self.cursor.fetchall()):
+#             log("updating %s.package to %s" % (id,pkg), DEBUG)
+#            self.cursor.execute("""update INSTALLED set package_id = %s
+#                                   where installed_id = %s""", (pkg,id))
+
+        log('Starting calculations for INSTALLED.info',DEBUG)
+
+        # get a list of all active packages for this profile
+        self.cursor.execute('''select distinct PACKAGE.name, PACKAGE.version,
+                                      PACKAGE.release, PACKAGE.epoch,
+                                      -1
+                               from   SUBSCRIPTIONS
+                               inner  join CHANNEL_RPM_ACTIVE using (channel_id)
+                               inner  join RPM using (rpm_id)
+                               inner  join PACKAGE using (package_id)
+                               where  SUBSCRIPTIONS.profile_id = %s''',
+                            (pid,))
+        query = list(self.cursor.fetchall())
+
+        # get a list of all INSTALLED packages for this profile
+        self.cursor.execute('''select INSTALLED.name, INSTALLED.version,
+                                      INSTALLED.release, INSTALLED.epoch,
+                                      INSTALLED.installed_id
+                               from   INSTALLED
+                               where  INSTALLED.profile_id = %s''',
+                            (pid,))
+	query.extend(list(self.cursor.fetchall()))
+
+        # Sort the list according to RPM.nameversionCompare() results
+        # We construct the lambda backwards so that it's actually sorted in
+        # reverse order...
+        query.sort(lambda x,y: RPM.nameversionCompare((y[0], y[3], y[1], y[2]), (x[0], x[3], x[1], x[2])))
+
+        # per name we can have 5 possibilities:
+        # a) first two packages: PACKAGE same as INSTALLED; good
+        # b) first two packages: PACKAGE older than INSTALLED; weird stuff
+        # c) first two packages: PACKAGE newer then INSTALLED; updatable
+        # d) only one package: PACKAGE; installable
+        # e) only one package: INSTALLED; orphed package
+        # all other with the same name are oldies
+
+        log('Doing the update thing',DEBUG)
+
+        # clear the flags field
+        self.cursor.execute('''update INSTALLED set info = %s
+                               where profile_id = %s''',(OLDIE,pid))
+
+	iname = 0
+        index = 0
+        first_installed = first_available = -1
+        # add a sentinal at the end to correctly process last package
+        query.append( ('','','','',-1) )
+        for row in query:
+            # per name we keep track of the first package and the first
+            # installed tuple. We need to compare them later on. Since
+            # the list is nvre sorted, the first ones are the newest.
+            if row[0] != query[iname][0]:
+                if index != iname+1:
+                    # case a,b or c
+                    cmp = RPM.versionCompare(query[first_available][1:4],query[first_installed][1:4])
+                    if cmp == 0:
+                        # case a
+                        flag = UP2DATE
+                    elif cmp<0:
+                        # case b
+                        flag = WEIRD
+                    elif cmp>0:
+                        # case c
+                        flag = UPDATABLE
+#                    log('%s.info = %s' % (query[first_installed][0],flag), DEBUG)
+                    self.cursor.execute('''update INSTALLED set info = %s
+                                           where installed_id = %s''',
+                                        (flag,query[first_installed][4]))
+                else:
+                    # case d or e
+                    if first_installed != -1:
+                        # case e
+#                        log('%s.info = %s' % (query[iname][0],ORPHANED), DEBUG)
+                        self.cursor.execute('''update INSTALLED set info = %s
+                                               where installed_id = %s''',
+                                            (ORPHANED,query[first_installed][4]))
+                iname = index
+                first_installed = first_available = -1
+
+            if first_installed<0 and row[4] != -1:
+                first_installed = index
+            if first_available<0 and row[4] == -1:
+                first_available = index
+            index=index+1

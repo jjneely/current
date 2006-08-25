@@ -102,13 +102,13 @@ class Profile(object):
         self.__sanity()
         return self.db.getChannels(self.pid)
     
-    def addPackage(self, subChans, name, version, release, epoch):
+    def addInstalledPackages(self, package_list):
         self.__sanity()
-        return self.db.addPackage(self.pid, subChans, name, version, release, epoch)
+        return self.db.addInstalledPackages(self.pid, package_list)
 
-    def deletePackage(self, name, version=None, release=None, epoch=None):
+    def deleteInstalledPackages(self, package_list):
         self.__sanity()
-        return self.db.deletePackage(self.pid, name, version, release, epoch)
+        return self.db.deleteInstalledPackages(self.pid, package_list)
 
 
 class Systems(object):

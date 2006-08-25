@@ -105,18 +105,21 @@ def new_system(system_dict, packages=None):
     try:
         u = users.Users(system_dict['username'])
     except CurrentException, e:
-        return xmlrpclib.False
+        return xmlrpclib.Fault(60,'User unknown')
     if not u.isValid(system_dict['password']):
-        return xmlrpclib.False
+        return xmlrpclib.Fault(60,'User exists, but password mismatch')
 
-    # Create Profile
+    # Create empty profile
     p = profiles.Profile()
 
     # XXX: Reactivation of old profile with matching uuid?
-    p.newProfile(u.pid,
+    try:
+        p.newProfile(u.pid,
                  system_dict['architecture'], system_dict['os_release'],
                  system_dict['profile_name'], system_dict['release_name'],
                  system_dict['rhnuuid'])
+    except CurrentException, e:
+        return xmlrpclib.Fault(105,'System already in database')
 
     # Copy all the relevant fields out of system_dict
     for attr in ['username', 'profile_name', 'architecture', 'os_release' ]:
@@ -212,19 +215,15 @@ def add_packages(sysid_string, package_list):
         log("Error: %s" % str(e), VERBOSE)
         return xmlrpclib.Fault(1000, "Invalid system credentials.")
 
-    subscribedChans = p.getChannels()
-    first = 1
-    for (pkg) in package_list:
-        if first:
-            try:
-	        (name,version,release,epoch,arch,cookie) = pkg
-	    except Exception, e:
-		first = 0
-	        (name,version,release,epoch) = pkg
-	else:
-	    (name,version,release,epoch) = pkg
+    # if we have a list and its the extended edition, reformat
+    if (len(package_list) and len(package_list[0]) == 6):
+        tmp = []
+        for (name,version,release,epoch,arch,cookie) in package_list:
+            tmp.append( (name,version,release,epoch) )
+        p.addInstalledPackages(tmp)
+    else:
+	p.addInstalledPackages(package_list)
 
-	p.addPackage(subscribedChans,name,version,release,epoch)
     return 0
 
     
@@ -244,9 +243,8 @@ def delete_packages(sysid_string, package_list):
         log("Error: %s" % str(e), VERBOSE)
         return xmlrpclib.Fault(1000, "Invalid system credentials.")
 
-    for (pkg) in package_list:
-	(name,version,release,epoch) = pkg
-	p.deletePackage(name,version,release,epoch)
+    p.deleteInstalledPackages(package_list)
+
     return 0
 
     
@@ -266,12 +264,12 @@ def update_packages(sysid_string, package_list):
         log("Error: %s" % str(e), VERBOSE)
         return xmlrpclib.Fault(1000, "Invalid system credentials.")
 
-    #clear out the current list of packages and re-add them
-    subscribedChans = p.getChannels()
-    p.deletePackage(None)
-    for (pkg) in package_list:
-	(name,version,release,epoch) = pkg
-	p.addPackage(subscribedChans,name,version,release,epoch)
+    # clear out the current list of packages and re-add them
+    p.deleteInstalledPackages(None)
+
+    # Here we always get the condensed version of packages
+    p.addInstalledPackages(package_list)
+
     return 0
 
     

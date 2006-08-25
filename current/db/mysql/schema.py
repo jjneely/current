@@ -159,6 +159,7 @@ create table INSTALLED (
     installed_id    INTEGER PRIMARY KEY auto_increment,
     profile_id      int not null,
     package_id      int,
+    info            int(1) not null default '0',
     name            varchar(64) not null,
     version         varchar(64) not null,
     release         varchar(64) not null,

@@ -257,3 +257,17 @@ def versionCompare(evr1, evr2):
         return 0
     else:
         return 1
+
+# And this one...
+def nameversionCompare(nevr1, nevr2):
+    if nevr1[0] < nevr2[0]:
+        return -1
+    if nevr1[0] > nevr2[0]:
+        return 1
+    result = rpm.labelCompare(tuple(nevr1[1:4]), tuple(nevr2[1:4]))
+    if (result < 0 ):
+        return -1
+    elif (result == 0):
+        return 0
+    else:
+        return 1

@@ -529,7 +529,8 @@ class CurrentDB(object):
 
     def _findNewest(self, chanID, pkg):
         self.cursor.execute('''select PACKAGE.name, PACKAGE.version, 
-                                      PACKAGE.release, PACKAGE.epoch 
+                                      PACKAGE.release, PACKAGE.epoch,
+                                      RPM.rpm_id
                                from PACKAGE, RPM, CHANNEL_RPM
                                where PACKAGE.package_id = RPM.package_id and
                                RPM.rpm_id = CHANNEL_RPM.rpm_id and 
@@ -545,29 +546,12 @@ class CurrentDB(object):
         query = list(query)
         query.sort(lambda x,y: RPM.versionCompare((y[3], y[1], y[2]), (x[3], x[1], x[2])))
 
-        # From the first of that reverse list, grab the RPM.rpm_id 
-        # of the _NEWEST_ rpm available
-        # XXX: Why can't we do this in the above query?
-        self.cursor.execute('''select RPM.rpm_id 
-                               from RPM, PACKAGE, CHANNEL_RPM
-                               where PACKAGE.package_id = RPM.package_id and 
-                                     RPM.rpm_id = CHANNEL_RPM.rpm_id and 
-                                     CHANNEL_RPM.channel_id = %s and 
-                                     PACKAGE.name = %s and 
-                                     PACKAGE.version = %s and 
-                                     PACKAGE.release = %s and 
-                                     PACKAGE.epoch = %s  and
-                                     PACKAGE.issource = 0''',
-                    (chanID, query[0][0], query[0][1], 
-                     query[0][2], query[0][3]))
-
-        # We really are going to get a list here on occasion - 
-        # we'll get the i386, i486, etc varients of the kernel 
-        # package of the newest version
-        query = self.cursor.fetchall()
-        tmp = []
+        # return the top of the list, as long as nvre stays the same
+        # (there could be more matching elements, as for different architectures)
+	tmp = []
         for row in query:
-            tmp.append(row[0])
+            if row[0:4] == query[0][0:4]:
+		tmp.append(row[4])
         return tmp
 
 

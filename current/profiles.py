@@ -49,8 +49,8 @@ class Profile(object):
             raise CurrentException("Tried to load an invaild profile id: %s" \
                                    % self.pid)
             
-        (self.user_id, self.architecture, self.os_release, self.name, self.release_name, 
-            self.uuid) = tup
+        (self.user_id, self.architecture, self.os_release, self.name, 
+         self.release_name, self.uuid) = tup
             
     def __sanity(self):
         if self.pid is None or self.uuid is None:

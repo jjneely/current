@@ -28,14 +28,11 @@ from current.logger import *
 from current.archtab import *
 
 # Constants used in database schema
-OLDIE     = 0
-UP2DATE   = 1
-EXTRA     = 2
-UPDATABLE = 3
-ORPHANED  = 4
-
-class CurrentProfileDB(CurrentDB):
-    pass
+OLDIE     = 0 # rpm for which a newer version is also installed (e.g. kernel)
+UP2DATE   = 1 # rpm which is as recent as we have
+EXTRA     = 2 # installed rpm which is MORE RECENT than we have
+UPDATABLE = 3 # rpm for which we have a newer version
+ORPHANED  = 4 # rpm of which we dont know anything
 
 class ProfileDB(object):
 
@@ -48,7 +45,8 @@ class ProfileDB(object):
                cannon_arch, os_release, name, release_name, uuid)
                values (NULL, %s, %s, %s, %s, %s, %s, %s)"""
                
-        t = (user, arch, getCannonArch(arch), os_release, name, release_name, uuid)
+        t = (user, arch, getCannonArch(arch), os_release, 
+             name, release_name, uuid)
 
         self.cursor.execute(q, t)
         self.conn.commit()
@@ -67,8 +65,8 @@ class ProfileDB(object):
         return result['profile_id']
     
     def getProfile(self, id):
-        q = """select user_id, architecture, os_release, name, release_name, uuid
-               from PROFILE where profile_id = %s"""
+        q = """select user_id, architecture, os_release, name, release_name, 
+               uuid from PROFILE where profile_id = %s"""
 
         self.cursor.execute(q, (id,))
         r = self.cursor.fetchone()
@@ -104,13 +102,9 @@ class ProfileDB(object):
 
         self.cursor.execute(q, (pid,))
         result = resultSet(self.cursor)
-        chans = []
         for row in result:
-            chans.append(row['channel_id'])
+            self.subscribe(pid, row['channel_id'])
 
-        for c in chans:
-            self.subscribe(pid, c)
-        
     def getAuthorizedChannels(self, uuid):
         """Return a channel struct of the subscribed channels for this pid."""
 
@@ -148,7 +142,7 @@ class ProfileDB(object):
     def subscribe(self, pid, channel):
         """Subscribe a profile to a channel."""
 
-	# PM2006: type(channel) == type(1) does not work. With mysql
+	    # PM2006: type(channel) == type(1) does not work. With mysql
         # as DB backend, type(channel) becomes long, and type(1) is int.
         if type(channel) == type('a'):
             q = """insert into SUBSCRIPTIONS (profile_id, channel_id)
@@ -220,16 +214,17 @@ class ProfileDB(object):
     def deleteInstalledPackages(self, pid, package_list):
         """Remove a list of packages from the profile."""
 
-	if package_list == None:
-	    q = """delete from INSTALLED where profile_id = %s"""
-            self.cursor.execute(q, (pid))
-	else:
+        if package_list == None:
+	        q = """delete from INSTALLED where profile_id = %s"""
+                self.cursor.execute(q, (pid))
+        else:
             for pkg in package_list:
                 (name,version,release,epoch) = pkg
                 q = """delete from INSTALLED where profile_id = %s and
                        name = %s and version = %s and INSTALLED.release = %s
-		       and epoch = %s"""
+            	       and epoch = %s"""
                 self.cursor.execute(q, (pid, name, version, release, epoch))
+
             self._updateInstalledPackages(pid)
 
         self.conn.commit()
@@ -242,7 +237,7 @@ class ProfileDB(object):
         # in the called function. (I love reference objects :( )
         pids = []
         for p in resultSet(self.cursor):
-           pids.append(p['profile_id'])
+            pids.append(p['profile_id'])
         for p in pids:
             self._updateInstalledPackages(p)
 
@@ -287,7 +282,8 @@ class ProfileDB(object):
 #            self.cursor.execute("""update INSTALLED set package_id = %s
 #                                   where installed_id = %s""", (pkg,id))
 
-        log('Starting calculations for INSTALLED.info for profile %s' % pid,DEBUG)
+        log('Starting calculations for INSTALLED.info for profile %s' % \
+            pid, DEBUG)
 
         # get a list of all active packages for this profile
         self.cursor.execute('''select distinct PACKAGE.name, PACKAGE.version,
@@ -308,7 +304,7 @@ class ProfileDB(object):
                                from   INSTALLED
                                where  INSTALLED.profile_id = %s''',
                             (pid,))
-	query.extend(list(self.cursor.fetchall()))
+        query.extend(list(self.cursor.fetchall()))
 
         # Sort the list according to RPM.nameversionCompare() results
         # We construct the lambda backwards so that it's actually sorted in
@@ -329,7 +325,7 @@ class ProfileDB(object):
         self.cursor.execute('''update INSTALLED set info = %s
                                where profile_id = %s''',(OLDIE,pid))
 
-	iname = 0
+        iname = 0
         index = 0
         first_installed = first_available = -1
         # add a sentinal at the end to correctly process last package

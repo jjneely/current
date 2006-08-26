@@ -35,12 +35,12 @@ class Users(object):
             # New object
             return
 
-	if type(user) == str:
+        if type(user) == str:
             self.pid = self.db.getUserID(user)
             if self.pid == None:
                 raise CurrentException("No user found: %s" % user)
-	else:
-	    self.pid = user
+        else:
+            self.pid = user
 
         self.__load()
 
@@ -74,7 +74,7 @@ class Users(object):
     def addInfo(self, product_info):
         """Add contact information to the user"""
 
-	self.db.addInfo(self.pid, product_info)
+        self.db.addInfo(self.pid, product_info)
 
     def delete(self):
         """Remove user from database."""

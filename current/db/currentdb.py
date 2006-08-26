@@ -282,7 +282,7 @@ class CurrentDB(object):
                 # We know there are no more refferences to this PACKAGE
                 self.cursor.execute("""delete from PACKAGE where 
                                        package_id = %s""", (package_id,))
-		# (PM2006) And remove the reference from INSTALLED 
+                # (PM2006) And remove the reference from INSTALLED 
                 self.cursor.execute("""update INSTALLED set package_id=NULL
 				       where package_id = %s""", (package_id,))
             
@@ -421,10 +421,10 @@ class CurrentDB(object):
             if not package_id:
                 log("Inserted package but could not lookup package_id", VERBOSE)
             
-	    else:
+            else:
                 # (PM2006) if it's a binary rpm, check if a system has it installed 
                 if header[RPM.SOURCEPACKAGE] == 0:
-                      self.cursor.execute('''update INSTALLED set package_id = %s
+                    self.cursor.execute('''update INSTALLED set package_id = %s
 				where name = %s and version = %s and INSTALLED.release = %s
 				and epoch = %s''', (package_id, 
 					header[RPM.NAME], header[RPM.VERSION],
@@ -548,10 +548,10 @@ class CurrentDB(object):
 
         # return the top of the list, as long as nvre stays the same
         # (there could be more matching elements, as for different architectures)
-	tmp = []
+        tmp = []
         for row in query:
             if row[0:4] == query[0][0:4]:
-		tmp.append(row[4])
+                tmp.append(row[4])
         return tmp
 
 

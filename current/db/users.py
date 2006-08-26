@@ -25,9 +25,6 @@ from current import db
 from current.db.resultSet import resultSet
 from current.logger import *
 
-class CurrentProfileDB(CurrentDB):
-    pass
-
 class UserDB(object):
 
     def __init__(self):
@@ -76,17 +73,17 @@ class UserDB(object):
         "Add extra information to the user"
 
         q = ""
-	fs = []
-	# strings
+        fs = []
+        # strings
         for f in ('company', 'title', 'first_name', 'last_name', 'zip',
                   'address1', 'address2', 'city', 'state', 'country',
-		  'fax', 'phone', 'position'):
+                  'fax', 'phone', 'position'):
             if product_info.has_key(f):
-		if len(q) != 0:
+                if len(q) != 0:
                     q = q + ", "
                 q = q + f + " = %s"
                 fs.append(product_info[f])
-	# bools
+        # bools
         for f in ('contact_email', 'contact_fax', 'contact_mail',
                   'contact_newsletter', 'contact_phone'):
             if len(q) != 0:

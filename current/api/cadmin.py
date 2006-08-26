@@ -58,6 +58,10 @@ def scanChannels(chanlist):
     for chan in chanlist['channels']:
         result[chan] = chanlib.updateChannel(chan)
 
+    # we need to re-calculate the state of the INSTALLED packages
+    p = profiles.Profile()
+    p.updateAllInstallPackages()
+
     return result
 
 def createChannel(channel):

@@ -30,7 +30,7 @@ from current.archtab import *
 # Constants used in database schema
 OLDIE     = 0
 UP2DATE   = 1
-WEIRD     = 2
+EXTRA     = 2
 UPDATABLE = 3
 ORPHANED  = 4
 
@@ -238,8 +238,13 @@ class ProfileDB(object):
         """ Update the installed base for all profiles"""
 
         self.cursor.execute('select profile_id from PROFILE')
-        for r in resultSet(self.cursor):
-            self._updateInstalledPackages(r)
+        # make a copy of the resulting pids, since we reuse the cursor
+        # in the called function. (I love reference objects :( )
+        pids = []
+        for p in resultSet(self.cursor):
+           pids.append(p['profile_id'])
+        for p in pids:
+            self._updateInstalledPackages(p)
 
     def _updateInstalledPackages(self, pid):
         """Update the INSTALLED packages for specified profile.
@@ -282,7 +287,7 @@ class ProfileDB(object):
 #            self.cursor.execute("""update INSTALLED set package_id = %s
 #                                   where installed_id = %s""", (pkg,id))
 
-        log('Starting calculations for INSTALLED.info',DEBUG)
+        log('Starting calculations for INSTALLED.info for profile %s' % pid,DEBUG)
 
         # get a list of all active packages for this profile
         self.cursor.execute('''select distinct PACKAGE.name, PACKAGE.version,
@@ -318,7 +323,7 @@ class ProfileDB(object):
         # e) only one package: INSTALLED; orphed package
         # all other with the same name are oldies
 
-        log('Doing the update thing',DEBUG)
+        log('Doing the actual update thing',DEBUG)
 
         # clear the flags field
         self.cursor.execute('''update INSTALLED set info = %s
@@ -342,7 +347,7 @@ class ProfileDB(object):
                         flag = UP2DATE
                     elif cmp<0:
                         # case b
-                        flag = WEIRD
+                        flag = EXTRA
                     elif cmp>0:
                         # case c
                         flag = UPDATABLE

@@ -110,6 +110,9 @@ class Profile(object):
         self.__sanity()
         return self.db.deleteInstalledPackages(self.pid, package_list)
 
+    def updateAllInstallPackages(self):
+        return self.db.updateAllInstallPackages()
+
 
 class Systems(object):
 

@@ -158,12 +158,8 @@ drop table if exists INSTALLED;
 create table INSTALLED (
     installed_id    INTEGER PRIMARY KEY auto_increment,
     profile_id      int not null,
-    package_id      int,
+    package_id      int not null,
     info            int(1) not null default '0',
-    name            varchar(64) not null,
-    version         varchar(64) not null,
-    release         varchar(64) not null,
-    epoch           varchar(8) not null,
 
     index(package_id),
     index(profile_id)

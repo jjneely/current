@@ -199,14 +199,48 @@ class ProfileDB(object):
         
         return r['channel_id']
 
+
+    def _getPackageId(self, name, version, release, epoch, issource):
+        #logfunc(locals(), TRACE)
+        self.cursor.execute(''' select package_id from PACKAGE
+                where name = %s
+                and version = %s
+                and PACKAGE.release = %s
+                and epoch = %s
+                and issource = %s''', (name, version, release,
+                                       epoch, issource))
+
+        r = resultSet(self.cursor)
+        if r.rowcount() == 0:
+            return None
+        return r['package_id']
+
+    def _insertPackage(self, name, version, release, epoch, issource):
+        package_id = self._getPackageId(name, version, release,
+                                        epoch, issource)
+        if not package_id:
+            self.cursor.execute('''insert into PACKAGE
+                        (name, version, release, epoch, issource)
+                        values (%s, %s, %s, %s, %s)''',
+                        (name, version, release, epoch, issource))
+            # PM2006, we really should be using last_insert_id
+            # (maybe make it a general connection method even)
+            package_id = self._getPackageId(name, version, release,
+                                            epoch, issource)
+            if not package_id:
+                log("Inserted package but could not lookup package_id", VERBOSE)
+
+        return package_id
+
     def addInstalledPackages(self, pid, package_list):
         """Add a list of packages to the profile."""
 
         for (name,version,release,epoch) in package_list:
-            q = """insert into INSTALLED (profile_id,
-                           name, version, release, epoch) values
-                           (%s, %s, %s, %s, %s)"""
-            self.cursor.execute(q, (pid, name, version, release, epoch))
+            package_id = self._insertPackage(name,version,release,epoch,0)
+            if package_id:
+                q = """insert into INSTALLED (profile_id, package_id)
+                               values (%s, %s)"""
+                self.cursor.execute(q, (pid, package_id))
 
         self._updateInstalledPackages(pid)
         self.conn.commit()
@@ -214,19 +248,41 @@ class ProfileDB(object):
     def deleteInstalledPackages(self, pid, package_list):
         """Remove a list of packages from the profile."""
 
-        if package_list == None:
-	        q = """delete from INSTALLED where profile_id = %s"""
-                self.cursor.execute(q, (pid))
+        pkgs = [];
+        if not package_list:
+                self.cursor.execute('''select package_id from INSTALLED
+                                       where profile_id = %s''',
+                                    (pid,))
+                for p in self.cursor.fetchall():
+                    pkgs.append(p[0])
+
+	        self.cursor.execute('''delete from INSTALLED where
+                                       profile_id = %s''', (pid,))
         else:
-            for pkg in package_list:
-                (name,version,release,epoch) = pkg
-                q = """delete from INSTALLED where profile_id = %s and
-                       name = %s and version = %s and INSTALLED.release = %s
-            	       and epoch = %s"""
-                self.cursor.execute(q, (pid, name, version, release, epoch))
+            for (name,version,release,epoch) in package_list:
+                package_id = self._getPackageId(name,version,release,epoch,0)
+                if package_id:
+                    self.cursor.execute('''delete from INSTALLED where
+                                         profile_id = %s and package_id = %s''',
+                       (pid, package_id))
+                    pkgs.append(package_id)
 
-            self._updateInstalledPackages(pid)
+        for (pkg) in pkgs:
+            self.cursor.execute('''select count(*) from RPM
+                                   where package_id = %s
+                                   union all
+                                   select count(*) from INSTALLED
+                                   where package_id = %s''',
+                                (pkg,pkg))
+            r = self.cursor.fetchall()
+            count = r[0][0] + r[1][0]
+#            log("Num of RPMs with package_id=%s: %s" % (pkg, count), DEBUG2)
+            if count == 0:
+                # We know there are no more references to this PACKAGE
+                self.cursor.execute('''delete from PACKAGE where 
+                                       package_id = %s''', (pkg,))
 
+        self._updateInstalledPackages(pid)
         self.conn.commit()
 
     def updateAllInstallPackages(self):
@@ -252,36 +308,6 @@ class ProfileDB(object):
            only the nvre tuples a profile is subscribed to and the
            tuples it has installed. (appr. 2x1500 for a full install)"""
 
-        # Q: do we still need to generate the package_id information?
-        # It seems to me the newly added info field tells us already
-        # if the package is something we have to deal with. The reference
-        # to the internal package_id seems superflucios.
-#        log('Starting calculations for INSTALLED.package_id',DEBUG)
-#
-#        # Build a list of all INSTALLED package_id's which need to be changed
-#        self.cursor.execute("""select installed_id,PACKAGE.package_id
-#                               from SUBSCRIPTIONS
-#                                    inner join CHANNEL_RPM using(channel_id)
-#                                    inner join RPM using(rpm_id)
-#                                    inner join PACKAGE using(package_id),
-#                                    INSTALLED
-#                               where SUBSCRIPTIONS.profile_id = %s and
-#                                    PACKAGE.name = INSTALLED.name and
-#                                    PACKAGE.version = INSTALLED.version and
-#                                    PACKAGE.release = INSTALLED.release and
-#                                    PACKAGE.epoch = INSTALLED.epoch and
-#                                    INSTALLED.profile_id = SUBSCRIPTIONS.profile_id and
-#                                    not (PACKAGE.package_id <=> INSTALLED.package_id)
-#                               """, (pid,))
-#
-#        log('Doing the update thing',DEBUG)
-#
-#        # iterate over them and change INSTALLED.package_id
-#        for (id,pkg) in list(self.cursor.fetchall()):
-#             log("updating %s.package to %s" % (id,pkg), DEBUG)
-#            self.cursor.execute("""update INSTALLED set package_id = %s
-#                                   where installed_id = %s""", (pkg,id))
-
         log('Starting calculations for INSTALLED.info for profile %s' % \
             pid, DEBUG)
 
@@ -298,10 +324,11 @@ class ProfileDB(object):
         query = list(self.cursor.fetchall())
 
         # get a list of all INSTALLED packages for this profile
-        self.cursor.execute('''select INSTALLED.name, INSTALLED.version,
-                                      INSTALLED.release, INSTALLED.epoch,
-                                      INSTALLED.installed_id
+        self.cursor.execute('''select PACKAGE.name, PACKAGE.version,
+                                      PACKAGE.release, PACKAGE.epoch,
+                                      installed_id
                                from   INSTALLED
+                               inner join PACKAGE using (package_id) 
                                where  INSTALLED.profile_id = %s''',
                             (pid,))
         query.extend(list(self.cursor.fetchall()))

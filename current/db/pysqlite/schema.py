@@ -132,12 +132,8 @@ create table HARDWARE (
 create table INSTALLED (
     installed_id    INTEGER PRIMARY KEY,
     profile_id      int not null,
-    package_id      int,
-    info            int,
-    name            varchar(64) not null,
-    version         varchar(64) not null,
-    release         varchar(64) not null,
-    epoch           varchar(8) not null
+    package_id      int not null,
+    info            int not null,
 );
 create index INSTALLED_PACKAGE_IDX on INSTALLED(package_id);
 create index INSTALLED_PROFILE_IDX on INSTALLED(profile_id);

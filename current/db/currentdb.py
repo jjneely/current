@@ -273,18 +273,20 @@ class CurrentDB(object):
                                    where rpm_id = %s""",
                                 (rpm_id,))
             
-            self.cursor.execute("""select count(*) from RPM where
-                                   package_id = %s""", (package_id,))
-            r = self.cursor.fetchone()
+            self.cursor.execute("""select count(*) from RPM
+                                   where package_id = %s
+                                   union all
+                                   select count(*) from INSTALLED
+                                   where package_id = %s""",
+                                (package_id,package_id))
+            r = self.cursor.fetchall()
+            count = r[0][0] + r[1][0]
             log("Num of RPMs with package_id=%s: %s" % (package_id,
-                str(r)), DEBUG2)
-            if r[0] == 0:
-                # We know there are no more refferences to this PACKAGE
+                count), DEBUG2)
+            if count == 0:
+                # We know there are no more references to this PACKAGE
                 self.cursor.execute("""delete from PACKAGE where 
                                        package_id = %s""", (package_id,))
-                # (PM2006) And remove the reference from INSTALLED 
-                self.cursor.execute("""update INSTALLED set package_id=NULL
-				       where package_id = %s""", (package_id,))
             
             # Now the fun part...detect possibly stale channels
             self.cursor.execute("""select distinct CHANNEL.label from 
@@ -395,11 +397,9 @@ class CurrentDB(object):
                                        epoch, str(issource)))
 
         r = resultSet(self.cursor)
-        try:
-            return r['package_id']
-        except IndexError, e:
-            # No results returned
+        if r.rowcount() == 0:
             return None
+        return r['package_id']
 
 
     def _insertPackageTable(self, header):
@@ -420,15 +420,6 @@ class CurrentDB(object):
                                             header[RPM.SOURCEPACKAGE])
             if not package_id:
                 log("Inserted package but could not lookup package_id", VERBOSE)
-            
-            else:
-                # (PM2006) if it's a binary rpm, check if a system has it installed 
-                if header[RPM.SOURCEPACKAGE] == 0:
-                    self.cursor.execute('''update INSTALLED set package_id = %s
-				where name = %s and version = %s and INSTALLED.release = %s
-				and epoch = %s''', (package_id, 
-					header[RPM.NAME], header[RPM.VERSION],
-					header[RPM.RELEASE], header[RPM.EPOCH]))
 
         return package_id
 

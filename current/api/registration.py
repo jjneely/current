@@ -57,7 +57,7 @@ def terms_and_conditions():
 def reserve_user(username, password):
 
     try:
-        u = users.Users(username)
+        u = users.User(username)
     except CurrentException, e:
         return xmlrpclib.False
 
@@ -79,7 +79,7 @@ def new_user(username, password, email_address=None,
 
     # see if the user exits. If so, do nothing if passwd match
     try:
-        u = users.Users(username)
+        u = users.User(username)
         if u.isValid(password):
             return 0
         else:
@@ -87,7 +87,7 @@ def new_user(username, password, email_address=None,
     except CurrentException, e:
         pass
 
-    u = users.Users()
+    u = users.User()
     u.newUser(username, password, email_address)
     return 0
     
@@ -103,7 +103,7 @@ def new_system(system_dict, packages=None):
     # password fields OR a "token" field that will contain the activationkey
 
     try:
-        u = users.Users(system_dict['username'])
+        u = users.User(system_dict['username'])
     except CurrentException, e:
         return xmlrpclib.Fault(60,'User unknown')
     if not u.isValid(system_dict['password']):
@@ -156,7 +156,7 @@ def register_product(sysid_string, product_info):
 
     # locate user
     try:
-        u = users.Users(p.user_id)
+        u = users.User(p.user_id)
     except CurrentException, e:
         log("Fault! Profile does not refer to a valid user", VERBOSE)
         log("Error: %s" % str(e), VERBOSE)

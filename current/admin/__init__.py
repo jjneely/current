@@ -18,7 +18,7 @@ class CadminConfig(object):
 
     shortHelp = "No help description avaliable."
 
-    def run(self, server, argv):
+    def run(self, server, session, argv):
         pass
 
     def name(self):

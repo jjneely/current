@@ -12,7 +12,7 @@ class Module(CadminConfig):
 
     shortHelp = "Create a channel or subchannel."
 
-    def run(self, server, argv):
+    def run(self, server, session, argv):
         u = "%prog create_channel -l <label> -a <arch> -r " \
                 "<release> -n <name> [options]"
         parser = optparse.OptionParser(u)

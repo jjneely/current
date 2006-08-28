@@ -6,7 +6,7 @@ class Module(CadminConfig):
 
     shortHelp = "Test connection to Current server."
 
-    def run(self, server, argv):
+    def run(self, server, session, argv):
         result = xmlrpc.doCall(server.cadmin.status)
         pprint.pprint(result)
     

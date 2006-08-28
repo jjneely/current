@@ -8,7 +8,7 @@ class Module(CadminConfig):
 
     shortHelp = "Update all packages from disk for the given channels."
 
-    def run(self, server, argv):
+    def run(self, server, session, argv):
         u = "usage: %prog scan <channel> [[channel] ...]"
         parser = optparse.OptionParser(u)
         parser.add_option("-l", "--label", action="append", 
@@ -26,6 +26,6 @@ class Module(CadminConfig):
 
         chan = {}
         chan['channels'] = oChans + leftargs
-        result = xmlrpc.doCall(server.cadmin.scanChannels, chan)
+        result = xmlrpc.doCall(server.cadmin.scanChannels, session, chan)
         pprint.pprint(result)
 

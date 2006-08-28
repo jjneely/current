@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import md5
+import sha
 import time
 import random
 import pickle
@@ -65,7 +65,7 @@ class Session(dict):
         self.createTime = time.time()
         self.timeOut = self.createTime + 3600 # default time out 1 hr
         s = "Current-%s-%s" % (str(random.random()), str(secret))
-        self.sid = md5.new(s).hexdigest()
+        self.sid = sha.new(s).hexdigest()
         self.is_new = True
         
                                                         

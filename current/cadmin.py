@@ -30,6 +30,7 @@ log.setLevel(logging.INFO)
 # Our modules
 from current import admin
 from current.exception import CurrentRPCError
+from current.configure import Preferences # Does this work on machine w/o C
 
 def getServer(url=""):
     if url == "" and not os.access("/etc/sysconfig/rhn/up2date", os.R_OK):
@@ -85,6 +86,8 @@ def main():
     log.info("CADMIN - Current Administration Text Interface")
     log.info("Licensed under the GNU GPL version 2.0 or greater.")
 
+    prefs = Preferences()
+
     cadminOpts, command, commandOpts = getArguments()
     usage = "usage: %prog [options] COMMAND [options] [arguments]\n"
     usage = usage + commandSummary()
@@ -113,17 +116,20 @@ def main():
         sys.exit()
     
     print
+    session = prefs.getLogin()
     server = getServer(opts.server)
     module = admin.modules[command]
 
     try:
         log.debug("Running module: %s, %s" % (command, module))
-        ret = module.run(server, commandOpts)
+        ret = module.run(server, session, commandOpts)
         log.debug("Module returned: %s" % ret)
     except CurrentRPCError, e:
         print "An error occured.  The error message is:"
         print str(e)
 
+    if command == "login":
+        prefs.setLogin(ret)
 
 if __name__ == '__main__':
     try:

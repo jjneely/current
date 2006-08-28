@@ -19,3 +19,6 @@ class CurrentSession(CurrentException):
 
 class ConfigurationError(CurrentException):
     pass
+
+class CurrentUser(CurrentException):
+    pass

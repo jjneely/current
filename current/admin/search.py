@@ -6,7 +6,7 @@ class Module(CadminConfig):
 
     shortHelp = "Find UUIDs from profile names."
 
-    def run(self, server, argv):
+    def run(self, server, session, argv):
         usage = "usage: %prog search"
         if len(argv) is not 0:
             print usage

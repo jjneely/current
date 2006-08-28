@@ -8,7 +8,7 @@ class Module(CadminConfig):
 
     shortHelp = "Add a directory of packages to a channel."
 
-    def run(self, server, argv):
+    def run(self, server, session, argv):
         u = "usage: %prog add_dir <channel> <dir> [[dir] ...]"
         parser = optparse.OptionParser(u)
         parser.add_option("-l", "--label", action="store", 

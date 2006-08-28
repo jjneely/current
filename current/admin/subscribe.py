@@ -6,7 +6,7 @@ class Module(CadminConfig):
 
     shortHelp = "Subscribe a system to a channel."
 
-    def run(self, server, argv):
+    def run(self, server, session, argv):
         usage = "usage: %prog subscribe -u <uuid> -l <label>"
         parser = self.defaultParser(usage)
         (opts, leftargs) = parser.parse_args(argv)

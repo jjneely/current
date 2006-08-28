@@ -15,14 +15,18 @@ __all__ = ['status']
 import string
 import sys
 import pprint
+import xmlrpclib
 
 from current.logger import *
-from current.sessions import Session
 from current.exception import *
+from current.users import SessionUser
 from current import profiles
 from current import channels
 from current import auth
 from current import configure
+
+# Failed Auth error code
+EAUTH = 17
 
 # Special array of exported functionality. 
 # Idea stolen from up2date/getMethod.py
@@ -41,16 +45,20 @@ __current_api__ = [
 def login(username, password):
     # This is over SSL, right?  RIGHT?
 
-    # la-la-la lookin' user up in DB la-la-la
+    u = SessionUser()
+    sessid = u.login(username, password)
 
-    sess = Session()
-    sess['userid'] = username
-    sess.save()
+    if sessid == None:
+        return ""
+    else:
+        return sessid
 
-    return sess.sid
 
+def scanChannels(sess, chanlist):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
 
-def scanChannels(chanlist):
     result = {}
     logfunc(locals())
     chanlib = channels.Channels()
@@ -64,7 +72,11 @@ def scanChannels(chanlist):
 
     return result
 
-def createChannel(channel):
+def createChannel(sess, channel):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
     result = {}
     logfunc(locals())
     chanlib = channels.Channels()
@@ -78,7 +90,11 @@ def createChannel(channel):
 
     return result
 
-def addChannelPath(channel):
+def addChannelPath(sess, channel):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
     result = {}
     logfunc(locals())
     chanlib = channels.Channels()
@@ -114,14 +130,22 @@ def status():
 
     return status
 
-def deleteSystem(uuid):
+def deleteSystem(sess, uuid):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
     # Remove the related system profile
     p = profiles.Profile(uuid)
     p.delete()
     
     return True
 
-def unsubscribe(uuid, channel):
+def unsubscribe(sess, uuid, channel):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
     # Subscribe the system identifyed by uuid to the given textual channel
     # label
     p = profiles.Profile(uuid)
@@ -129,7 +153,11 @@ def unsubscribe(uuid, channel):
     
     return True
 
-def subscribe(uuid, channel):
+def subscribe(sess, uuid, channel):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
     # Subscribe the system identifyed by uuid to the given textual channel
     # label
     p = profiles.Profile(uuid)
@@ -137,7 +165,11 @@ def subscribe(uuid, channel):
     
     return True
 
-def findProfile():
+def findProfile(sess):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
     # Return UUIDs of systems with matching profile name
     # XXX: a regex or something?
     systems = profiles.Systems()

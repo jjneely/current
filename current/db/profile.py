@@ -282,7 +282,8 @@ class ProfileDB(object):
                 self.cursor.execute('''delete from PACKAGE where 
                                        package_id = %s''', (pkg,))
 
-        self._updateInstalledPackages(pid)
+        if package_list:
+            self._updateInstalledPackages(pid)
         self.conn.commit()
 
     def updateAllInstallPackages(self):

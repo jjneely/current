@@ -109,15 +109,22 @@ def new_system(system_dict, packages=None):
     if not u.isValid(system_dict['password']):
         return xmlrpclib.Fault(60,'User exists, but password mismatch')
 
-    # Create empty profile
-    p = profiles.Profile()
+    # very old systems (7.1, 7.3) dont have a rhnuuid, only a uuid.
+    if system_dict.has_key('rhnuuid'):
+        uuid = 'rhnuuid'
+    else:
+	uuid = 'uuid'
+
+    if system_dict[uuid] == '':
+        return xmlrpclib.Fault(105,'System needs a non-empty identifier')
 
     # XXX: Reactivation of old profile with matching uuid?
+    p = profiles.Profile()
     try:
         p.newProfile(u.pid,
                  system_dict['architecture'], system_dict['os_release'],
                  system_dict['profile_name'], system_dict['release_name'],
-                 system_dict['rhnuuid'])
+                 system_dict[uuid])
     except CurrentException, e:
         return xmlrpclib.Fault(105,'System already in database')
 

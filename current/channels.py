@@ -99,5 +99,5 @@ class Channels(object):
         return self.db.getLastUpdate(release, arch)
 
     def listAppletPackages(self, release, arch):
-        return self.db.listAppletPackages(self, release, arch)
+        return self.db.listAppletPackages(release, arch)
    

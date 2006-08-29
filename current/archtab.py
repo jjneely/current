@@ -22,7 +22,7 @@ def getArch(arch=None):
     if not arch:
         arch = os.uname()[4]
     newarch = None
-    if re.search('86', arch):
+    if re.search('86', arch) or re.search('athlon', arch):
         newarch = 'i386'
     if re.search('sparc', arch) or re.search('sun', arch):
         newarch = 'sparc'

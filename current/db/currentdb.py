@@ -884,7 +884,7 @@ class CurrentDB(object):
                     and osrelease = %s
                     order by lastupdate desc''', (carch, release))
         result = resultSet(self.cursor)
-        if (result.rowcount() != 1):
+        if result.rowcount() == 0:
             log("No channel found in getLastUpdate with arch = %s and"
                 " osrelease = %s" % (carch, release), VERBOSE)    
             raise exception.CurrentDB("No channel found in getLastUpdate")

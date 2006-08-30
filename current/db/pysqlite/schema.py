@@ -72,7 +72,7 @@ create index CHANNEL_DIR_CHAN_ID_IDX on CHANNEL_DIR(channel_id);
 
 create table SESSIONS (
    session_id     INTEGER PRIMARY KEY,
-   sid            varchar(32) unique not null,
+   sid            varchar(40) unique not null,
    createtime     float not null,
    timeout        float not null,
    data           text
@@ -91,11 +91,28 @@ create table PROFILE (
 );
 create index PROFILE_IDX on PROFILE(uuid);
 
+create table PROFILE_QUEUE (
+    queue_id        INTEGER PRIMARY KEY,
+    profile_id      int not null,
+    begindate       datetime not null,
+    enddate         datetime,
+    status          int(1) not null,
+    method          varchar(32) not null,
+    params          text not null,
+    submit_code     integer,
+    submit_msg      varchar(64),
+    submit_data     text,
+
+    index(profile_id)
+);
+create index PROFILE_QUEUE_IDX on PROFILE_QUEUE(profile_id);
+
 create table SUBSCRIPTIONS (
     sub_id          INTEGER PRIMARY KEY,
     profile_id      int not null,
     channel_id      int not null
 );
+create index SUBSCRIPTIONS_PROFILE_IDX on SUBSCRIPTIONS(profile_id);
 
 create table USER (
     user_id         INTEGER PRIMARY KEY,
@@ -128,6 +145,7 @@ create table HARDWARE (
     class           varchar(32),
     dict            text
 );
+create index HARDWARE_PROFILE_IDX on INSTALLED(profile_id);
 
 create table INSTALLED (
     installed_id    INTEGER PRIMARY KEY,
@@ -135,7 +153,6 @@ create table INSTALLED (
     package_id      int not null,
     info            int not null,
 );
-create index INSTALLED_PACKAGE_IDX on INSTALLED(package_id);
 create index INSTALLED_PROFILE_IDX on INSTALLED(profile_id);
 
 """

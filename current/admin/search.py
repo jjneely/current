@@ -8,11 +8,11 @@ class Module(CadminConfig):
 
     def run(self, server, session, argv):
         usage = "usage: %prog search"
-        if len(argv) is not 0:
+        if len(argv) != 0:
             print usage
             sys.exit(1)
             
-        result = self.call(server.cadmin.findProfile)
+        result = self.call(server.cadmin.findProfile, session)
         pprint.pprint(result)
     
     def name(self):

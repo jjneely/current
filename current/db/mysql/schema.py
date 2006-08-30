@@ -91,7 +91,7 @@ create table CHANNEL_DIR (
 drop table if exists SESSIONS;
 create table SESSIONS (
    session_id     INTEGER PRIMARY KEY auto_increment,
-   sid            varchar(32) unique not null,
+   sid            varchar(40) unique not null,
    createtime     float not null,
    timeout        float not null,
    data           text,
@@ -113,11 +113,29 @@ create table PROFILE (
     index(uuid)
 ) Type=InnoDB;
 
+drop table if exists PROFILE_QUEUE;
+create table PROFILE_QUEUE (
+    queue_id        INTEGER PRIMARY KEY auto_increment,
+    profile_id      int not null,
+    begindate       datetime not null,
+    enddate         datetime,
+    status          int(1) not null,
+    method          varchar(32) not null,
+    params          text not null,
+    submit_code     integer,
+    submit_msg      varchar(64),
+    submit_data     text,
+
+    index(profile_id)
+) Type=InnoDB;
+
 drop table if exists SUBSCRIPTIONS;
 create table SUBSCRIPTIONS (
     sub_id          INTEGER PRIMARY KEY auto_increment,
     profile_id      int not null,
-    channel_id      int not null
+    channel_id      int not null,
+
+    index(profile_id)
 ) Type=InnoDB;
 
 drop table if exists USER;
@@ -151,7 +169,9 @@ create table HARDWARE (
     hardware_id     INTEGER PRIMARY KEY auto_increment,
     profile_id      int not null,
     class           varchar(32),
-    dict            text
+    dict            text,
+
+    index(profile_id)
 ) Type=InnoDB;
 
 drop table if exists INSTALLED;
@@ -159,9 +179,8 @@ create table INSTALLED (
     installed_id    INTEGER PRIMARY KEY auto_increment,
     profile_id      int not null,
     package_id      int not null,
-    info            int(1) not null default '0',
+    info            int(1) not null,
 
-    index(package_id),
     index(profile_id)
 ) Type=InnoDB;
 """

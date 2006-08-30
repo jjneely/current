@@ -31,6 +31,15 @@ class UserDB(object):
         self.conn   = db.sdb.getConnection()
         self.cursor = db.sdb.getCursor()
 
+    def isInitialUser(self):
+        q = "select count(*) from USER"
+        self.cursor.execute(q)
+
+        c = self.cursor.fetchone()[0]
+        if c == 0:
+            return True
+        else:
+            return False
 
     def getUserID(self, user):
         q = "select user_id from USER where username = %s"

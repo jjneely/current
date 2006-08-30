@@ -56,13 +56,11 @@ Connection: close
  
 * Fixup the perms checking code, and move it to the backend.
 
-* Figure out how the heck to do sub-channels. Have to resolve deps using 
-  the sub-channel and its parent.
-
 * In the new web based, database backed current administrative system
   (which does't exist) it would be cool to include mod_status and 
   mod_config information.
 
+* Authorization
 
 1.8.0 ship checklist
 

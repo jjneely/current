@@ -19,7 +19,7 @@ import xmlrpclib
 
 from current.logger import *
 from current.exception import *
-from current.users import SessionUser
+from current.users import SessionUser, User
 from current import profiles
 from current import channels
 from current import auth
@@ -40,6 +40,7 @@ __current_api__ = [
     'unsubscribe',
     'findProfile',
     'login',
+    'createUser',
     ]
 
 def login(username, password):
@@ -48,11 +49,19 @@ def login(username, password):
     u = SessionUser()
     sessid = u.login(username, password)
 
-    if sessid == None:
-        return ""
-    else:
-        return sessid
+    # sessid a coded tuple for us
+    return sessid
 
+def createUser(sess, username, password, email):
+    # SSL, right?
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
+    new = User()
+    new.newUser(username, password, email)
+    # Will raise exception if username already exists.
+    return True
 
 def scanChannels(sess, chanlist):
     u = SessionUser(sess)

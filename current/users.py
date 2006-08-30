@@ -46,9 +46,9 @@ class User(object):
         else:
             self.pid = user
 
-        self.__load()
+        self._load()
 
-    def __load(self):
+    def _load(self):
         # intername helper function.  Reveal user info
         tup = self.db.getUser(self.pid)
         if tup == None:
@@ -78,10 +78,13 @@ class User(object):
 
         if self.pid != None:
             raise CurrentUser("User object already contains user.")
-        
+    
+        if self.db.getUserID(username) != None:
+            raise CurrentUser("User name already in use.")
+
         self.pid = self.db.addUser(username, self._makePasswd(password), 
                                    email)
-        self.__load()
+        self._load()
        
     def addInfo(self, product_info):
         """Add contact information to the user"""
@@ -108,6 +111,12 @@ class SessionUser(User):
         else:
             User.__init__(self)
 
+    def __initSession(self):
+        self.session['pid'] = self.pid
+        self.session['userid'] = self.username
+        self.session.is_new = False
+        self.session.save()
+
     def __sanity(self):
         if not self.isValid():
             raise CurrentUser("Expired user session.  Please log in.")
@@ -122,20 +131,25 @@ class SessionUser(User):
 
     def login(self, user, password):
         if not self.session.isNew():
-            log(WARNING, "BUG: Attempt to reuse SessionUser object")
+            log(VERBOSE, "BUG: Attempt to reuse SessionUser object")
             raise CurrentUser("BUG: Attempt to reuse SessionUser object")
 
         self.pid = self.db.getUserID(user)
         if self.pid == None:
             log(DEBUG, "Tried to lookup non-existant user id")
-            return None
 
-        self.__load()
+            if self.db.isInitialUser():
+                log(VERBOSE, "Creating inital super user")
+                self.newUser(user, password, "root@localhost")
+                self.__initSession()
+                return {'code':1, 'session':self.session.sid}
+            else:
+                return {'code':-1, 'session':""}
+
+        self._load()
 
         if User.isValid(self, password):
-            self.session['pid'] = self.pid
-            self.session['userid'] = self.username
-            self.session.is_new = False
-            return self.session.sid
+            self.__initSession()
+            return {'code':0, 'session':self.session.sid}
         else:
-            return None
+            return {'code':-1, 'session':""}

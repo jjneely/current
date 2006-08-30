@@ -15,13 +15,19 @@ class Module(CadminConfig):
         password = getpass.getpass("Password:")
 
         result = self.call(server.cadmin.login, user, password)
-        if result == None:
+        if result['code'] == 0:
+            print "Login successful."
+            return result['session']
+        elif result['code'] == 1:
+            print "Initial account created.  You are super user."
+            return result['session']
+        elif result['code'] == -1:
             print "Login failed.  Check your username and password."
         else:
-            print "Login successful."
+            print "An undefined error has occured."
 
-        return result
+        return ""
     
     def name(self):
-        return "unsubscribe"
+        return "login"
 

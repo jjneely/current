@@ -23,7 +23,7 @@ import xmlrpclib
 
 import logging
 
-log = logging.getLogger("cadmin")
+log = logging.getLogger()
 log.addHandler(logging.StreamHandler(sys.stdout))
 log.setLevel(logging.INFO)
 

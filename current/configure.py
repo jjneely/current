@@ -8,6 +8,7 @@ import exception
 import os
 import os.path
 import ConfigParser
+import logging
 
 ## Program wide config object
 ## Created by current/cadmin/cinstall main()

@@ -59,7 +59,7 @@ class Module(CadminConfig):
                 parser.print_help()
                 sys.exit()
     
-        result = xmlrpc.doCall(server.cadmin.createChannel, chan)
+        result = xmlrpc.doCall(server.cadmin.createChannel, session, chan)
         pprint.pprint(result)
     
 

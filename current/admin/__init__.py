@@ -6,12 +6,13 @@ import os.path
 import sys
 import logging
 import optparse
+import traceback
 
 from current import xmlrpc
 from current import exception
 
 modules = None
-log = logging.getLogger("cadmin")
+log = logging.getLogger()
 
 # Abstract Object for cadmin modules
 class CadminConfig(object):
@@ -34,6 +35,16 @@ class CadminConfig(object):
             log.error("An error occured communicating with the server: %s" \
                       % str(e))
             sys.exit(3)
+        except Exception:
+            log.error("An unhandled error occured.  Dumping traceback.")
+            file, line, func, txt = traceback.extract_stack(None, 2)[0]
+            trace = 'File: %s, Method: %s(), Line: %s: [%s]\n' % \
+                    (file, func, line, txt)
+            log.critical(trace)
+    
+            (type, value, tb) = sys.exc_info()
+            for line in traceback.format_exception(type, value, tb):
+                log.critical(line.strip())
             
     def defaultParser(self, usage):
         parser = optparse.OptionParser(usage)

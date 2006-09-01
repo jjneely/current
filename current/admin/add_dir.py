@@ -37,6 +37,6 @@ class Module(CadminConfig):
             parser.print_help()
             sys.exit()
             
-        result = xmlrpc.doCall(server.cadmin.addChannelPath, chan)
+        result = xmlrpc.doCall(server.cadmin.addChannelPath, session, chan)
         pprint.pprint(result)
 

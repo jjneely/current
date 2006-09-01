@@ -18,7 +18,7 @@ class Module(CadminConfig):
         uuid = opts.uuid[0]
         label = opts.channels[0]
        
-        result = self.call(server.cadmin.unsubscribe, uuid, label)
+        result = self.call(server.cadmin.unsubscribe, session, uuid, label)
         pprint.pprint(result)
     
     def name(self):

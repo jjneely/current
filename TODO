@@ -69,6 +69,6 @@ Re-work cadmin into a text based, modular configuration system
 Add input checking into cadmin
 Clean up the cmd line parsing in cadmin
 Add cadmin API calls for querying
-Non-authenticated, web interface for monitoring of clients
+Web interface for monitoring of clients
 Subchannels
-
+Yum Support

@@ -1,5 +1,6 @@
 import xmlrpclib
 import turbogears
+import auth
 import cherrypy.config
 from turbogears import controllers
 
@@ -21,8 +22,16 @@ class Root(controllers.Root):
 
         self.systems = Systems(self.__api)
 
+    def doLoginCall(self, userid, password):
+        return self.__api.cadmin.login(userid, password)
+
     @turbogears.expose(html="cwebapp.templates.index")
-    def index(self):
-        
-        return dict(systemTotal=self.__api.systems.systemCount())
-        
+    @auth.needsLogin
+    def index(self, userInfo):
+        return dict(systemTotal=self.__api.systems.systemCount(),
+                    userID=userInfo['userid'])
+
+    @turbogears.expose(html="cwebapp.templates.login")
+    def login(self, redirect="/", message=None):
+        return dict(redirect=redirect, message=message)
+

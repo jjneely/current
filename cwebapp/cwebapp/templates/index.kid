@@ -9,6 +9,9 @@
 
 <body>
     <h1>Current Web Interface</h1>
+
+    <p>Welcome, <span py:replace="userID">foobar</span>!</p>
+
     <p>You have <span py:replace="systemTotal">42 billion</span> registered 
     <a href="systems/">systems</a>.</p>
 

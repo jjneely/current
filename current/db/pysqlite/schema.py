@@ -96,14 +96,12 @@ create table PROFILE_QUEUE (
     profile_id      int not null,
     begindate       datetime not null,
     enddate         datetime,
-    status          int(1) not null,
+    status          int not null,
     method          varchar(32) not null,
     params          text not null,
     submit_code     integer,
     submit_msg      varchar(64),
-    submit_data     text,
-
-    index(profile_id)
+    submit_data     text
 );
 create index PROFILE_QUEUE_IDX on PROFILE_QUEUE(profile_id);
 
@@ -145,13 +143,13 @@ create table HARDWARE (
     class           varchar(32),
     dict            text
 );
-create index HARDWARE_PROFILE_IDX on INSTALLED(profile_id);
+create index HARDWARE_PROFILE_IDX on HARDWARE(profile_id);
 
 create table INSTALLED (
     installed_id    INTEGER PRIMARY KEY,
     profile_id      int not null,
     package_id      int not null,
-    info            int not null,
+    info            int not null
 );
 create index INSTALLED_PROFILE_IDX on INSTALLED(profile_id);
 

@@ -19,7 +19,12 @@ def setCurrentSid(session, userid, name):
     dict['userid'] = userid
     dict['name'] = name
     cherrypy.response.simpleCookie[CookieName] = pickle.dumps(dict)
+    cherrypy.response.simpleCookie[CookieName]['expires'] = 3600
 
+def removeCookie():
+    cherrypy.response.simpleCookie[CookieName]['expires'] = 0
+
+# Decorator to insure user logged in and method gets a userInfo dict
 def needsLogin(fn):
     def _wrapper(*args, **kwargs):
         userInfo = getCurrentSid()

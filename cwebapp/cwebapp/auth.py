@@ -49,9 +49,9 @@ def needsLogin(fn):
         # Patch up arguments, take out login/password, and add a dict
         # describing the user
         kwargs['userInfo'] = userInfo
-        del kwargs['userid']
-        del kwargs['login']
-        del kwargs['password']
+        for a in ['userid', 'login', 'password']:
+            if kwargs.has_key(a):
+                del kwargs[a]
         return fn(*args, **kwargs)
     return _wrapper
 

@@ -4,6 +4,8 @@
 
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
+    <link rel="stylesheet" type="text/css" charset="utf-8"
+      href="${std.url('/static/css/current.css')}" />
     <title>Current</title>
 </head>
 

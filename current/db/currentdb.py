@@ -409,7 +409,7 @@ class CurrentDB(object):
 
         if not package_id:
             self.cursor.execute('''insert into PACKAGE
-                        (name, version, release, epoch, issource)
+                        (name, version, PACKAGE.release, epoch, issource)
                         values (%s, %s, %s, %s, %s)''',
                         (header[RPM.NAME], header[RPM.VERSION],
                          header[RPM.RELEASE], header[RPM.EPOCH],

@@ -3,14 +3,14 @@ drop table if exists PACKAGE;
 create table PACKAGE (
     package_id      INTEGER PRIMARY KEY auto_increment,
     name            varchar(64) not null,
-    version         varchar(64) not null,
-    release         varchar(64) not null,
+    `version`         varchar(64) not null,
+    `release`         varchar(64) not null,
     epoch           varchar(8) not null,
     issource        smallint not null,
  
     index(name),
-    index(version),
-    index(release)
+    index(`version`),
+    index(`release`)
     ) Type=InnoDB;
 
 

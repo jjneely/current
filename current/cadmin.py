@@ -29,6 +29,7 @@ log.setLevel(logging.INFO)
 
 # Our modules
 from current import admin
+from current.exception import *
 from current.configure import Preferences # Does this work on machine w/o C
 
 def getServer(url=""):
@@ -119,10 +120,14 @@ def main():
     server = getServer(opts.server)
     module = admin.modules[command]
 
-    # Error handling is done by module.call()
-    log.debug("Running module: %s, %s" % (command, module))
-    ret = module.run(server, session, commandOpts)
-    log.debug("Module returned: %s" % ret)
+    try:
+        log.debug("Running module: %s, %s" % (command, module))
+        ret = module.run(server, session, commandOpts)
+        log.debug("Module returned: %s" % ret)
+    except CurrentRPCError, e:
+        sys.exit(1)
+    except xmlrpclib.Fault, e:
+        log.error("A server error occured: %s" % str(e))
 
     if command == "login":
         prefs.setLogin(ret)

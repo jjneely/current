@@ -44,6 +44,10 @@ class MysqlDB(specificDB):
 
         if self.cursor == None:
             self.cursor = self.conn.cursor()
+            # This sets this thread so that it will see data committed
+            # by other apache processes
+            self.cursor.execute("""SET SESSION TRANSACTION ISOLATION LEVEL 
+                                   READ COMMITTED""")
 
         return self.cursor
 

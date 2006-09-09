@@ -92,8 +92,8 @@ drop table if exists SESSIONS;
 create table SESSIONS (
    session_id     INTEGER PRIMARY KEY auto_increment,
    sid            varchar(40) unique not null,
-   createtime     float not null,
-   timeout        float not null,
+   createtime     double not null,
+   timeout        double not null,
    data           text,
 
    index(sid)

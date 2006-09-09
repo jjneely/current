@@ -220,7 +220,7 @@ class ProfileDB(object):
                                         epoch, issource)
         if not package_id:
             self.cursor.execute('''insert into PACKAGE
-                        (name, version, release, epoch, issource)
+                        (name, version, `release`, epoch, issource)
                         values (%s, %s, %s, %s, %s)''',
                         (name, version, release, epoch, issource))
             # PM2006, we really should be using last_insert_id

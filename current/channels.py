@@ -100,4 +100,8 @@ class Channels(object):
 
     def listAppletPackages(self, release, arch):
         return self.db.listAppletPackages(release, arch)
-   
+  
+    # Query API
+    def listChannels(self):
+        list = self.db.listChannels()
+        return list

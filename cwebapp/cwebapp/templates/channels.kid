@@ -12,21 +12,18 @@
 <body>
     <h1>Current Web Interface</h1>
 
-    <p py:if="message != None" py:content="message"></p>
+    <p>Channels:</p>
 
-    <form method="post" action="/">
-        <table>
-            <tr>
-                <td>User ID:</td>
-                <td><input type="text" name="userid" /></td>
-            </tr>
-            <tr>
-                <td>Password:</td>
-                <td><input type="password" name="password" /></td>
-            </tr>
-        </table>
-        <input type="submit" name="login" value="Log In" />
-    </form>
-
+    <table class="tabledata">
+        <tr><th>Name</th><th>Label</th><th>Arch</th><th>OS Release</th></tr>
+        <tr py:for="i, channel in enumerate(channels)" 
+            class="${i%2 and 'oddrow' or 'evenrow'}">
+            <td py:content="channel['name']">Name goes here</td>
+            <td py:content="channel['label']">Channel-label</td>
+            <td py:content="channel['arch']">Channel Arch</td>
+            <td py:content="channel['osrelease']">Channel OS release</td>
+        </tr>
+    </table>
+    
 </body>
 </html>

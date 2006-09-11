@@ -21,17 +21,18 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 from current.logger import *
-from current import auth
-from current import profiles
-from current import channels
+from current.users import SessionUser
+from current.channels import Channels
 
 __current_api__ = [
-    'systemTotal',
+    'listChannels',
 ]
 
-def example(sysid_string):
-    si = auth.SysId(sysid_string)
-    (valid, reason) = si.isValid()
-    if not valid:
-        return xmlrpclib.Fault(1000, reason)
+def listChannels(sess):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
+    chanlib = Channels()
+    return chanlib.listChannels()
 

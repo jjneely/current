@@ -10,9 +10,21 @@ class Systems(object):
         self.__api = api
 
     @turbogears.expose(html="cwebapp.templates.systems")
-    def index(self):
-        profiles = self.__api.cadmin.findProfile()
-        return dict(profiles=profiles)
+    @auth.needsLogin
+    def index(self, userInfo):
+        systems = self.__api.cadmin.findProfile(userInfo['session'])
+        return dict(systems=systems)
+
+class Channels(object):
+
+    def __init__(self, api):
+        self.__api = api
+
+    @turbogears.expose(html="cwebapp.templates.channels")
+    @auth.needsLogin
+    def index(self, userInfo):
+        channels = self.__api.channels.listChannels(userInfo['session'])
+        return dict(channels=channels)
 
 class Root(controllers.Root):
 
@@ -21,6 +33,7 @@ class Root(controllers.Root):
         self.__api = xmlrpclib.Server(cherrypy.config.get("current"))
 
         self.systems = Systems(self.__api)
+        self.channels = Channels(self.__api)
 
     def doLoginCall(self, userid, password):
         return self.__api.cadmin.login(userid, password)
@@ -28,10 +41,12 @@ class Root(controllers.Root):
     @turbogears.expose(html="cwebapp.templates.index")
     @auth.needsLogin
     def index(self, userInfo):
+        print userInfo
         return dict(systemTotal=self.__api.systems.systemCount(),
                     userID=userInfo['userid'])
 
     @turbogears.expose(html="cwebapp.templates.login")
     def login(self, redirect="/", message=None):
+        auth.removeCookie()
         return dict(redirect=redirect, message=message)
 

@@ -139,6 +139,21 @@ class ProfileDB(object):
 
         return ret
 
+    def getChannelLabels(self, pid):
+        "Returns the channel labels a given profile ID is subscribed to"
+
+        q = """select label from CHANNEL, SUBSCRIPTIONS where
+               CHANNEL.channel_id = SUBSCRIPTIONS.channel_id and
+               SUBSCRIPTIONS.profile_id = %s"""
+
+        self.cursor.execute(q, (pid,))
+
+        ret = []
+        for row in resultSet(self.cursor):
+            ret.append(row['label'])
+
+        return ret
+
     def subscribe(self, pid, channel):
         """Subscribe a profile to a channel."""
 
@@ -169,12 +184,16 @@ class ProfileDB(object):
         self.conn.commit()
 
     def listSystems(self):
-        q = """select name, uuid from PROFILE"""
+        q = """select name, uuid, profile_id from PROFILE"""
 
         self.cursor.execute(q)
         r = resultSet(self.cursor)
-        
-        return r.dump()
+        ret = r.dump()
+
+        for row in ret:
+            row['labels'] = self.getChannelLabels(row['profile_id'])
+
+        return ret
 
     def getSystemCount(self):
         q = """select count(*) from PROFILE"""

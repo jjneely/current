@@ -33,6 +33,8 @@ import genpkgmetadata # from the createrepo package
 PROVIDES  = 0
 OBSOLETES = 1
 FILES     = 2
+REQUIRES  = 3
+CONFLICTS = 4
 
 class specificDB(object):
     """An Abstract class.  For each database we whish to support that
@@ -337,6 +339,8 @@ class CurrentDB(object):
 
                 self._insertProvides(rpm_id, header)
                 self._insertObsoletes(rpm_id, header)
+                self._insertRequires(rpm_id, header)
+                self._insertConflicts(rpm_id, header)
             
             self._insertChannelTable(chanID, rpm_id)
             self._createHeader(channel, header)
@@ -468,7 +472,27 @@ class CurrentDB(object):
 
         self.cursor.execute(query, t)
 
-        
+    
+    def _insertRequires(self, rpm_id, header):
+        name = header[RPM.RPMTAG_REQUIRENAME]
+        flags = header[RPM.RPMTAG_REQUIREFLAGS]
+        vers = header[RPM.RPMTAG_REQUIREVERSION]
+
+        if name != None:
+            for n, f, v in zip(name, flags, vers):
+                self._setDependancy(n, rpm_id, REQUIRES, f, v)
+
+
+    def _intertConflicts(self, rpm_id, header):
+        name = header[RPM.RPMTAG_CONFLICTNAME]
+        flags = header[RPM.RPMTAG_CONFLICTFLAGS]
+        vers = header[RPM.RPMTAG_CONFLICTVERSION]
+
+        if name != None:
+            for n, f, v in zip(name, flags, vers):
+                self._setDependancy(n, rpm_id, CONFLICTS, f, v)
+
+
     def _insertObsoletes(self, rpm_id, header):
         for obs in header[RPM.CT_OBSOLETES]:
             self._setDependancy(obs[0], rpm_id, OBSOLETES,
@@ -913,4 +937,16 @@ class CurrentDB(object):
         log('grabbed %s packages in listAppletPackages' % len(result), DEBUG2)
         return result
 
+    
+    def listChannels(self):
+        """Return a list of dicts with basic channel information."""
+
+        q = """select name, label, arch, osrelease, description
+               from CHANNEL"""
+
+        self.cursor.execute(q)
+        r = resultSet(self.cursor)
+        if r.rowcount() == 0:
+            return []
+        return r.dump()
 

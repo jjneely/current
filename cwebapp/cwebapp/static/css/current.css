@@ -86,8 +86,29 @@ body {
     font-size: 1em;
 }
 
-#content {
+.content {
     margin: 1em;
     color: black;
 }
 
+table.tabledata {
+    background: #8888ff;
+    border-collapse: collapse;
+    padding: 4px 4px 4px 4px;
+}
+
+table.tabledata th {
+    padding: 4px 4px 4px 4px;
+}
+
+table.tabledata td {
+    padding: 4px 4px 4px 4px;
+}
+
+tr.oddrow {
+    background: #ececec;
+}
+
+tr.evenrow {
+    background: #ffffff;
+}

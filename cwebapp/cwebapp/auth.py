@@ -22,7 +22,11 @@ def setCurrentSid(session, userid, name):
     cherrypy.response.simpleCookie[CookieName]['expires'] = 3600
 
 def removeCookie():
-    cherrypy.response.simpleCookie[CookieName]['expires'] = 0
+    try:
+        cherrypy.response.simpleCookie[CookieName]['expires'] = 0
+    except KeyError:
+        # Don't have cookie, so can't remove it
+        pass
 
 # Decorator to insure user logged in and method gets a userInfo dict
 def needsLogin(fn):

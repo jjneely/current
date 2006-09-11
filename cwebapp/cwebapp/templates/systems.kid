@@ -4,6 +4,8 @@
 
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
+    <link rel="stylesheet" type="text/css" charset="utf-8"
+      href="${std.url('/static/css/current.css')}" />
     <title>Current</title>
 </head>
 
@@ -12,11 +14,14 @@
 
     <p>The following systems are registered:</p>
 
-    <table>
-        <tr><th>Profile Name</th><th>UUID</th></tr>
-        <tr py:for="profile in profiles">
-            <td py:content="profile['name']">Name goes here</td>
-            <td py:content="profile['uuid']">uuid string here</td>
+    <table class="tabledata">
+        <tr><th>Profile Name</th><th>Channel</th></tr>
+        <tr py:for="i, system in enumerate(systems)" 
+            class="${i%2 and 'oddrow' or 'evenrow'}">
+            <td py:content="system['name']">Name goes here</td>
+            <td><span py:for="l in system['labels']">
+                    <span py:replace="l">label-foo</span><br/></span>
+            </td>
         </tr>
     </table>
     

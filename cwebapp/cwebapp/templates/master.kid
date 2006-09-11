@@ -40,7 +40,7 @@
       <div id="pageline"><hr style="display:none;" /></div>
     </div>
 
-  <div id="content" py:content="item[:]"/>
+  <div class="content" py:content="item[:]"/>
   
   </body>
 </html>

@@ -13,11 +13,7 @@ def getCurrentSid():
 
     return dict
 
-def setCurrentSid(session, userid, name):
-    dict = {}
-    dict['session'] = session
-    dict['userid'] = userid
-    dict['name'] = name
+def setCurrentSid(dict):
     cherrypy.response.simpleCookie[CookieName] = pickle.dumps(dict)
     cherrypy.response.simpleCookie[CookieName]['expires'] = 3600
 
@@ -52,8 +48,11 @@ def needsLogin(fn):
                           'message':'Invaild user name or password.'}
                 raise cherrypy.InternalRedirect('/login', params)
 
-            setCurrentSid(sid['session'], userid, "Jane Smith")
-            userInfo = getCurrentSid()
+            userInfo = {}
+            userInfo['session'] = sid['session']
+            userInfo['userid'] = userid
+            userInfo['name'] = "Jane Smith"
+            setCurrentSid(userInfo)
 
         # Patch up arguments, take out login/password, and add a dict
         # describing the user

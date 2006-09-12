@@ -6,11 +6,43 @@ from current.db.currentdb import specificDB
 from current.logger import *
 from current.db.mysql import schema
 
+# Grrr...  MySQL-Python doesn't support reconnecting
+class Connection(object):
+
+    def __init__(self, sdb):
+        self.sdb = sdb
+
+    def __getattr__(self, name):
+        if self.sdb.conn == None:
+            self.sdb.getConnection()
+
+        return getattr(self.sdb.conn, name)
+
+class Cursor(Connection):
+
+    def __getattr__(self, name):
+        if self.sdb.cursor == None:
+            self.sdb.getCursor()
+        
+        try:
+            return getattr(self.sdb.cursor, name)
+        except MySQLdb.OperationalError, e:
+            if e.args[0] in (2006, 2013):
+                self.sdb.conn = None
+                self.sdb.cursor = None
+                self.sdb.getCursor()
+                return getattr(self.sdb.cursor, name)
+            else:
+                raise
+
 class MysqlDB(specificDB):
     
     def __init__(self, config):
         self.conn = None
+        self.wrappedConn = None
+
         self.cursor = None
+        self.wrappedCursor = None
 
         self.config = config
         
@@ -20,8 +52,8 @@ class MysqlDB(specificDB):
 
 
     def getConnection(self):
-        if self.conn:
-            return self.conn
+        if self.conn != None:
+            return self.wrappedConn
         
         try:
             log("Obtaining connection", TRACE)
@@ -35,7 +67,8 @@ class MysqlDB(specificDB):
             # Do something useful here?
             raise
         
-        return self.conn
+        self.wrappedConn = Connection(self)
+        return self.wrappedConn
 
 
     def getCursor(self):
@@ -44,12 +77,13 @@ class MysqlDB(specificDB):
 
         if self.cursor == None:
             self.cursor = self.conn.cursor()
+            self.wrappedCursor = Cursor(self)
             # This sets this thread so that it will see data committed
             # by other apache processes
             self.cursor.execute("""SET SESSION TRANSACTION ISOLATION LEVEL 
                                    READ COMMITTED""")
 
-        return self.cursor
+        return self.wrappedCursor
 
 
     def disconnect(self):

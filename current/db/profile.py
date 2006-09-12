@@ -183,10 +183,17 @@ class ProfileDB(object):
         self._updateInstalledPackages(pid)
         self.conn.commit()
 
-    def listSystems(self):
+    def listSystems(self, pid=None):
         q = """select name, uuid, profile_id from PROFILE"""
+        if pid != None:
+            q = q + " where profile_id = %s"
 
-        self.cursor.execute(q)
+        if pid == None:
+            tup = None
+        else:
+            tup = (pid,)
+
+        self.cursor.execute(q, tup)
         r = resultSet(self.cursor)
         ret = r.dump()
 

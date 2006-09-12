@@ -15,6 +15,13 @@ class Systems(object):
         systems = self.__api.cadmin.findProfile(userInfo['session'])
         return dict(systems=systems)
 
+    @turbogears.expose(html="cwebapp.templates.systemDetail")
+    @auth.needsLogin
+    def details(self, userInfo, profileID):
+        system = self.__api.cadmin.findProfile(userInfo['session'], 
+                                                profileID)
+        return dict(system=system[0])
+
 class Channels(object):
 
     def __init__(self, api):

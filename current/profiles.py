@@ -119,11 +119,11 @@ class Systems(object):
     def __init__(self):
         self.db = profile.ProfileDB()
 
-    def search(self):
+    def search(self, pid=None):
         # What else does this do?
         # Only systems that a user can see/access to?
 
-        return self.db.listSystems()
+        return self.db.listSystems(pid)
 
     def systemCount(self):
         return self.db.getSystemCount()

@@ -18,7 +18,11 @@
         <tr><th>Profile Name</th><th>Channel</th></tr>
         <tr py:for="i, system in enumerate(systems)" 
             class="${i%2 and 'oddrow' or 'evenrow'}">
-            <td py:content="system['name']">Name goes here</td>
+            <td>
+                <a href="" 
+                    py:attrs="href='/systems/details?profileID=%s' % system['profile_id']"
+                    py:content="system['name']">Name goes here</a>
+            </td>
             <td><span py:for="l in system['labels']">
                     <span py:replace="l">label-foo</span><br/></span>
             </td>

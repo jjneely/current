@@ -174,7 +174,7 @@ def subscribe(sess, uuid, channel):
     
     return True
 
-def findProfile(sess):
+def findProfile(sess, pid=None):
     u = SessionUser(sess)
     if not u.isValid():
         return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
@@ -182,6 +182,6 @@ def findProfile(sess):
     # Return UUIDs of systems with matching profile name
     # XXX: a regex or something?
     systems = profiles.Systems()
-    return systems.search()
+    return systems.search(pid)
     
 ## END OF LINE ##

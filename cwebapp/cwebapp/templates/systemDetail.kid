@@ -35,6 +35,10 @@
                     <span py:replace="l">label-foo</span><br/></span>
             </td>
         </tr>
+        <tr>
+            <th>Number of Packages Needing Update:</th>
+            <td py:content="system['num_old_packages']">All of them</td>
+        </tr>
     </table>
     
 </body>

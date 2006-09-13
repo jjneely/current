@@ -209,7 +209,16 @@ class ProfileDB(object):
         r = self.cursor.fetchone()
 
         return r[0]
-    
+   
+    def getNumUpdatable(self, pid):
+        q = """select count(*) from INSTALLED where profile_id = %s
+               and info = %s"""
+
+        self.cursor.execute(q, (pid, UPDATABLE))
+        r = self.cursor.fetchone()
+
+        return r[0]
+
     def _getChanID(self, channel):
         """Take a channel label and return the chan id from the DB."""
 

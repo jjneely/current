@@ -15,13 +15,17 @@
     <p>Channels:</p>
 
     <table class="tabledata">
-        <tr><th>Name</th><th>Label</th><th>Arch</th><th>OS Release</th></tr>
+        <tr><th>Name</th><th>Label</th></tr>
         <tr py:for="i, channel in enumerate(channels)" 
             class="${i%2 and 'oddrow' or 'evenrow'}">
-            <td py:content="channel['name']">Name goes here</td>
-            <td py:content="channel['label']">Channel-label</td>
-            <td py:content="channel['arch']">Channel Arch</td>
-            <td py:content="channel['osrelease']">Channel OS release</td>
+            <td><a href="" py:content="channel['name']"
+                   py:attrs="href='/channels/detail?label='+channel['label']">
+                   Name goes here</a>
+           </td>
+           <td><a href="" py:content="channel['label']"
+                  py:attrs="href='/channels/detail?label='+channel['label']">
+                  Channel-label</a>
+          </td>
         </tr>
     </table>
     

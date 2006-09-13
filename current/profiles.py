@@ -22,6 +22,7 @@
 
 from current.exception import *
 from current.db import profile
+from current.logger import *
 
 class Profile(object):
 
@@ -33,10 +34,14 @@ class Profile(object):
             # New object
             return
 
-        if len(id.split('-')) is not 5:
-            raise CurrentException("Badly formed UUID.")
+        if len(id.split('-')) == 5:
+            self.pid = self.db.getProfileID(id)
+        elif id.find("-") == -1:
+            self.pid = int(id)
+        else:
+            log(TRIVIA, "type of id: %s" % str(type(id)))
+            raise CurrentException("Badly formed ID.")
         
-        self.pid = self.db.getProfileID(id)
         if self.pid == None:
             raise CurrentException("No profile found for id: %s" % id)
 
@@ -113,6 +118,11 @@ class Profile(object):
     def updateAllInstallPackages(self):
         return self.db.updateAllInstallPackages()
 
+    def getDetail(self):
+        self.__sanity()
+        system = self.db.listSystems(self.pid)[0]
+        system['num_old_packages'] = self.db.getNumUpdatable(self.pid)
+        return system
 
 class Systems(object):
 

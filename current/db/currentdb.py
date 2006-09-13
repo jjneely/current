@@ -941,7 +941,7 @@ class CurrentDB(object):
     def listChannels(self):
         """Return a list of dicts with basic channel information."""
 
-        q = """select name, label, arch, osrelease, description
+        q = """select name, label, description, channel_id
                from CHANNEL"""
 
         self.cursor.execute(q)
@@ -949,4 +949,16 @@ class CurrentDB(object):
         if r.rowcount() == 0:
             return []
         return r.dump()
+
+
+    def getChannelDetail(self, channel_id):
+        q = """select name, label, description, arch, osrelease, 
+               lastupdate, base from CHANNEL where channel_id = %s"""
+
+        self.cursor.execute(q, (channel_id,))
+        r = resultSet(self.cursor)
+        if r.rowcount() == 0:
+            return None
+
+        return r.dump()[0]
 

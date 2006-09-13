@@ -26,6 +26,7 @@ from current.channels import Channels
 
 __current_api__ = [
     'listChannels',
+    'getChannelDetail',
 ]
 
 def listChannels(sess):
@@ -35,4 +36,12 @@ def listChannels(sess):
 
     chanlib = Channels()
     return chanlib.listChannels()
+
+def getChannelDetail(sess, label):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
+    chanlib = Channels()
+    return chanlib.getChannelDetail(label)
 

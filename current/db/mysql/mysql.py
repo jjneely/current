@@ -27,7 +27,9 @@ class Cursor(Connection):
         try:
             return getattr(self.sdb.cursor, name)
         except MySQLdb.OperationalError, e:
+            log(DEBUG2, "OperationalError: e.args = %s" % str(e.args))
             if e.args[0] in (2006, 2013):
+                log(VERBOSE, "Forcing reconnect to MySQL database")
                 self.sdb.conn = None
                 self.sdb.cursor = None
                 self.sdb.getCursor()

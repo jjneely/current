@@ -21,21 +21,29 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 from current.logger import *
-from current import auth
+from current.users import SessionUser
 from current import profiles
 from current import channels
+from cadmin import EAUTH
 
 __current_api__ = [
     'systemCount',
+    'systemDetail',
 ]
 
-def example(sysid_string):
-    si = auth.SysId(sysid_string)
-    (valid, reason) = si.isValid()
-    if not valid:
-        return xmlrpclib.Fault(1000, reason)
-
-def systemCount():
+def systemCount(sess):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+    
     syslib = profiles.Systems()
     return syslib.systemCount()
+
+def systemDetail(sess, pid):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
+    p = profiles.Profile(pid)
+    return p.getDetail()
 

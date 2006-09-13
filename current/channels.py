@@ -105,3 +105,12 @@ class Channels(object):
     def listChannels(self):
         list = self.db.listChannels()
         return list
+
+    def getChannelDetail(self, label):
+        cid = self.db._getChanID(label)
+        detail = self.db.getChannelDetail(cid)
+        if detail == None:
+            # a sane value when channel_id doesn't exist
+            return {}
+        else:
+            return detail

@@ -18,9 +18,9 @@ class Systems(object):
     @turbogears.expose(html="cwebapp.templates.systemDetail")
     @auth.needsLogin
     def details(self, userInfo, profileID):
-        system = self.__api.cadmin.findProfile(userInfo['session'], 
+        system = self.__api.systems.systemDetail(userInfo['session'], 
                                                 profileID)
-        return dict(system=system[0])
+        return dict(system=system)
 
 class Channels(object):
 
@@ -32,6 +32,13 @@ class Channels(object):
     def index(self, userInfo):
         channels = self.__api.channels.listChannels(userInfo['session'])
         return dict(channels=channels)
+
+    @turbogears.expose(html="cwebapp.templates.channelDetail")
+    @auth.needsLogin
+    def detail(self, userInfo, label):
+        detail = self.__api.channels.getChannelDetail(userInfo['session'],
+                                                      label)
+        return dict(channel=detail)
 
 class Root(controllers.Root):
 
@@ -49,7 +56,8 @@ class Root(controllers.Root):
     @auth.needsLogin
     def index(self, userInfo):
         print userInfo
-        return dict(systemTotal=self.__api.systems.systemCount(),
+        return dict(systemTotal=self.__api.systems.systemCount(
+                    userInfo['session']),
                     userID=userInfo['userid'])
 
     @turbogears.expose(html="cwebapp.templates.login")

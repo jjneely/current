@@ -20,7 +20,7 @@
 
     <div id="header">
       <p id="title">Current</p>
-      <p id="headertext">Current Version 1.7.4</p>
+      <p id="headertext">Current Version 1.7.5</p>
                                 
       <ul id="navibar">
         <li class="navlink">

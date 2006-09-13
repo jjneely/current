@@ -56,6 +56,8 @@ Connection: close
  
 * Fixup the perms checking code, and move it to the backend.
 
+* Web interface based on the TurboGears toolkit
+
 * In the new web based, database backed current administrative system
   (which does't exist) it would be cool to include mod_status and 
   mod_config information.

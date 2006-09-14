@@ -32,13 +32,21 @@ thousands of machines.</p>
 <ul>
     <li>Production quality Up2date server for 2.7 to 4.4 clients with a Fedora Core 1, 2, 3, 4, 5 or Red Hat Enterprise Linux 3, or 4 server.</li>
     <li>Full SQL database backend.</li>
-    <li>Web Interface in the devel series.</li>
+    <li>TurboGears Web Interface in the devel series.</li>
     <li>As easy to setup for the admin as we can make it.</li>
 </ul>
 
 
 <h3>Recent News</h3>
 <ul>
+
+    <li><b>[14 September 2006] Current 1.7.5</b>
+    <p>Current now has user authentication (but not authorization yet).
+    To use the <tt>cadmin.py</tt> command you must first login by using
+    the <tt>login</tt> cadmin command.  The Current extended parts of the
+    XMLRPC API now require a session argument.  The tarball has a TurboGears
+    web interface in the <tt>cwebapp/</tt> directory.  See the
+    <a href="screenshots.html">screenshots</a>.</p></li>
 
     <li><b>[06 August 2006] Current 1.7.4</b>
     <p>Basic support for Yum is included.  The repositories have Yum's repomd
@@ -106,9 +114,6 @@ thousands of machines.</p>
     Current.</p></li>
 
     
-<li><p><b>Hunter's Current FTP repository: </b>
-<a href="ftp://ftp.biology.duke.edu/admin/current">ftp://ftp.biology.duke.edu/admin/current</a></p></li>
-
 <li><p><b>Jack's Current FTP repository: </b>
 <a href="ftp://ftp.linuxczar.net/pub/current">ftp://ftp.linuxczar.net/pub/current</a>
 </p></li>
@@ -120,7 +125,10 @@ thousands of machines.</p>
 
 <p><b>New for Current 1.7 - </b> Current versions 1.7 and up require
 mod_python 3.1 and Python 2.3.  Current should be able to run 
-out of the box on RHEL 4, RHEL 4 rebuilds, and FC3 or better.</p>
+out of the box on RHEL 4, RHEL 4 rebuilds, and FC3 or better.
+The TurboGears web interface in the requires TurboGears 0.8.9 and
+Python 2.4.
+</p>
 
 <p><b>All Current Versions - </b> Current does require a few things to run.  
 Fortunately, any of the Red 

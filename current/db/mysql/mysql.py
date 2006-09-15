@@ -18,14 +18,31 @@ class Connection(object):
 
         return getattr(self.sdb.conn, name)
 
-class Cursor(Connection):
+class Cursor(object):
+
+    def __init__(self, sdb):
+        self.sdb = sdb
+        self.__method = None
 
     def __getattr__(self, name):
         if self.sdb.cursor == None:
             self.sdb.getCursor()
-        
-        try:
+
+        if name == "execute":
+            self.__method = name
+            return self.__wrapper
+        else:
             return getattr(self.sdb.cursor, name)
+
+    def __wrapper(self, *args, **kwargs):
+        try:
+            func = getattr(self.sdb.cursor, self.__method)
+        except TypeError:
+            log(CRITICAL, "BUG: MySQL cursor wrapper blew up.")
+            raise
+
+        try:
+            return func(*args, **kwargs)
         except MySQLdb.OperationalError, e:
             log(DEBUG2, "OperationalError: e.args = %s" % str(e.args))
             if e.args[0] in (2006, 2013):
@@ -33,7 +50,8 @@ class Cursor(Connection):
                 self.sdb.conn = None
                 self.sdb.cursor = None
                 self.sdb.getCursor()
-                return getattr(self.sdb.cursor, name)
+                func = getattr(self.sdb.cursor, self.__method)
+                return func(*args, **kwargs)
             else:
                 raise
 

@@ -189,7 +189,8 @@ class CurrentDB(object):
     def _yumMetaData(self, channel):
         log("Creating Yum Metadata", DEBUG)
         pathname = os.path.join(self.config['current_dir'], 'www', channel)
-        genpkgmetadata.main(["-q", pathname])
+        cache = os.path.join(self.config['current_dir'], "sha1cache")
+        genpkgmetadata.main(["-c", cache, "-q", pathname])
 
         return 0
 
@@ -474,19 +475,19 @@ class CurrentDB(object):
 
     
     def _insertRequires(self, rpm_id, header):
-        name = header[RPM.RPMTAG_REQUIRENAME]
-        flags = header[RPM.RPMTAG_REQUIREFLAGS]
-        vers = header[RPM.RPMTAG_REQUIREVERSION]
+        name = header[RPM.REQUIRENAME]
+        flags = header[RPM.REQUIREFLAGS]
+        vers = header[RPM.REQUIREVERSION]
 
         if name != None:
             for n, f, v in zip(name, flags, vers):
                 self._setDependancy(n, rpm_id, REQUIRES, f, v)
 
 
-    def _intertConflicts(self, rpm_id, header):
-        name = header[RPM.RPMTAG_CONFLICTNAME]
-        flags = header[RPM.RPMTAG_CONFLICTFLAGS]
-        vers = header[RPM.RPMTAG_CONFLICTVERSION]
+    def _insertConflicts(self, rpm_id, header):
+        name = header[RPM.CONFLICTNAME]
+        flags = header[RPM.CONFLICTFLAGS]
+        vers = header[RPM.CONFLICTVERSION]
 
         if name != None:
             for n, f, v in zip(name, flags, vers):

@@ -122,7 +122,18 @@ class Profile(object):
         self.__sanity()
         system = self.db.listSystems(self.pid)[0]
         system['num_old_packages'] = self.db.getNumUpdatable(self.pid)
+        status = self.db.getStatus(self.pid)
+        for key in ['hostname', 'ipaddr', 'kernel', 'uptime', 'checkin']:
+            if status.has_key(key):
+                system[key] = status[key]
+            else:
+                system[key] = ""
+
         return system
+
+    def setStatus(self, hostname, ipaddr, kernel, uptime):
+        self.__sanity()
+        self.db.setStatus(self.pid, hostname, ipaddr, kernel, uptime)
 
 class Systems(object):
 

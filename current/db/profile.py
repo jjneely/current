@@ -20,6 +20,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import time
+
 from current.exception import *
 from current import db
 from current.db.resultSet import resultSet
@@ -42,11 +44,11 @@ class ProfileDB(object):
 
     def addProfile(self, user, arch, os_release, name, release_name, uuid):
         q = """insert into PROFILE (profile_id, user_id, architecture, 
-               cannon_arch, os_release, name, release_name, uuid)
-               values (NULL, %s, %s, %s, %s, %s, %s, %s)"""
+               cannon_arch, os_release, name, release_name, uuid, registered)
+               values (NULL, %s, %s, %s, %s, %s, %s, %s, %s)"""
                
         t = (user, arch, getCannonArch(arch), os_release, 
-             name, release_name, uuid)
+             name, release_name, uuid, time.time())
 
         self.cursor.execute(q, t)
         self.conn.commit()
@@ -182,6 +184,37 @@ class ProfileDB(object):
         self.cursor.execute(q, (pid, channel))
         self._updateInstalledPackages(pid)
         self.conn.commit()
+
+    def setStatus(self, pid, hostname, ipaddr, kernel, uptime):
+        q1 = """select status_id from STATUS where profile_id = %s"""
+        
+        self.cursor.execute(q1, (pid,))
+        r = resultSet(self.cursor)
+        if r.rowcount() == 0:
+            q2 = """insert into STATUS (profile_id, hostname, ipaddr, kernel,
+                                        uptime, checkin) values
+                                        (%s, %s, %s, %s, %s, %s)"""
+            t = (pid, hostname, ipaddr, kernel, uptime, time.time())
+        else:
+            q2 = """update STATUS set hostname = %s, ipaddr = %s, 
+                    kernel = %s, uptime = %s, checkin = %s where
+                    status_id = %s"""
+            t = (hostname, ipaddr, kernel, uptime, time.time(), r['status_id'])
+
+        self.cursor.execute(q2, t)
+        self.conn.commit()
+
+    def getStatus(self, pid):
+        q = """select hostname, ipaddr, kernel, uptime, checkin from STATUS
+               where profile_id = %s"""
+
+        self.cursor.execute(q, (pid,))
+        r = resultSet(self.cursor)
+
+        if r.rowcount() == 0:
+            return {}
+        else:
+            return r.dump()[0]
 
     def listSystems(self, pid=None):
         q = """select name, uuid, profile_id from PROFILE"""

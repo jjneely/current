@@ -109,6 +109,7 @@ create table PROFILE (
     name            varchar(128) not null,
     release_name    varchar(64),
     uuid            varchar(40) not null unique,
+    registered      double,
 
     index(uuid)
 ) Type=InnoDB;
@@ -180,6 +181,19 @@ create table INSTALLED (
     profile_id      int not null,
     package_id      int not null,
     info            int(1) not null,
+
+    index(profile_id)
+) Type=InnoDB;
+
+drop table if exists STATUS;
+create table STATUS (
+    status_id       INTEGER PRIMARY KEY auto_increment,
+    profile_id      int not null,
+    hostname        varchar(256),
+    ipaddr          varchar(16),
+    kernel          varchar(256),
+    uptime          int,
+    checkin         double,
 
     index(profile_id)
 ) Type=InnoDB;

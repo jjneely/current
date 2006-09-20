@@ -18,16 +18,20 @@
             <td py:content="system['name']">Name goes here</td>
         </tr>
         <tr>
-            <th>System Status:</th>
-            <td>Limbo, Limbo!</td>
-        </tr>
-        <tr>
             <th>Profile ID:</th>
             <td py:content="system['profile_id']">ID Number</td>
         </tr>
         <tr>
+            <th>Hostname:</th>
+            <td py:content="system['hostname']">hostname</td>
+        </tr>
+        <tr>
+            <th>IP Address:</th>
+            <td py:content="system['ipaddr']">ipaddr</td>
+        </tr>
+        <tr>
             <th>Last Checkin Time:</th>
-            <td>The hell if I know</td>
+            <td py:content="system['checkin']">Time</td>
         </tr>
         <tr>
             <th>Subscribed Channels:</th>
@@ -38,6 +42,14 @@
         <tr>
             <th>Number of Packages Needing Update:</th>
             <td py:content="system['num_old_packages']">All of them</td>
+        </tr>
+        <tr>
+            <th>Running Kernel:</th>
+            <td py:content="system['kernel']">kernel version</td>
+        </tr>
+        <tr>
+            <th>System Uptime:</th>
+            <td py:content="system['uptime']">time</td>
         </tr>
     </table>
     

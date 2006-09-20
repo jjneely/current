@@ -79,6 +79,10 @@ class SysId(object):
             raise AuthException("Invalid attribute for sysid")
 
 
+    def __getattr__(self, name):
+        return self.getattr(name)
+
+
     def getattr(self, attr):
         if attr in SysId._attr_list:
             return self._data[attr]

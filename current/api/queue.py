@@ -21,6 +21,7 @@ Started figuring out some way to get rid of that pesky cron job in 1.5.0.
 import xmlrpclib
 
 from current.logger import *
+from current.profiles import Profile
 from current import auth
 
 
@@ -42,6 +43,13 @@ def get(sysid_string, action_version, client_status):
     (valid, reason) = si.isValid()
     if not valid:
         return xmlrpclib.Fault(1000, reason)
+
+    p = Profile(si.system_id)
+    # XXX: IP address for the second arg?
+    p.setStatus(client_status['uname'][1],
+                client_status['uname'][1],
+                client_status['uname'][2], 
+                client_status['uptime'][0])
 
     # Right now, current does not support this api. Its safe to return
     # an empty dict (which means "no action for this client")

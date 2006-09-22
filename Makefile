@@ -1,4 +1,4 @@
-VERSION=1.7.5
+VERSION=1.7.6
 NAME=current
 TAG = $(VERSION)
 REPO = http://current.tigris.org/svn/current

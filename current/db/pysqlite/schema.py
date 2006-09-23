@@ -87,7 +87,8 @@ create table PROFILE (
     os_release      varchar(32) not null,
     name            varchar(128) not null,
     release_name    varchar(64),
-    uuid            varchar(40) not null unique
+    uuid            varchar(40) not null unique,
+    registered      double
 );
 create index PROFILE_IDX on PROFILE(uuid);
 
@@ -152,5 +153,16 @@ create table INSTALLED (
     info            int not null
 );
 create index INSTALLED_PROFILE_IDX on INSTALLED(profile_id);
+
+create table STATUS (
+    status_id       INTEGER PRIMARY KEY,
+    profile_id      int not null,
+    hostname        varchar(256),
+    ipaddr          varchar(16),
+    kernel          varchar(256),
+    uptime          int,
+    checkin         double
+);
+create index STATUS_PROFILE_IDX on STATUS(profile_id);
 
 """

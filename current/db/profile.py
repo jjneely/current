@@ -103,7 +103,7 @@ class ProfileDB(object):
                PROFILE.os_release = CHANNEL.osrelease"""
 
         self.cursor.execute(q, (pid,))
-        result = resultSet(self.cursor)
+        result = resultSet(self.cursor).dump()
         for row in result:
             self.subscribe(pid, row['channel_id'])
 
@@ -365,6 +365,8 @@ class ProfileDB(object):
             pids.append(p['profile_id'])
         for p in pids:
             self._updateInstalledPackages(p)
+
+        self.conn.commit()
 
     def _updateInstalledPackages(self, pid):
         """Update the INSTALLED packages for specified profile.

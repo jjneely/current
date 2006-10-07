@@ -103,6 +103,7 @@ drop table if exists PROFILE;
 create table PROFILE (
     profile_id      INTEGER PRIMARY KEY auto_increment,
     user_id         int not null,
+    ou_id           int not null,
     architecture    varchar(64) not null,
     cannon_arch     varchar(32) not null,
     os_release      varchar(32) not null,
@@ -162,7 +163,8 @@ create table USER (
     contact_fax     boolean,
     contact_mail    boolean,
     contact_newsletter boolean,
-    contact_phone   boolean
+    contact_phone   boolean,
+    ou_id           int not null
 ) Type=InnoDB;
 
 drop table if exists HARDWARE;
@@ -197,4 +199,18 @@ create table STATUS (
 
     index(profile_id)
 ) Type=InnoDB;
+
+drop table if exists OU;
+create table OU (
+    ou_id           INTEGER PRIMARY KEY auto_increment,
+    label           varchar(64) not null,
+    description     varchar(256),
+    lft             int not null,
+    rgt             int not null,
+
+    index(label),
+    index(lft),
+    index(rgt)
+) Type=InnoDB;
+insert into OU values ("", "Root", 0, 1);
 """

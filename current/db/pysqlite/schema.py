@@ -81,7 +81,8 @@ create index SESSION_IDX on SESSIONS(sid);
 
 create table PROFILE (
     profile_id      INTEGER PRIMARY KEY,
-    user_id	    int not null,
+    user_id	        int not null,
+    ou_id           int not null,
     architecture    varchar(64) not null,
     cannon_arch     varchar(32) not null,
     os_release      varchar(32) not null,
@@ -121,7 +122,7 @@ create table USER (
     company         varchar(32),
     position        varchar(32),
     title           varchar(32),
-    first_name      varchar(32) ,
+    first_name      varchar(32),
     last_name       varchar(32),
     address1        varchar(32),
     address2        varchar(32),
@@ -135,7 +136,8 @@ create table USER (
     contact_fax     boolean,
     contact_mail    boolean,
     contact_newsletter boolean,
-    contact_phone   boolean
+    contact_phone   boolean,
+    ou_id           int not null
 );
 
 create table HARDWARE (
@@ -165,4 +167,13 @@ create table STATUS (
 );
 create index STATUS_PROFILE_IDX on STATUS(profile_id);
 
+create table OU (
+    ou_id           INTEGER PRIMARY KEY auto_increment,
+    label           varchar(64) not null,
+    description     varchar(256),
+    lft             int not null,
+    rgt             int not null,
+);
+create index OU_LFT_IDX on OU(lft);
+create index OU_RGT_IDX on OU(rgt);
 """

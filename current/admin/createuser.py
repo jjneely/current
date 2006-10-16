@@ -19,11 +19,13 @@ class Module(CadminConfig):
             print "Passwords do not match, try again."
             return None
 
+        sys.stdout.write("OU ID: ")
+        ou = sys.stdin.readline().strip()
         sys.stdout.write("Email Address: ")
         email = sys.stdin.readline().strip()
 
         result = self.call(server.cadmin.createUser, session, user, 
-                           password1, email)
+                           password1, ou, email)
         if result == True:
             print "User created."
         else:

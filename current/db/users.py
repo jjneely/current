@@ -3,6 +3,7 @@
 # users.py - Client users interface
 #
 # Copyright 2006 Pauline Middelink <middelink@polyware.nl>
+# Copyright 2006 Jack Neely <jjneely@gmail.com>
 #
 # SDG
 #
@@ -52,31 +53,36 @@ class UserDB(object):
         return result['user_id']
     
     def getUser(self, id):
-        q = """select username, password, email
+        q = """select username, password, email, ou_id
                from USER where user_id = %s"""
 
         self.cursor.execute(q, (id,))
-        r = self.cursor.fetchone()
+        r = resultSet(self.cursor)
         
-        # if r is None that's what we want
-        return r
+        if r.rowcount() == 0:
+            return None
+        else:
+            return r.dump()[0]
 
     def delete(self, pid):
         "Remove a user"
 
-	# this has to delete the user (duh), the profiles it
-	# owns, and the records from installed, hardware,
-	# subscriptions.
+	    # this has to delete the user (duh), the profiles it
+	    # owns, and the records from installed, hardware,
+	    # subscriptions.
 
         self.conn.commit()
 
-    def addUser(self, user, passwd, email):
+    def addUser(self, user, passwd, ouid, email):
         "Add a user"
 
-	self.cursor.execute('''insert into USER (username,password,email)
-			       values(%s,%s,%s)''', (user, passwd, email))
+        q = """insert into USER
+               (username, password, email, ou_id) values
+               (%s, %s, %s, %s)"""
+
+        self.cursor.execute(q, (user, passwd, email, ouid))
         self.conn.commit()
-	return self.getUserID(user)
+        return self.getUserID(user)
 
     def addInfo(self, id, product_info):
         "Add extra information to the user"

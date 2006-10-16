@@ -20,6 +20,7 @@ import xmlrpclib
 from current.logger import *
 from current.exception import *
 from current.users import SessionUser, User
+from current.ou import OU
 from current import profiles
 from current import channels
 from current import auth
@@ -41,6 +42,7 @@ __current_api__ = [
     'findProfile',
     'login',
     'createUser',
+    'showTree',
     ]
 
 def login(username, password):
@@ -52,14 +54,14 @@ def login(username, password):
     # sessid a coded tuple for us
     return sessid
 
-def createUser(sess, username, password, email):
+def createUser(sess, username, password, ou, email):
     # SSL, right?
     u = SessionUser(sess)
     if not u.isValid():
         return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
 
     new = User()
-    new.newUser(username, password, email)
+    new.newUser(username, password, ou, email)
     # Will raise exception if username already exists.
     return True
 
@@ -183,5 +185,13 @@ def findProfile(sess, pid=None):
     # XXX: a regex or something?
     systems = profiles.Systems()
     return systems.search(pid)
-    
+   
+def showTree(sess):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
+    oulib = OU()
+    return oulib.showTree()
+
 ## END OF LINE ##

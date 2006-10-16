@@ -27,15 +27,15 @@ from current import db
 from current.db.resultSet import resultSet
 from current.logger import *
 
-class ProfileDB(object):
+class OUDB(object):
 
     def __init__(self):
         self.conn   = db.sdb.getConnection()
         self.cursor = db.sdb.getCursor()
 
     def getOUID(self, label):
-        q1 = """select count(ou_id) where ou_id = %s"""
-        q2 = """select ou_id where label = %s"""
+        q1 = """select count(*) from OU where ou_id = %s"""
+        q2 = """select ou_id from OU where label = %s"""
 
         if isinstance(label, IntType):
             self.cursor.execute(q1, (label,))

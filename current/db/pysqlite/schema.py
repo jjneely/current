@@ -176,4 +176,6 @@ create table OU (
 );
 create index OU_LFT_IDX on OU(lft);
 create index OU_RGT_IDX on OU(rgt);
+insert into OU (ou_id, label, description, lft, rgt) 
+    values (0, "Root", "Root OU", 0, 1);
 """

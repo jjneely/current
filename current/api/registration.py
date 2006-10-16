@@ -70,6 +70,7 @@ def reserve_user(username, password):
 def new_user(username, password, email_address=None,
              org_id=None, org_password=None):
     # XXX: Need a security setting to allow arbitrary account creation.
+    # XXX: What do we do about putting users in OUs?
     # org_id and org_password only in 2.7+
 
     # Some limit checks

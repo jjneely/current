@@ -22,3 +22,6 @@ class ConfigurationError(CurrentException):
 
 class CurrentUser(CurrentException):
     pass
+
+class CurrentOUError(CurrentException):
+    pass

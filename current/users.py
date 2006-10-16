@@ -34,6 +34,7 @@ class User(object):
         self.pid = None
         self.username = None
         self.password = None
+        self.ou = None
         
         if user == None:
             # New object
@@ -50,12 +51,15 @@ class User(object):
 
     def _load(self):
         # intername helper function.  Reveal user info
-        tup = self.db.getUser(self.pid)
-        if tup == None:
+        data = self.db.getUser(self.pid)
+        if data == None:
             raise CurrentException("Tried to load an invalid user id: %s" \
                                    % self.pid)
             
-        (self.username, self.password, self.email) = tup
+        self.username = data['username']
+        self.password = data['password']
+        self.email = data['email']
+        self.ou = data['ou_id']
             
     def __sanity(self):
         if self.pid == None:
@@ -73,7 +77,7 @@ class User(object):
         self.__sanity()
         return self.password == self._makePasswd(password)
 
-    def newUser(self, username, password, email):
+    def newUser(self, username, password, ou, email):
         """Create a new user """
 
         if self.pid != None:
@@ -83,7 +87,7 @@ class User(object):
             raise CurrentUser("User name already in use.")
 
         self.pid = self.db.addUser(username, self._makePasswd(password), 
-                                   email)
+                                   ou, email)
         self._load()
        
     def addInfo(self, product_info):

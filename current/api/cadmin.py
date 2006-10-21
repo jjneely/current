@@ -43,6 +43,7 @@ __current_api__ = [
     'login',
     'createUser',
     'showTree',
+    'createOU',
     ]
 
 def login(username, password):
@@ -193,5 +194,13 @@ def showTree(sess):
 
     oulib = OU()
     return oulib.showTree()
+
+def createOU(sess, parent, label, description):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
+    oulib = OU()
+    return oulib.createOU(parent, label, description)
 
 ## END OF LINE ##

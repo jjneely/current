@@ -39,8 +39,8 @@ class OU(object):
     def isChild(self, parent, child):
         return self.db.isChild(parent, child)
 
-    def insertNode(self, parent, label, desc):
-        return self.db.insertNode(parent, label, desc)
+    def createOU(self, parent, label, desc):
+        return self.db.insertOU(parent, label, desc)
 
     def showTree(self, user=0):
         # The Root OU always has id == 0

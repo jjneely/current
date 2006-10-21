@@ -5,7 +5,7 @@ import logging
 import sys
 import optparse
 
-logger = logging.getLogger("cadmin")
+logger = logging.getLogger()
 log = logger.log
 
 class Module(CadminConfig):

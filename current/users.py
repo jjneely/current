@@ -144,7 +144,7 @@ class SessionUser(User):
 
             if self.db.isInitialUser():
                 log(VERBOSE, "Creating inital super user")
-                self.newUser(user, password, "root@localhost")
+                self.newUser(user, password, 0, "root@localhost")
                 self.__initSession()
                 return {'code':1, 'session':self.session.sid}
             else:

@@ -168,11 +168,11 @@ create table STATUS (
 create index STATUS_PROFILE_IDX on STATUS(profile_id);
 
 create table OU (
-    ou_id           INTEGER PRIMARY KEY auto_increment,
+    ou_id           INTEGER PRIMARY KEY,
     label           varchar(64) not null,
     description     varchar(256),
     lft             int not null,
-    rgt             int not null,
+    rgt             int not null
 );
 create index OU_LFT_IDX on OU(lft);
 create index OU_RGT_IDX on OU(rgt);

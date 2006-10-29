@@ -17,14 +17,14 @@ class Module(CadminConfig):
         u = "%prog createou -p <parent OU ID> -l <OU Label> [-d <Description>]"
         parser = optparse.OptionParser(u)
         parser.add_option("-p", "--parent", action="store", type="int", 
-                          dest="parent")
+                          dest="parent", default=None)
         parser.add_option("-l", "--label", action="store", type="string", 
-                          dest="label")
+                          dest="label", default=None)
         parser.add_option("-d", "--description", action="store", type="string",
                           dest="desc", default="")
         (opts, leftargs) = parser.parse_args(argv)
         
-        if not (opts.parent and opts.label):
+        if opts.parent == None or opts.label == None:
             parser.print_help()
             sys.exit()
 

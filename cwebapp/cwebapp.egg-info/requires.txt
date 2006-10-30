@@ -1,1 +1,1 @@
-TurboGears >= 0.8.9
+TurboGears >= 1.0b1

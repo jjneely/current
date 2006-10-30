@@ -31,7 +31,7 @@ import os.path
 from tempfile import TemporaryFile
 from xmlrpclib import Fault
 
-from yum.config import readRepoConfig, _getsysver
+from yum.config import _getsysver
 from yum.plugins import TYPE_CORE, PluginYumExit
 from rpmUtils import arch 
 
@@ -201,7 +201,7 @@ def runPlugin(c):
     for section in cfg.sections():
         if section == "main":
             continue
-        repo = readRepoConfig(cfg, section, c.getConf())
+        repo = c._base.readRepoConfig(cfg, section)
         # Current gives us a header dict, that's what the YumRepo wants
         # XXX: I don't believe http_headers is populated before this
         repo.http_headers = currentHeaders

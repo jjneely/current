@@ -222,11 +222,10 @@ class ProfileDB(object):
             q = q + " where profile_id = %s"
 
         if pid == None:
-            tup = None
+            self.cursor.execute(q)
         else:
-            tup = (pid,)
+            self.cursor.execute(q, (pid,))
 
-        self.cursor.execute(q, tup)
         r = resultSet(self.cursor)
         ret = r.dump()
 

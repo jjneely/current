@@ -14,7 +14,7 @@ class Module(CadminConfig):
         user = sys.stdin.readline().strip()
         password = getpass.getpass("Password:")
 
-        result = self.call(server.cadmin.login, user, password)
+        result = self.call(server.policy.login, user, password)
         if result['code'] == 0:
             print "Login successful."
             return result['session']

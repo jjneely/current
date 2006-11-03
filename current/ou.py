@@ -42,7 +42,8 @@ class OU(object):
     def createOU(self, parent, label, desc):
         return self.db.insertOU(parent, label, desc)
 
-    def showTree(self, user=0):
-        # The Root OU always has id == 0
+    def showTree(self, user=None):
+        if user == None:
+            user = self.db.getRootID()
         return self.db.subTree(user)
 

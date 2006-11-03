@@ -28,7 +28,7 @@ class Module(CadminConfig):
             parser.print_help()
             sys.exit()
 
-        result = xmlrpc.doCall(server.cadmin.createOU, session, 
+        result = xmlrpc.doCall(server.policy.createOU, session, 
                                opts.parent,
                                opts.label,
                                opts.desc)

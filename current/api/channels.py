@@ -24,6 +24,9 @@ from current.logger import *
 from current.users import SessionUser
 from current.channels import Channels
 
+# Failed Auth error code
+EAUTH = 17
+
 __current_api__ = [
     'listChannels',
     'getChannelDetail',

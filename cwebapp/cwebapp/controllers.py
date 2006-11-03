@@ -4,10 +4,19 @@ import auth
 import cherrypy.config
 from turbogears import controllers
 
-class Systems(object):
+class SubDir(object):
 
     def __init__(self, api):
         self.__api = api
+
+class Policy(SubDir):
+
+    @turbogears.expose(html="cwebapp.templates.policy")
+    @auth.needsLogin
+    def index(self, userInfo):
+        myOU = foo
+
+class Systems(SubDir):
 
     @turbogears.expose(html="cwebapp.templates.systems")
     @auth.needsLogin
@@ -22,10 +31,7 @@ class Systems(object):
                                                 profileID)
         return dict(system=system)
 
-class Channels(object):
-
-    def __init__(self, api):
-        self.__api = api
+class Channels(SubDir):
 
     @turbogears.expose(html="cwebapp.templates.channels")
     @auth.needsLogin
@@ -50,7 +56,7 @@ class Root(controllers.Root):
         self.channels = Channels(self.__api)
 
     def doLoginCall(self, userid, password):
-        return self.__api.cadmin.login(userid, password)
+        return self.__api.policy.login(userid, password)
 
     @turbogears.expose(html="cwebapp.templates.index")
     @auth.needsLogin

@@ -17,7 +17,7 @@ class Module(CadminConfig):
     def run(self, server, session, argv):
         usage = "usage: %prog showou"
 
-        result = self.call(server.cadmin.showTree, session)
+        result = self.call(server.policy.showTree, session)
 
         self.display(result)
 

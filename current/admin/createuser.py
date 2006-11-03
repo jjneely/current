@@ -24,7 +24,7 @@ class Module(CadminConfig):
         sys.stdout.write("Email Address: ")
         email = sys.stdin.readline().strip()
 
-        result = self.call(server.cadmin.createUser, session, user, 
+        result = self.call(server.policy.createUser, session, user, 
                            password1, ou, email)
         if result == True:
             print "User created."

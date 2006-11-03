@@ -10,17 +10,13 @@ License (GPL) v2.
 
 """
 
-__all__ = ['status']
-
-import string
 import sys
 import pprint
 import xmlrpclib
 
 from current.logger import *
 from current.exception import *
-from current.users import SessionUser, User
-from current.ou import OU
+from current.users import SessionUser
 from current import profiles
 from current import channels
 from current import auth
@@ -40,31 +36,7 @@ __current_api__ = [
     'subscribe',
     'unsubscribe',
     'findProfile',
-    'login',
-    'createUser',
-    'showTree',
-    'createOU',
     ]
-
-def login(username, password):
-    # This is over SSL, right?  RIGHT?
-
-    u = SessionUser()
-    sessid = u.login(username, password)
-
-    # sessid a coded tuple for us
-    return sessid
-
-def createUser(sess, username, password, ou, email):
-    # SSL, right?
-    u = SessionUser(sess)
-    if not u.isValid():
-        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
-
-    new = User()
-    new.newUser(username, password, ou, email)
-    # Will raise exception if username already exists.
-    return True
 
 def scanChannels(sess, chanlist):
     u = SessionUser(sess)
@@ -187,20 +159,4 @@ def findProfile(sess, pid=None):
     systems = profiles.Systems()
     return systems.search(pid)
    
-def showTree(sess):
-    u = SessionUser(sess)
-    if not u.isValid():
-        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
-
-    oulib = OU()
-    return oulib.showTree()
-
-def createOU(sess, parent, label, description):
-    u = SessionUser(sess)
-    if not u.isValid():
-        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
-
-    oulib = OU()
-    return oulib.createOU(parent, label, description)
-
 ## END OF LINE ##

@@ -46,6 +46,8 @@ Connection: close
 
 * Exception handling throught code
 
+* Constant, explicit XMLRPC Fault Error codes.
+
 * we ignore channel versions during create/delete/listpackage. Fix that.
   Old channel versions might need to live for up to an hour, to give
   "logged in" clients a chance to expire.
@@ -61,8 +63,6 @@ Connection: close
 * In the new web based, database backed current administrative system
   (which does't exist) it would be cool to include mod_status and 
   mod_config information.
-
-* Authorization
 
 1.8.0 ship checklist
 

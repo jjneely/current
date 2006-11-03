@@ -19,6 +19,7 @@ from current.api import applet
 from current.api import yum
 from current.api import systems
 from current.api import channels
+from current.api import policy
 
 ## END OF LINE ##
 

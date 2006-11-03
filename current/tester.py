@@ -7,7 +7,7 @@ import sys
 import types
 import pprint
 
-for file in ['/export/redhat-7.3/RPMS/Canna-devel-3.5b2-62.i386.rpm']:
+for file in ['/export/trees/realmlinux-ws4/SRPMS/nmh-1.0.4-20.src.rpm']:
     h = Header(file)
 
 #    pprint.pprint(dir(h))
@@ -16,22 +16,24 @@ for file in ['/export/redhat-7.3/RPMS/Canna-devel-3.5b2-62.i386.rpm']:
     print type(h[SOURCEPACKAGE])
     assert type(h[SOURCEPACKAGE]) == int, "tester.py, type violation"
 
+    print '   ARCH              %s' % h[ARCH]
+
     print '   CT_FILESIZE       %s' % h[CT_FILESIZE],
     print type(h[CT_FILESIZE])
     assert type(h[CT_FILESIZE]) == long
 
     print '   PROVIDENAME       %s' % h[PROVIDENAME]
     assert type(h[PROVIDENAME]) == list
-    assert type(h[PROVIDENAME][0]) == str
+    #assert type(h[PROVIDENAME][0]) == str
 
     print '   PROVIDEFLAGS      %s' % h[PROVIDEFLAGS]
 #    print '   rpm thinks        %s' % h.hdr[rpm_wrapper.rpm.RPMTAG_PROVIDEFLAGS]
     assert type(h[PROVIDEFLAGS]) == list
-    assert type(h[PROVIDEFLAGS][0]) == int
+    #assert type(h[PROVIDEFLAGS][0]) == int
 
     print '   PROVIDEVERSION    %s' % h[PROVIDEVERSION]
     assert type(h[PROVIDEVERSION]) == list
-    assert type(h[PROVIDEVERSION][0]) == str
+    #assert type(h[PROVIDEVERSION][0]) == str
 
     print '   CT_PROVIDES       %s' % h[CT_PROVIDES]
     assert type(h[PROVIDES]) == list

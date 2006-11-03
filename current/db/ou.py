@@ -33,11 +33,27 @@ class OUDB(object):
         self.conn   = db.sdb.getConnection()
         self.cursor = db.sdb.getCursor()
 
+    def getRootID(self):
+        # Apperently, MySQL has this thing about an auto_increment field
+        # starting at 0.  Let's support the ou_id of the root being 
+        # whatever the database makes up.
+        q = """select ou_id from OU, 
+               (select MAX(rgt) as maxrgt from OU) as subselect
+               where OU.lft = 0 and OU.rgt = subselect.maxrgt"""
+
+        self.cursor.execute(q)
+        if self.cursor.rowcount != 1:
+            log(WARNING, "Database curruption.  Got rowcount=%s for root node" \
+                % self.cursor.rowcount)
+            raise CurrentOUError("Could not locate root OU ID")
+
+        return self.cursor.fetchone()[0]
+
     def getOUID(self, label):
         q1 = """select count(*) from OU where ou_id = %s"""
         q2 = """select ou_id from OU where label = %s"""
 
-        if isinstance(label, IntType):
+        if isinstance(label, IntType) or isinstance(label, LongType):
             self.cursor.execute(q1, (label,))
             r = self.cursor.fetchone()
             if r[0] > 0:
@@ -45,9 +61,9 @@ class OUDB(object):
             else:
                 return None
         else:
-            self.cusor.execute(q2, (label,))
+            self.cursor.execute(q2, (label,))
             r = self.cursor.fetchone()
-            if self.cursor.rowcount() == 0:
+            if self.cursor.rowcount == 0:
                 return None
             else:
                 return self.cursor.fetchone()[0]
@@ -76,6 +92,8 @@ class OUDB(object):
 
         q = """insert into OU (label, description, lft, rgt) values
                (%s, %s, %s, %s)"""
+        log(DEBUG2, "SQL: %s" % q)
+        log(DEBUG2, "(%s, %s, %s, %s)" % (label, desc, lft, rgt))
         self.cursor.execute(q, (label, desc, lft, rgt))
 
         q = """select ou_id from OU where lft = %s and rgt = %s"""
@@ -106,6 +124,7 @@ class OUDB(object):
         return self.cursor.fetchone()[0] > 0
 
     def subTree(self, root):
+        log(TRIVIA, "Pulling subtree of %s, type %s" % (root, type(root)))
         root = self.getOUID(root)
         if root == None:
             raise CurrentOUError("Invalid OU ID.")

@@ -202,7 +202,7 @@ create table STATUS (
 
 drop table if exists OU;
 create table OU (
-    ou_id           INTEGER PRIMARY KEY,
+    ou_id           INTEGER PRIMARY KEY auto_increment,
     label           varchar(64) not null,
     description     varchar(256),
     lft             int not null,
@@ -211,8 +211,7 @@ create table OU (
     index(label),
     index(lft),
     index(rgt)
-) Type=InnoDB,
-  auto_increment=0;
-insert into OU (ou_id, label, description, lft, rgt) 
-    values (0, "Root", "Root OU", 0, 1);
+) Type=InnoDB;
+insert into OU (label, description, lft, rgt) 
+    values ("Root", "Root OU", 0, 1);
 """

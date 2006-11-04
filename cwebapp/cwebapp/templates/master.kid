@@ -32,6 +32,9 @@
         <li class="navlink">
           <a href="${std.url('/channels')}">Channels</a>
         </li>
+        <li class="navlink">
+          <a href="${std.url('/policy')}">Policy</a>
+        </li>
 
         <li class="help">
           <a href="http://current.tigris.org">Current Home</a>

@@ -129,7 +129,7 @@ class OUDB(object):
         if root == None:
             raise CurrentOUError("Invalid OU ID.")
 
-        q = """select node.label, node.ou_id,
+        q = """select node.label, node.ou_id, node.description,
                   (count(parent.label) - (sub_tree.depth + 1)) as depth
                from OU as node,
                   OU as parent,
@@ -150,3 +150,16 @@ class OUDB(object):
 
         self.cursor.execute(q, (root,))
         return resultSet(self.cursor).dump()
+
+    def profilesOfOU(self, ou):
+        ou = self.getOUID(ou)
+        q = "select profile_id, name from PROFILE where ou_id = %s"
+        self.cursor.execute(q, (ou,))
+        return resultSet(self.cursor).dump()
+
+    def countProfilesOfOU(self, ou):
+        ou = self.getOUID(ou)
+        q = "select count(*) from PROFILE where ou_id = %s"
+        self.cursor.execute(q, (ou,))
+        return self.cursor.fetchone()[0]
+

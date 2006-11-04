@@ -28,6 +28,9 @@ __current_api__ = [
     'createUser',
     'showTree',
     'createOU',
+    'myOU',
+    'profilesOfOU',
+    'countProfilesOfOU',
     ]
 
 def login(username, password):
@@ -50,13 +53,13 @@ def createUser(sess, username, password, ou, email):
     # Will raise exception if username already exists.
     return True
 
-def showTree(sess):
+def showTree(sess, root=None):
     u = SessionUser(sess)
     if not u.isValid():
         return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
 
     oulib = OU()
-    return oulib.showTree()
+    return oulib.showTree(root)
 
 def createOU(sess, parent, label, description):
     u = SessionUser(sess)
@@ -65,5 +68,29 @@ def createOU(sess, parent, label, description):
 
     oulib = OU()
     return oulib.createOU(parent, label, description)
+
+def myOU(sess):
+    "Return this users default OU."
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+
+    return u.ou
+
+def profilesOfOU(sess, ou):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+    
+    oulib = OU()
+    return oulib.profilesOfOU(ou)
+
+def countProfilesOfOU(sess, ou):
+    u = SessionUser(sess)
+    if not u.isValid():
+        return xmlrpclib.Fault(EAUTH, "Bad session.  Please login.")
+    
+    oulib = OU()
+    return oulib.countProfilesOfOU(ou)\
 
 ## END OF LINE ##

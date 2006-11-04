@@ -47,3 +47,10 @@ class OU(object):
             user = self.db.getRootID()
         return self.db.subTree(user)
 
+    def profilesOfOU(self, ou):
+        ou = self.db.getOUID(ou)
+        return self.db.profileOfOU(ou)
+
+    def countProfilesOfOU(self, ou):
+        ou = self.db.getOUID(ou)
+        return self.db.countProfilesOfOU(ou)

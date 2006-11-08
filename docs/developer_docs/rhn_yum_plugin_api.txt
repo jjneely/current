@@ -1,0 +1,49 @@
+RHN Yum Plugin
+==============
+
+As of the RHEL 5 betas Red Hat is using an RHN plugin with Yum to support
+RHN with RHEL.  No more up2date.  This is a good thing.
+
+There are several bits of the RHN protocol that the RHN plugin does 
+differently.
+
+HTTP Headers
+------------
+
+Rather than always use the headers up2date.login() returns in HTTP
+GET requests the RHN plugin knows a list of specific headers to use.  This
+is handled in rhnplugin.py in setupRhnHttpHeaders().  These headers that
+the plugin will return to us are:
+
+    rhn_needed_headers = ['X-RHN-Server-Id',
+                          'X-RHN-Auth-User-Id',
+                          'X-RHN-Auth',
+                          'X-RHN-Auth-Server-Time',
+                          'X-RHN-Auth-Expire-Offset']
+
+Obviously, we must also supply these headers to the client in up2date.login().
+
+HTTP GET Request
+----------------
+
+URLGrabber that Yum uses to fetch stuff off the web and the RHN code do not
+like "$RHN" in the URLs.  This has always been an arbitrary string anyway
+as far as I can tell.  Its been replaced with "GET-REQ" producing URLs
+that look like:
+
+    https://current.linux.ncsu.edu/XMLRPC/GET-REQ/realmlinux-c-4.91/repodata/repomd.xml
+
+Repository Format
+-----------------
+
+Attempting to take the RHN protocol and morph it into something Yum can
+grok is just about impossible.  The folks at Red Hat figured this out
+as I did.  So, as you might guess from the URL above the directory for 
+each channel (in the example 'realmlinux-c-4.91') now has a 'repodata'
+directory in it.  This is very simple.  You just run the 'createrepo'
+command on that directory and it litterally becomes a normal Yum 
+repository with RHN's or Current's Apache access handler allowing or
+denying access based on the HTTP headers.
+
+Jack Neely
+November 7th, 2006
